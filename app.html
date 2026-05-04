@@ -752,6 +752,48 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
+  /* Coach selector */
+  .coach-option {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+
+  .coach-option:hover { border-color: var(--green); transform: translateY(-3px); }
+
+  .coach-logo {
+    width: 64px; height: 64px;
+    border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 14px;
+  }
+
+  .coach-name {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.1rem;
+    letter-spacing: -0.02em;
+    margin-bottom: 4px;
+  }
+
+  .coach-desc { font-size: 0.78rem; color: var(--muted); margin-bottom: 8px; }
+
+  .coach-badge {
+    display: inline-block;
+    background: var(--green-dim);
+    color: var(--green);
+    border: 1px solid #00E5A025;
+    border-radius: 100px;
+    padding: 3px 10px;
+    font-size: 0.68rem;
+    font-family: 'DM Mono', monospace;
+  }
+
   /* Mobile */
   @media (max-width: 768px) {
     aside { transform: translateX(-100%); }
@@ -936,58 +978,79 @@
       </div>
     </div>
 
-    <!-- AI Coach -->
+    <!-- AI Coach selector -->
     <div class="page" id="page-coach">
-      <div class="coach-layout">
-        <div class="chat-wrap">
-          <div class="chat-header">
-            <div class="chat-ai-dot"></div>
-            <div class="chat-ai-name">Cadence Coach</div>
-            <div class="chat-ai-model" id="chat-model-label">Claude</div>
-          </div>
-          <div class="chat-messages" id="chat-messages">
-            <div class="msg">
-              <div class="msg-avatar coach">AI</div>
-              <div>
-                <div class="msg-bubble">Hey! I'm your Cadence AI Coach. I have access to your recent Strava activities and I'm here to help you train smarter. Ask me anything — pacing, recovery, training plans, race prep... what's on your mind? 🏃</div>
-                <div class="msg-time">now</div>
-              </div>
+      <!-- Coach selector screen -->
+      <div id="coach-selector">
+        <div style="text-align:center;margin-bottom:36px;">
+          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;letter-spacing:-0.02em;margin-bottom:8px;">Choose your coach</div>
+          <div style="font-size:0.88rem;color:var(--muted);">All included in your plan — powered by Cadence</div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;max-width:700px;margin:0 auto;">
+          <div class="coach-option" onclick="selectCoach('gemini')">
+            <div class="coach-logo" style="background:#1a73e820;">
+              <svg width="32" height="32" viewBox="0 0 48 48"><path d="M24 4C12.95 4 4 12.95 4 24s8.95 20 20 20 20-8.95 20-20S35.05 4 24 4z" fill="#4285f4"/><path d="M24 8c-3.87 0-7.4 1.38-10.13 3.65L37.35 34.13C39.62 31.4 41 27.87 41 24c0-9.39-7.61-17-17-17z" fill="#34a853"/><path d="M7 24c0 3.87 1.38 7.4 3.65 10.13L33.13 11.65C30.4 9.38 26.87 8 23 8 14.16 8 7 15.16 7 24z" fill="#fbbc05"/><path d="M24 40c3.87 0 7.4-1.38 10.13-3.65L11.65 13.87C9.38 16.6 8 20.13 8 24c0 8.84 7.16 16 16 16z" fill="#ea4335"/></svg>
             </div>
+            <div class="coach-name">Gemini</div>
+            <div class="coach-desc">by Google · fastest</div>
+            <div class="coach-badge">Recommended</div>
           </div>
-          <div class="chat-input-wrap">
-            <textarea class="chat-input" id="chat-input" placeholder="Ask your coach anything…" rows="1" onkeydown="handleKey(event)"></textarea>
-            <button class="chat-send" id="chat-send" onclick="sendMessage()">→</button>
+          <div class="coach-option" onclick="selectCoach('claude')">
+            <div class="coach-logo" style="background:#d4700120;">
+              <svg width="32" height="32" viewBox="0 0 48 48"><circle cx="24" cy="24" r="20" fill="#d47001"/><text x="24" y="30" text-anchor="middle" fill="white" font-size="18" font-weight="bold">A</text></svg>
+            </div>
+            <div class="coach-name">Claude</div>
+            <div class="coach-desc">by Anthropic · smartest</div>
+          </div>
+          <div class="coach-option" onclick="selectCoach('openai')">
+            <div class="coach-logo" style="background:#10a37f20;">
+              <svg width="32" height="32" viewBox="0 0 48 48"><circle cx="24" cy="24" r="20" fill="#10a37f"/><text x="24" y="30" text-anchor="middle" fill="white" font-size="14" font-weight="bold">GPT</text></svg>
+            </div>
+            <div class="coach-name">ChatGPT</div>
+            <div class="coach-desc">by OpenAI · popular</div>
           </div>
         </div>
+      </div>
 
-        <div class="coach-sidebar">
-          <!-- AI config -->
-          <div class="sidebar-card">
-            <div class="sidebar-card-title">AI Model</div>
-            <div class="ai-config-row">
-              <div class="ai-model-chip active" id="chip-claude" onclick="switchModel('claude')">Claude</div>
-              <div class="ai-model-chip" id="chip-openai" onclick="switchModel('openai')">ChatGPT</div>
-              <div class="ai-model-chip" id="chip-gemini" onclick="switchModel('gemini')">Gemini ✨</div>
+      <!-- Chat screen (hidden until coach selected) -->
+      <div id="coach-chat" style="display:none;">
+        <div class="coach-layout">
+          <div class="chat-wrap">
+            <div class="chat-header">
+              <button onclick="backToSelector()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:1rem;margin-right:8px;">←</button>
+              <div class="chat-ai-dot"></div>
+              <div class="chat-ai-name" id="chat-coach-name">Cadence Coach</div>
+              <div class="chat-ai-model" id="chat-model-label">Gemini</div>
             </div>
-            <input class="ob-input" id="coach-api-key" type="password" placeholder="API key…" style="margin-bottom:6px;font-size:0.78rem;padding:9px 12px;">
-            <button class="btn-ob" style="padding:9px;font-size:0.8rem;" onclick="saveCoachKey()">Save key</button>
+            <div class="chat-messages" id="chat-messages">
+              <div class="msg">
+                <div class="msg-avatar coach">AI</div>
+                <div>
+                  <div class="msg-bubble">Hey! I'm your Cadence AI Coach. I have access to your recent Strava activities and I'm here to help you train smarter. Ask me anything — pacing, recovery, training plans, race prep... what's on your mind? 🏃</div>
+                  <div class="msg-time">now</div>
+                </div>
+              </div>
+            </div>
+            <div class="chat-input-wrap">
+              <textarea class="chat-input" id="chat-input" placeholder="Ask your coach anything…" rows="1" onkeydown="handleKey(event)"></textarea>
+              <button class="chat-send" id="chat-send" onclick="sendMessage()">→</button>
+            </div>
           </div>
 
-          <!-- Quick prompts -->
-          <div class="sidebar-card">
-            <div class="sidebar-card-title">Quick prompts</div>
-            <button class="quick-prompt" onclick="quickPrompt(this)">Why is my pace dropping in long runs?</button>
-            <button class="quick-prompt" onclick="quickPrompt(this)">Am I overtraining this week?</button>
-            <button class="quick-prompt" onclick="quickPrompt(this)">Build me a 10K training plan</button>
-            <button class="quick-prompt" onclick="quickPrompt(this)">When will I break 50min for 10K?</button>
-            <button class="quick-prompt" onclick="quickPrompt(this)">How's my weekly volume trend?</button>
-            <button class="quick-prompt" onclick="quickPrompt(this)">What should I focus on this week?</button>
-          </div>
-
-          <!-- Recent stats for context -->
-          <div class="sidebar-card">
-            <div class="sidebar-card-title">Context sent to AI</div>
-            <div id="context-preview" style="font-size:0.75rem;color:var(--muted);line-height:1.6;font-family:'DM Mono',monospace;">Loading your data…</div>
+          <div class="coach-sidebar">
+            <div class="sidebar-card">
+              <div class="sidebar-card-title">Quick prompts</div>
+              <button class="quick-prompt" onclick="quickPrompt(this)">Why is my pace dropping in long runs?</button>
+              <button class="quick-prompt" onclick="quickPrompt(this)">Am I overtraining this week?</button>
+              <button class="quick-prompt" onclick="quickPrompt(this)">Build me a 10K training plan</button>
+              <button class="quick-prompt" onclick="quickPrompt(this)">When will I break 50min for 10K?</button>
+              <button class="quick-prompt" onclick="quickPrompt(this)">How's my weekly volume trend?</button>
+              <button class="quick-prompt" onclick="quickPrompt(this)">What should I focus on this week?</button>
+            </div>
+            <div class="sidebar-card">
+              <div class="sidebar-card-title">Context sent to AI</div>
+              <div id="context-preview" style="font-size:0.75rem;color:var(--muted);line-height:1.6;font-family:'DM Mono',monospace;">Loading your data…</div>
+            </div>
           </div>
         </div>
       </div>
@@ -1310,23 +1373,35 @@ Sport breakdown: ${[...new Set(acts.map(a=>a.sport_type||a.type))].join(', ')}`;
 let chatHistory = [];
 let selectedModel = localStorage.getItem('ai_provider') || 'claude';
 
-function switchModel(model) {
+function selectCoach(model) {
   selectedModel = model;
   state.aiProvider = model;
   localStorage.setItem('ai_provider', model);
-  updateModelUI();
+  const names = { gemini: 'Gemini', claude: 'Claude', openai: 'ChatGPT' };
+  document.getElementById('chat-coach-name').textContent = 'Cadence × ' + names[model];
+  document.getElementById('chat-model-label').textContent = names[model];
+  document.getElementById('coach-selector').style.display = 'none';
+  document.getElementById('coach-chat').style.display = 'block';
+  // Reset chat
+  chatHistory = [];
+  const msgs = document.getElementById('chat-messages');
+  msgs.innerHTML = `<div class="msg"><div class="msg-avatar coach">AI</div><div><div class="msg-bubble">Hey! I'm your Cadence ${names[model]} Coach 🏃 I have your Strava data loaded. Ask me anything about your training!</div><div class="msg-time">now</div></div></div>`;
+}
+
+function backToSelector() {
+  document.getElementById('coach-selector').style.display = 'block';
+  document.getElementById('coach-chat').style.display = 'none';
+  chatHistory = [];
 }
 
 function updateModelUI() {
-  document.querySelectorAll('.ai-model-chip').forEach(c => c.classList.remove('active'));
-  const chip = document.getElementById('chip-' + selectedModel);
-  if (chip) chip.classList.add('active');
   const label = document.getElementById('chat-model-label');
-  if (label) label.textContent = selectedModel === 'claude' ? 'Claude' : selectedModel === 'gemini' ? 'Gemini' : 'ChatGPT';
+  const names = { gemini: 'Gemini', claude: 'Claude', openai: 'ChatGPT' };
+  if (label) label.textContent = names[selectedModel] || 'Gemini';
 }
 
 function saveCoachKey() {
-  const key = document.getElementById('coach-api-key').value.trim();
+  const key = document.getElementById('coach-api-key')?.value?.trim();
   if (key && !key.includes('•')) {
     state.aiKey = key;
     localStorage.setItem('ai_key', key);
@@ -1419,26 +1494,18 @@ Be specific, data-driven, and actionable. Reference their actual runs and number
       reply = data.choices[0].message.content;
 
     } else {
-      // Gemini
-      const geminiMessages = chatHistory.map(m => ({
-        role: m.role === 'assistant' ? 'model' : 'user',
-        parts: [{ text: m.content }]
-      }));
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${state.aiKey}`, {
+      // Gemini via Vercel serverless function (API key stays server-side)
+      const res = await fetch('/api/coach', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          system_instruction: { parts: [{ text: systemPrompt }] },
-          contents: geminiMessages,
-          generationConfig: { maxOutputTokens: 1000 }
-        })
+        body: JSON.stringify({ messages: chatHistory, systemPrompt })
       });
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.error?.message || 'Gemini API error');
+        throw new Error(err.error || 'Gemini API error');
       }
       const data = await res.json();
-      reply = data.candidates[0].content.parts[0].text;
+      reply = data.reply;
     }
 
     chatHistory.push({ role: 'assistant', content: reply });
