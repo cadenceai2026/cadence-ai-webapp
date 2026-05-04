@@ -1388,6 +1388,35 @@ function selectCoach(model) {
   msgs.innerHTML = `<div class="msg"><div class="msg-avatar coach">AI</div><div><div class="msg-bubble">Hey! I'm your Cadence ${names[model]} Coach 🏃 I have your Strava data loaded. Ask me anything about your training!</div><div class="msg-time">now</div></div></div>`;
 }
 
+function showGeminiKeyModal() {
+  const existing = document.getElementById('gemini-modal');
+  if (existing) existing.remove();
+  const modal = document.createElement('div');
+  modal.id = 'gemini-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:#00000090;z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;';
+  modal.innerHTML = `
+    <div style="background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:32px;max-width:420px;width:100%;">
+      <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;margin-bottom:8px;letter-spacing:-0.02em;">Add Gemini API Key</div>
+      <div style="font-size:0.85rem;color:var(--muted);margin-bottom:6px;line-height:1.5;">Get a free key at <a href="https://aistudio.google.com" target="_blank" style="color:var(--green)">aistudio.google.com</a> → Get API Key</div>
+      <div style="font-size:0.75rem;color:var(--muted2);margin-bottom:18px;font-family:'DM Mono',monospace;">_ stored only in your browser</div>
+      <input id="gemini-key-input" type="password" placeholder="AIza..." style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:12px 16px;color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:0.9rem;outline:none;margin-bottom:12px;">
+      <button onclick="saveGeminiKey()" style="width:100%;background:var(--green);color:#080808;border:none;border-radius:10px;padding:13px;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:0.9rem;cursor:pointer;">Save & start chatting →</button>
+      <button onclick="document.getElementById('gemini-modal').remove()" style="width:100%;background:transparent;border:none;color:var(--muted);padding:10px;cursor:pointer;font-size:0.85rem;margin-top:4px;">Cancel</button>
+    </div>`;
+  document.body.appendChild(modal);
+  setTimeout(() => document.getElementById('gemini-key-input')?.focus(), 100);
+}
+
+function saveGeminiKey() {
+  const key = document.getElementById('gemini-key-input')?.value?.trim();
+  if (!key) return;
+  state.aiKey = key;
+  localStorage.setItem('ai_key', key);
+  localStorage.setItem('gemini_key', key);
+  document.getElementById('gemini-modal')?.remove();
+  toast('Gemini key saved ✓ — now ask your coach!', 'success');
+}
+
 function backToSelector() {
   document.getElementById('coach-selector').style.display = 'block';
   document.getElementById('coach-chat').style.display = 'none';
@@ -1494,45 +1523,34 @@ Be specific, data-driven, and actionable. Reference their actual runs and number
       reply = data.choices[0].message.content;
 
     } else {
-      // Gemini — tries Vercel function first, falls back to direct API with user key
-      const isVercel = window.location.hostname.includes('vercel.app') || 
-                       (!window.location.hostname.includes('localhost') && 
-                        !window.location.protocol.includes('file'));
-      if (isVercel) {
-        const res = await fetch('/api/coach', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ messages: chatHistory, systemPrompt })
-        });
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          throw new Error(err.error || 'Server error — check Vercel logs');
-        }
-        const data = await res.json();
-        reply = data.reply;
-      } else {
-        // Local/file mode — use direct Gemini API with user key
-        if (!state.aiKey) throw new Error('Add your Gemini API key to test locally');
-        const geminiMessages = chatHistory.map(m => ({
-          role: m.role === 'assistant' ? 'model' : 'user',
-          parts: [{ text: m.content }]
-        }));
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${state.aiKey}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            system_instruction: { parts: [{ text: systemPrompt }] },
-            contents: geminiMessages,
-            generationConfig: { maxOutputTokens: 1000 }
-          })
-        });
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          throw new Error(err.error?.message || 'Gemini API error');
-        }
-        const data = await res.json();
-        reply = data.candidates[0].content.parts[0].text;
+      // Gemini direct call — API key stored in browser
+      const geminiKey = state.aiKey || localStorage.getItem('gemini_key');
+      if (!geminiKey) {
+        // Show key input modal
+        showGeminiKeyModal();
+        removeTyping(typingId);
+        sendBtn.disabled = false;
+        return;
       }
+      const geminiMessages = chatHistory.map(m => ({
+        role: m.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: m.content }]
+      }));
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          system_instruction: { parts: [{ text: systemPrompt }] },
+          contents: geminiMessages,
+          generationConfig: { maxOutputTokens: 1000 }
+        })
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error?.message || 'Gemini API error — check your key');
+      }
+      const data = await res.json();
+      reply = data.candidates[0].content.parts[0].text;
     }
 
     chatHistory.push({ role: 'assistant', content: reply });
