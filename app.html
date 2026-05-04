@@ -795,23 +795,20 @@
       <div class="ob-dot" id="dot-2"></div>
     </div>
 
-    <!-- Step 0: Strava credentials -->
+    <!-- Step 0: Strava access token -->
     <div class="ob-step active" id="step-0">
       <div class="ob-h">Connect Strava</div>
-      <div class="ob-sub">You need 3 things from <a href="https://www.strava.com/settings/api" target="_blank" style="color:var(--green)">strava.com/settings/api</a></div>
+      <div class="ob-sub">Paste your Strava <strong style="color:var(--text)">Access Token</strong>. You got this from the console when you ran the fetch command.</div>
       <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:12px;margin-bottom:14px;font-size:0.72rem;color:var(--muted);line-height:1.8;font-family:'DM Mono',monospace;">
-        <div style="color:var(--green);margin-bottom:4px;">HOW TO GET YOUR TOKENS</div>
-        1. Create app at strava.com/settings/api<br>
-        2. Copy Client ID + Client Secret<br>
-        3. Go to Strava OAuth URL with your Client ID<br>
-        4. Authorize and copy the code from redirect URL<br>
-        5. Exchange code at <a href="https://developers.strava.com/playground/" target="_blank" style="color:var(--green)">Strava Playground</a> to get refresh token
+        <div style="color:var(--green);margin-bottom:4px;">HOW TO GET YOUR ACCESS TOKEN</div>
+        1. Go to <a href="https://www.strava.com/settings/api" target="_blank" style="color:var(--green)">strava.com/settings/api</a><br>
+        2. Open this URL replacing YOUR_ID: <span style="color:var(--text)">strava.com/oauth/authorize?client_id=YOUR_ID&response_type=code&redirect_uri=http://localhost&scope=activity:read_all</span><br>
+        3. Authorize → copy the <b>code</b> from the redirect URL<br>
+        4. Open browser console (F12) and run the fetch command to get your <b>access_token</b>
       </div>
-      <input class="ob-input" id="strava-client-id" type="text" placeholder="Client ID (e.g. 12345)">
-      <input class="ob-input" id="strava-client-secret" type="password" placeholder="Client Secret">
-      <input class="ob-input" id="strava-refresh-token" type="password" placeholder="Refresh Token">
+      <input class="ob-input" id="strava-token" type="password" placeholder="Paste your access_token here…">
       <button class="btn-ob" id="btn-strava" onclick="connectStrava()">Connect Strava</button>
-      <p class="ob-tip">_ all credentials stored only in your browser</p>
+      <p class="ob-tip">_ token stored only in your browser · expires in 6 hours</p>
     </div>
 
     <!-- Step 1: Choose AI -->
@@ -1046,16 +1043,10 @@ let state = {
 
 // ── Boot ──
 window.addEventListener('load', async () => {
-  const hasCredentials = localStorage.getItem('strava_client_id') && localStorage.getItem('strava_refresh_token');
-  if (hasCredentials) {
-    // Auto refresh token on load
-    const refreshed = await refreshStravaToken();
-    if (refreshed) { enterApp(); return; }
-  } else if (state.stravaToken) {
+  if (state.stravaToken) {
     enterApp();
     return;
   }
-  // Prefill saved keys
   if (state.aiKey) document.getElementById('ai-key').value = '••••••••••••';
   if (state.aiKey) document.getElementById('coach-api-key').value = '••••••••••••';
   updateModelUI();
@@ -1070,43 +1061,22 @@ function goStep(n) {
 }
 
 async function connectStrava() {
-  const clientId = document.getElementById('strava-client-id').value.trim();
-  const clientSecret = document.getElementById('strava-client-secret').value.trim();
-  const refreshToken = document.getElementById('strava-refresh-token').value.trim();
-  if (!clientId || !clientSecret || !refreshToken) return toast('Please fill all 3 fields', 'error');
+  const token = document.getElementById('strava-token').value.trim();
+  if (!token) return toast('Please paste your access token', 'error');
   const btn = document.getElementById('btn-strava');
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span> Connecting…';
   try {
-    // Exchange refresh token for access token
-    const tokenRes = await fetch('https://www.strava.com/oauth/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        client_id: clientId,
-        client_secret: clientSecret,
-        refresh_token: refreshToken,
-        grant_type: 'refresh_token'
-      })
+    const res = await fetch('https://www.strava.com/api/v3/athlete', {
+      headers: { Authorization: `Bearer ${token}` }
     });
-    if (!tokenRes.ok) throw new Error('Invalid credentials — check Client ID, Secret and Refresh Token');
-    const tokenData = await tokenRes.json();
-    if (tokenData.errors) throw new Error('Invalid credentials');
-    state.stravaToken = tokenData.access_token;
-    // Save credentials for auto-refresh
-    localStorage.setItem('strava_client_id', clientId);
-    localStorage.setItem('strava_client_secret', clientSecret);
-    localStorage.setItem('strava_refresh_token', refreshToken);
-    localStorage.setItem('strava_token', tokenData.access_token);
-    // Load athlete to verify
-    const athRes = await fetch('https://www.strava.com/api/v3/athlete', {
-      headers: { Authorization: `Bearer ${state.stravaToken}` }
-    });
-    if (!athRes.ok) throw new Error('Connected but failed to load athlete');
-    state.athlete = await athRes.json();
+    if (!res.ok) throw new Error('Invalid token — make sure you copied the access_token correctly');
+    state.athlete = await res.json();
+    state.stravaToken = token;
+    localStorage.setItem('strava_token', token);
     goStep(1);
   } catch(e) {
-    toast(e.message || 'Connection failed — check your credentials', 'error');
+    toast(e.message || 'Connection failed', 'error');
   } finally {
     btn.disabled = false;
     btn.textContent = 'Connect Strava';
@@ -1386,7 +1356,6 @@ async function sendMessage() {
 
   const sendBtn = document.getElementById('chat-send');
   sendBtn.disabled = true;
-
   const typingId = appendTyping();
 
   const systemPrompt = `You are Cadence AI Coach, an expert running coach and sports scientist. You have access to the athlete's real Strava data:
@@ -1402,7 +1371,8 @@ Be specific, data-driven, and actionable. Reference their actual runs and number
 
     if (!state.aiKey) {
       await new Promise(r => setTimeout(r, 1200));
-      reply = `To get personalized coaching, add your API key in the panel on the right. I support:\n\n🧠 Claude (console.anthropic.com)\n⚡ ChatGPT (platform.openai.com)\n✨ Gemini (aistudio.google.com) — has a free tier!\n\nOnce you add your key, I'll analyze your actual Strava data and give you real insights! 🏃`;
+      reply = 'To get personalized coaching, add your API key in the panel on the right. I support:\n\n🧠 Claude (console.anthropic.com)\n⚡ ChatGPT (platform.openai.com)\n✨ Gemini (aistudio.google.com) — has a free tier!\n\nOnce you add your key, I\'ll analyze your actual Strava data and give you real insights! 🏃';
+
     } else if (selectedModel === 'claude') {
       const res = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
@@ -1420,12 +1390,12 @@ Be specific, data-driven, and actionable. Reference their actual runs and number
       });
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.error?.message || 'API error');
+        throw new Error(err.error?.message || 'Claude API error');
       }
       const data = await res.json();
       reply = data.content[0].text;
-    } else {
-      // OpenAI
+
+    } else if (selectedModel === 'openai') {
       const res = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -1443,10 +1413,11 @@ Be specific, data-driven, and actionable. Reference their actual runs and number
       });
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.error?.message || 'API error');
+        throw new Error(err.error?.message || 'OpenAI API error');
       }
       const data = await res.json();
       reply = data.choices[0].message.content;
+
     } else {
       // Gemini
       const geminiMessages = chatHistory.map(m => ({
