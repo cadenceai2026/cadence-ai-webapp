@@ -1494,18 +1494,45 @@ Be specific, data-driven, and actionable. Reference their actual runs and number
       reply = data.choices[0].message.content;
 
     } else {
-      // Gemini via Vercel serverless function (API key stays server-side)
-      const res = await fetch('/api/coach', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: chatHistory, systemPrompt })
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || 'Gemini API error');
+      // Gemini — tries Vercel function first, falls back to direct API with user key
+      const isVercel = window.location.hostname.includes('vercel.app') || 
+                       (!window.location.hostname.includes('localhost') && 
+                        !window.location.protocol.includes('file'));
+      if (isVercel) {
+        const res = await fetch('/api/coach', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ messages: chatHistory, systemPrompt })
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error || 'Server error — check Vercel logs');
+        }
+        const data = await res.json();
+        reply = data.reply;
+      } else {
+        // Local/file mode — use direct Gemini API with user key
+        if (!state.aiKey) throw new Error('Add your Gemini API key to test locally');
+        const geminiMessages = chatHistory.map(m => ({
+          role: m.role === 'assistant' ? 'model' : 'user',
+          parts: [{ text: m.content }]
+        }));
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${state.aiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            system_instruction: { parts: [{ text: systemPrompt }] },
+            contents: geminiMessages,
+            generationConfig: { maxOutputTokens: 1000 }
+          })
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error?.message || 'Gemini API error');
+        }
+        const data = await res.json();
+        reply = data.candidates[0].content.parts[0].text;
       }
-      const data = await res.json();
-      reply = data.reply;
     }
 
     chatHistory.push({ role: 'assistant', content: reply });
