@@ -1,0 +1,1571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cadence App</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Space+Grotesk:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --green: #00E5A0;
+    --green-dark: #00A371;
+    --green-dim: #00E5A012;
+    --bg: #080808;
+    --bg2: #0e0e0e;
+    --surface: #131313;
+    --surface2: #1a1a1a;
+    --surface3: #222;
+    --border: #1e1e1e;
+    --border2: #2a2a2a;
+    --text: #f0f0ee;
+    --muted: #666;
+    --muted2: #3a3a3a;
+    --sidebar-w: 240px;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ─── SCREENS ─── */
+  .screen { display: none; }
+  .screen.active { display: flex; }
+
+  /* ─── ONBOARDING ─── */
+  #screen-onboard {
+    min-height: 100vh;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .ob-grid {
+    position: absolute; inset: 0;
+    background-image: linear-gradient(var(--border) 1px, transparent 1px),
+                      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 48px 48px;
+    opacity: 0.4;
+    mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, black 20%, transparent 100%);
+  }
+
+  .ob-orb {
+    position: absolute;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, #00E5A018 0%, transparent 70%);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    animation: pulse-orb 4s ease-in-out infinite;
+  }
+
+  @keyframes pulse-orb {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); }
+    50% { transform: translate(-50%, -50%) scale(1.08); }
+  }
+
+  .ob-card {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 20px;
+    padding: 44px;
+    max-width: 480px;
+    width: 100%;
+    position: relative;
+    z-index: 1;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .ob-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 32px;
+  }
+
+  .ob-wordmark {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.5rem;
+    letter-spacing: -0.02em;
+  }
+
+  .ob-wordmark span { color: var(--green); }
+
+  .ob-step { display: none; }
+  .ob-step.active { display: block; animation: fadeUp 0.4s ease both; }
+
+  .ob-h { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.6rem; letter-spacing: -0.03em; margin-bottom: 8px; }
+  .ob-sub { font-size: 0.88rem; color: var(--muted); line-height: 1.6; margin-bottom: 28px; }
+
+  .ob-input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    padding: 13px 16px;
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.9rem;
+    outline: none;
+    margin-bottom: 10px;
+    transition: border-color 0.2s;
+  }
+
+  .ob-input:focus { border-color: var(--green); }
+  .ob-input::placeholder { color: var(--muted2); }
+
+  .ob-select-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .ob-option {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    padding: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+
+  .ob-option:hover { border-color: var(--border2); background: var(--surface3); }
+  .ob-option.selected { border-color: var(--green); background: var(--green-dim); }
+  .ob-option-icon { font-size: 1.4rem; margin-bottom: 6px; }
+  .ob-option-name { font-size: 0.82rem; font-weight: 500; }
+  .ob-option-desc { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+
+  .btn-ob {
+    width: 100%;
+    background: var(--green);
+    color: #080808;
+    border: none;
+    border-radius: 10px;
+    padding: 14px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: background 0.2s, transform 0.1s;
+  }
+
+  .btn-ob:hover { background: #00ffb3; }
+  .btn-ob:active { transform: scale(0.98); }
+  .btn-ob:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-ob.secondary { background: transparent; border: 1px solid var(--border2); color: var(--muted); }
+  .btn-ob.secondary:hover { border-color: var(--border2); background: var(--surface2); color: var(--text); }
+
+  .ob-progress {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 28px;
+  }
+
+  .ob-dot {
+    height: 3px;
+    flex: 1;
+    background: var(--border2);
+    border-radius: 2px;
+    transition: background 0.3s;
+  }
+
+  .ob-dot.done { background: var(--green); }
+
+  .ob-tip {
+    font-size: 0.75rem;
+    color: var(--muted2);
+    font-family: 'DM Mono', monospace;
+    text-align: center;
+    margin-top: 12px;
+    line-height: 1.5;
+  }
+
+  /* ─── MAIN APP ─── */
+  #screen-app {
+    min-height: 100vh;
+    flex-direction: row;
+  }
+
+  /* Sidebar */
+  aside {
+    width: var(--sidebar-w);
+    min-height: 100vh;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 24px 16px;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    z-index: 50;
+    flex-shrink: 0;
+  }
+
+  .sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 8px;
+    margin-bottom: 32px;
+  }
+
+  .sidebar-wordmark {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.1rem;
+    letter-spacing: -0.02em;
+  }
+
+  .sidebar-wordmark span { color: var(--green); }
+
+  .sidebar-nav { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: var(--muted);
+    font-size: 0.88rem;
+    font-weight: 400;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    text-decoration: none;
+  }
+
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+  .nav-item.active { background: var(--green-dim); color: var(--green); border: 1px solid #00E5A018; }
+
+  .nav-item-icon { font-size: 1rem; width: 20px; text-align: center; flex-shrink: 0; }
+
+  .sidebar-bottom { padding-top: 16px; border-top: 1px solid var(--border); }
+
+  .trial-pill {
+    background: var(--green-dim);
+    border: 1px solid #00E5A022;
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+
+  .trial-pill-label { font-size: 0.7rem; color: var(--green); font-family: 'DM Mono', monospace; margin-bottom: 4px; }
+  .trial-pill-days { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.2rem; letter-spacing: -0.02em; }
+  .trial-pill-sub { font-size: 0.7rem; color: var(--muted); }
+
+  .user-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 4px;
+  }
+
+  .user-avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--green-dim);
+    border: 1px solid #00E5A025;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--green);
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+
+  .user-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+
+  .user-name { font-size: 0.82rem; font-weight: 500; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .user-plan { font-size: 0.65rem; color: var(--green); font-family: 'DM Mono', monospace; }
+
+  /* Main content */
+  main {
+    margin-left: var(--sidebar-w);
+    flex: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 32px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    position: sticky;
+    top: 0;
+    z-index: 40;
+  }
+
+  .top-bar-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.2rem;
+    letter-spacing: -0.02em;
+  }
+
+  .top-bar-actions { display: flex; gap: 8px; align-items: center; }
+
+  .btn-sm {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    color: var(--muted);
+    border-radius: 8px;
+    padding: 7px 14px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-sm:hover { border-color: var(--green); color: var(--green); }
+  .btn-sm.primary { background: var(--green); color: #080808; border-color: var(--green); font-weight: 600; }
+  .btn-sm.primary:hover { background: #00ffb3; }
+
+  .page { display: none; padding: 32px; flex: 1; }
+  .page.active { display: block; animation: fadeUp 0.3s ease both; }
+
+  /* Stats grid */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    transition: border-color 0.2s;
+  }
+
+  .stat-card:hover { border-color: var(--border2); }
+
+  .stat-label {
+    font-size: 0.68rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-family: 'DM Mono', monospace;
+    margin-bottom: 8px;
+  }
+
+  .stat-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 1.8rem;
+    font-weight: 500;
+    line-height: 1;
+    color: var(--text);
+  }
+
+  .stat-value.accent { color: var(--green); }
+
+  .stat-sub {
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin-top: 4px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* Activities */
+  .activities-wrap {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 12px;
+  }
+
+  .act-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+    transition: border-color 0.2s, transform 0.15s;
+    cursor: pointer;
+  }
+
+  .act-card:hover { border-color: var(--border2); transform: translateY(-1px); }
+
+  .act-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .act-type-icon {
+    width: 34px; height: 34px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem;
+    background: var(--green-dim);
+    flex-shrink: 0;
+  }
+
+  .act-date { font-size: 0.72rem; color: var(--muted); font-family: 'DM Mono', monospace; }
+  .act-name { font-weight: 600; font-size: 0.95rem; margin-bottom: 2px; }
+  .act-sport { font-size: 0.72rem; color: var(--muted); }
+
+  .act-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+
+  .act-stat { text-align: center; }
+  .act-stat-val { font-family: 'DM Mono', monospace; font-size: 1rem; font-weight: 500; display: block; }
+  .act-stat-lbl { font-size: 0.62rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+
+  /* AI Coach page */
+  .coach-layout {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 20px;
+    height: calc(100vh - 140px);
+  }
+
+  .chat-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .chat-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .chat-ai-dot {
+    width: 8px; height: 8px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: blink 2s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  .chat-ai-name { font-weight: 600; font-size: 0.9rem; }
+  .chat-ai-model { font-size: 0.72rem; color: var(--muted); font-family: 'DM Mono', monospace; margin-left: auto; }
+
+  .chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    scroll-behavior: smooth;
+  }
+
+  .chat-messages::-webkit-scrollbar { width: 4px; }
+  .chat-messages::-webkit-scrollbar-track { background: transparent; }
+  .chat-messages::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  .msg {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    animation: fadeUp 0.3s ease both;
+  }
+
+  .msg.user { flex-direction: row-reverse; }
+
+  .msg-avatar {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  .msg-avatar.coach { background: var(--green-dim); color: var(--green); border: 1px solid #00E5A025; }
+  .msg-avatar.user-av { background: var(--surface3); color: var(--muted); border: 1px solid var(--border2); overflow: hidden; }
+  .msg-avatar.user-av img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+
+  .msg-bubble {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 0.88rem;
+    line-height: 1.6;
+    max-width: 80%;
+  }
+
+  .msg.user .msg-bubble {
+    background: var(--green-dim);
+    border-color: #00E5A020;
+    color: var(--text);
+  }
+
+  .msg-time { font-size: 0.65rem; color: var(--muted2); font-family: 'DM Mono', monospace; margin-top: 4px; text-align: right; }
+  .msg.user .msg-time { text-align: left; }
+
+  .chat-input-wrap {
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 8px;
+  }
+
+  .chat-input {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    padding: 11px 16px;
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.88rem;
+    outline: none;
+    resize: none;
+    transition: border-color 0.2s;
+    min-height: 44px;
+    max-height: 120px;
+  }
+
+  .chat-input:focus { border-color: var(--green); }
+  .chat-input::placeholder { color: var(--muted2); }
+
+  .chat-send {
+    background: var(--green);
+    color: #080808;
+    border: none;
+    border-radius: 10px;
+    width: 44px; height: 44px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.2s;
+    font-size: 1rem;
+  }
+
+  .chat-send:hover { background: #00ffb3; }
+  .chat-send:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* Coach sidebar */
+  .coach-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow-y: auto;
+  }
+
+  .sidebar-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+  }
+
+  .sidebar-card-title {
+    font-size: 0.72rem;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 12px;
+  }
+
+  .quick-prompt {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 0.8rem;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-bottom: 6px;
+    width: 100%;
+    text-align: left;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+
+  .quick-prompt:hover { border-color: var(--green); color: var(--green); }
+
+  /* AI key config */
+  .ai-config-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .ai-model-chip {
+    flex: 1;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border2);
+    background: var(--surface2);
+    font-size: 0.78rem;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+
+  .ai-model-chip.active { border-color: var(--green); color: var(--green); background: var(--green-dim); }
+
+  /* Groups page */
+  .groups-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+  }
+
+  .group-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    transition: border-color 0.2s;
+  }
+
+  .group-card:hover { border-color: var(--border2); }
+
+  .group-flag { font-size: 1.4rem; margin-bottom: 10px; }
+  .group-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.05rem; margin-bottom: 4px; letter-spacing: -0.02em; }
+  .group-meta { font-size: 0.78rem; color: var(--muted); margin-bottom: 14px; }
+  .group-bar-bg { height: 4px; background: var(--surface3); border-radius: 2px; margin-bottom: 10px; }
+  .group-bar-fg { height: 100%; background: var(--green); border-radius: 2px; }
+
+  .group-stats {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+
+  .group-stat-val { font-family: 'DM Mono', monospace; font-size: 1rem; font-weight: 500; }
+  .group-stat-lbl { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+
+  .btn-join {
+    width: 100%;
+    padding: 9px;
+    border-radius: 8px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+  }
+
+  .btn-join.joined { background: var(--green-dim); color: var(--green); border: 1px solid #00E5A022; }
+  .btn-join.open { background: var(--surface2); color: var(--muted); border: 1px solid var(--border2); }
+  .btn-join.open:hover { border-color: var(--green); color: var(--green); }
+
+  /* Loading spinner */
+  .spinner {
+    width: 18px; height: 18px;
+    border: 2px solid var(--border2);
+    border-top-color: var(--green);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .typing-indicator {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    padding: 4px 0;
+  }
+
+  .typing-dot {
+    width: 6px; height: 6px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: typing 1.2s ease-in-out infinite;
+  }
+
+  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes typing {
+    0%, 80%, 100% { transform: scale(0.7); opacity: 0.5; }
+    40% { transform: scale(1); opacity: 1; }
+  }
+
+  /* Notification toast */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    padding: 12px 18px;
+    font-size: 0.85rem;
+    z-index: 200;
+    animation: slideIn 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    max-width: 320px;
+    box-shadow: 0 8px 32px #00000060;
+  }
+
+  .toast.success { border-color: #00E5A040; }
+  .toast-icon { color: var(--green); flex-shrink: 0; }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Mobile */
+  @media (max-width: 768px) {
+    aside { transform: translateX(-100%); }
+    main { margin-left: 0; }
+    .coach-layout { grid-template-columns: 1fr; }
+    .coach-sidebar { display: none; }
+    .page { padding: 16px; }
+    .top-bar { padding: 14px 16px; }
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<!-- ════════════════ ONBOARDING ════════════════ -->
+<div class="screen active" id="screen-onboard">
+  <div class="ob-grid"></div>
+  <div class="ob-orb"></div>
+
+  <div class="ob-card">
+    <div class="ob-logo">
+      <svg width="30" height="30" viewBox="0 0 52 52" fill="none">
+        <rect x="4" y="24" width="6" height="16" rx="3" fill="#00E5A0" opacity="0.4"/>
+        <rect x="13" y="16" width="6" height="24" rx="3" fill="#00E5A0" opacity="0.6"/>
+        <rect x="22" y="8" width="6" height="32" rx="3" fill="#00E5A0"/>
+        <rect x="31" y="14" width="6" height="26" rx="3" fill="#00E5A0" opacity="0.75"/>
+        <rect x="40" y="20" width="6" height="20" rx="3" fill="#00E5A0" opacity="0.5"/>
+        <circle cx="43" cy="14" r="5" fill="#00E5A0"/>
+        <circle cx="43" cy="14" r="2.5" fill="#080808"/>
+      </svg>
+      <span class="ob-wordmark">Ca<span>den</span>ce</span>
+    </div>
+
+    <div class="ob-progress">
+      <div class="ob-dot done" id="dot-0"></div>
+      <div class="ob-dot" id="dot-1"></div>
+      <div class="ob-dot" id="dot-2"></div>
+    </div>
+
+    <!-- Step 0: Strava credentials -->
+    <div class="ob-step active" id="step-0">
+      <div class="ob-h">Connect Strava</div>
+      <div class="ob-sub">You need 3 things from <a href="https://www.strava.com/settings/api" target="_blank" style="color:var(--green)">strava.com/settings/api</a></div>
+      <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:12px;margin-bottom:14px;font-size:0.72rem;color:var(--muted);line-height:1.8;font-family:'DM Mono',monospace;">
+        <div style="color:var(--green);margin-bottom:4px;">HOW TO GET YOUR TOKENS</div>
+        1. Create app at strava.com/settings/api<br>
+        2. Copy Client ID + Client Secret<br>
+        3. Go to Strava OAuth URL with your Client ID<br>
+        4. Authorize and copy the code from redirect URL<br>
+        5. Exchange code at <a href="https://developers.strava.com/playground/" target="_blank" style="color:var(--green)">Strava Playground</a> to get refresh token
+      </div>
+      <input class="ob-input" id="strava-client-id" type="text" placeholder="Client ID (e.g. 12345)">
+      <input class="ob-input" id="strava-client-secret" type="password" placeholder="Client Secret">
+      <input class="ob-input" id="strava-refresh-token" type="password" placeholder="Refresh Token">
+      <button class="btn-ob" id="btn-strava" onclick="connectStrava()">Connect Strava</button>
+      <p class="ob-tip">_ all credentials stored only in your browser</p>
+    </div>
+
+    <!-- Step 1: Choose AI -->
+    <div class="ob-step" id="step-1">
+      <div class="ob-h">Choose your AI</div>
+      <div class="ob-sub">Pick your preferred AI coach. You'll need an API key — stored only in your browser.</div>
+      <div class="ob-select-grid">
+        <div class="ob-option selected" onclick="selectAI('claude', this)">
+          <div class="ob-option-icon">🧠</div>
+          <div class="ob-option-name">Claude</div>
+          <div class="ob-option-desc">by Anthropic</div>
+        </div>
+        <div class="ob-option" onclick="selectAI('openai', this)">
+          <div class="ob-option-icon">⚡</div>
+          <div class="ob-option-name">ChatGPT</div>
+          <div class="ob-option-desc">by OpenAI</div>
+        </div>
+        <div class="ob-option" onclick="selectAI('gemini', this)">
+          <div class="ob-option-icon">✨</div>
+          <div class="ob-option-name">Gemini</div>
+          <div class="ob-option-desc">by Google · free tier</div>
+        </div>
+      </div>
+      <input class="ob-input" id="ai-key" type="password" placeholder="Paste your API key…">
+      <button class="btn-ob" onclick="saveAI()">Save & continue</button>
+      <button class="btn-ob secondary" style="margin-top:6px" onclick="skipAI()">Skip for now</button>
+      <p class="ob-tip">_ key never leaves your device</p>
+    </div>
+
+    <!-- Step 2: Ready -->
+    <div class="ob-step" id="step-2">
+      <div class="ob-h">You're ready. 🎉</div>
+      <div class="ob-sub">Your 14-day free trial has started. No credit card needed.</div>
+      <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:14px;margin-bottom:20px;">
+        <div style="font-size:0.72rem;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:4px;">TRIAL ENDS IN</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:2rem;color:var(--green);letter-spacing:-0.02em;">14 days</div>
+        <div style="font-size:0.75rem;color:var(--muted);">Full Pro access — no credit card</div>
+      </div>
+      <button class="btn-ob" onclick="enterApp()">Open Cadence →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ MAIN APP ════════════════ -->
+<div class="screen" id="screen-app">
+
+  <!-- Sidebar -->
+  <aside>
+    <div class="sidebar-logo">
+      <svg width="24" height="24" viewBox="0 0 52 52" fill="none">
+        <rect x="4" y="24" width="6" height="16" rx="3" fill="#00E5A0" opacity="0.4"/>
+        <rect x="13" y="16" width="6" height="24" rx="3" fill="#00E5A0" opacity="0.6"/>
+        <rect x="22" y="8" width="6" height="32" rx="3" fill="#00E5A0"/>
+        <rect x="31" y="14" width="6" height="26" rx="3" fill="#00E5A0" opacity="0.75"/>
+        <rect x="40" y="20" width="6" height="20" rx="3" fill="#00E5A0" opacity="0.5"/>
+        <circle cx="43" cy="14" r="5" fill="#00E5A0"/>
+        <circle cx="43" cy="14" r="2.5" fill="#080808"/>
+      </svg>
+      <span class="sidebar-wordmark">Ca<span>den</span>ce</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button class="nav-item active" onclick="showPage('dashboard', this)">
+        <span class="nav-item-icon">📊</span> Dashboard
+      </button>
+      <button class="nav-item" onclick="showPage('coach', this)">
+        <span class="nav-item-icon">🤖</span> AI Coach
+      </button>
+      <button class="nav-item" onclick="showPage('activities', this)">
+        <span class="nav-item-icon">🏃</span> Activities
+      </button>
+      <button class="nav-item" onclick="showPage('groups', this)">
+        <span class="nav-item-icon">👥</span> Groups
+      </button>
+      <button class="nav-item" onclick="showPage('plan', this)">
+        <span class="nav-item-icon">📅</span> Training Plan
+      </button>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <div class="trial-pill">
+        <div class="trial-pill-label">FREE TRIAL</div>
+        <div class="trial-pill-days">14 days left</div>
+        <div class="trial-pill-sub">Upgrade to Elite</div>
+      </div>
+      <div class="user-row">
+        <div class="user-avatar" id="sidebar-avatar">?</div>
+        <div>
+          <div class="user-name" id="sidebar-name">Loading…</div>
+          <div class="user-plan">PRO TRIAL</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main>
+    <div class="top-bar">
+      <div class="top-bar-title" id="page-title">Dashboard</div>
+      <div class="top-bar-actions">
+        <button class="btn-sm" onclick="refreshData()">↻ Sync</button>
+        <button class="btn-sm primary" onclick="showPage('coach', document.querySelector('.nav-item:nth-child(2))'))">Ask AI Coach</button>
+      </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div class="page active" id="page-dashboard">
+      <div class="stats-grid" id="stats-grid">
+        <div class="stat-card"><div class="stat-label">Activities</div><div class="stat-value accent" id="s-count">—</div><div class="stat-sub">last 60 days</div></div>
+        <div class="stat-card"><div class="stat-label">Distance</div><div class="stat-value" id="s-dist">—</div><div class="stat-sub">km total</div></div>
+        <div class="stat-card"><div class="stat-label">Moving time</div><div class="stat-value" id="s-time">—</div><div class="stat-sub">hours</div></div>
+        <div class="stat-card"><div class="stat-label">Elevation</div><div class="stat-value" id="s-elev">—</div><div class="stat-sub">meters gained</div></div>
+        <div class="stat-card"><div class="stat-label">Avg pace</div><div class="stat-value accent" id="s-pace">—</div><div class="stat-sub">min/km (runs)</div></div>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <div style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;">Recent Activities</div>
+        <button class="btn-sm" onclick="showPage('activities', document.querySelectorAll('.nav-item')[2])">View all →</button>
+      </div>
+
+      <div class="activities-wrap" id="dash-activities">
+        <div style="color:var(--muted);font-size:0.88rem;padding:40px;text-align:center;grid-column:1/-1;">
+          <div class="spinner"></div> Loading your activities…
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Coach -->
+    <div class="page" id="page-coach">
+      <div class="coach-layout">
+        <div class="chat-wrap">
+          <div class="chat-header">
+            <div class="chat-ai-dot"></div>
+            <div class="chat-ai-name">Cadence Coach</div>
+            <div class="chat-ai-model" id="chat-model-label">Claude</div>
+          </div>
+          <div class="chat-messages" id="chat-messages">
+            <div class="msg">
+              <div class="msg-avatar coach">AI</div>
+              <div>
+                <div class="msg-bubble">Hey! I'm your Cadence AI Coach. I have access to your recent Strava activities and I'm here to help you train smarter. Ask me anything — pacing, recovery, training plans, race prep... what's on your mind? 🏃</div>
+                <div class="msg-time">now</div>
+              </div>
+            </div>
+          </div>
+          <div class="chat-input-wrap">
+            <textarea class="chat-input" id="chat-input" placeholder="Ask your coach anything…" rows="1" onkeydown="handleKey(event)"></textarea>
+            <button class="chat-send" id="chat-send" onclick="sendMessage()">→</button>
+          </div>
+        </div>
+
+        <div class="coach-sidebar">
+          <!-- AI config -->
+          <div class="sidebar-card">
+            <div class="sidebar-card-title">AI Model</div>
+            <div class="ai-config-row">
+              <div class="ai-model-chip active" id="chip-claude" onclick="switchModel('claude')">Claude</div>
+              <div class="ai-model-chip" id="chip-openai" onclick="switchModel('openai')">ChatGPT</div>
+              <div class="ai-model-chip" id="chip-gemini" onclick="switchModel('gemini')">Gemini ✨</div>
+            </div>
+            <input class="ob-input" id="coach-api-key" type="password" placeholder="API key…" style="margin-bottom:6px;font-size:0.78rem;padding:9px 12px;">
+            <button class="btn-ob" style="padding:9px;font-size:0.8rem;" onclick="saveCoachKey()">Save key</button>
+          </div>
+
+          <!-- Quick prompts -->
+          <div class="sidebar-card">
+            <div class="sidebar-card-title">Quick prompts</div>
+            <button class="quick-prompt" onclick="quickPrompt(this)">Why is my pace dropping in long runs?</button>
+            <button class="quick-prompt" onclick="quickPrompt(this)">Am I overtraining this week?</button>
+            <button class="quick-prompt" onclick="quickPrompt(this)">Build me a 10K training plan</button>
+            <button class="quick-prompt" onclick="quickPrompt(this)">When will I break 50min for 10K?</button>
+            <button class="quick-prompt" onclick="quickPrompt(this)">How's my weekly volume trend?</button>
+            <button class="quick-prompt" onclick="quickPrompt(this)">What should I focus on this week?</button>
+          </div>
+
+          <!-- Recent stats for context -->
+          <div class="sidebar-card">
+            <div class="sidebar-card-title">Context sent to AI</div>
+            <div id="context-preview" style="font-size:0.75rem;color:var(--muted);line-height:1.6;font-family:'DM Mono',monospace;">Loading your data…</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Activities -->
+    <div class="page" id="page-activities">
+      <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;" id="activity-filters">
+        <button class="btn-sm primary" onclick="filterActs('all',this)">All</button>
+        <button class="btn-sm" onclick="filterActs('Run',this)">Runs</button>
+        <button class="btn-sm" onclick="filterActs('Ride',this)">Rides</button>
+        <button class="btn-sm" onclick="filterActs('Walk',this)">Walks</button>
+      </div>
+      <div class="activities-wrap" id="all-activities"></div>
+    </div>
+
+    <!-- Groups -->
+    <div class="page" id="page-groups">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.2rem;letter-spacing:-0.02em;margin-bottom:4px;">City Groups</div>
+          <div style="font-size:0.82rem;color:var(--muted);">Compete with runners in your zone. Weekly km battles.</div>
+        </div>
+        <button class="btn-sm primary">+ Create group</button>
+      </div>
+      <div class="groups-grid" id="groups-grid"></div>
+    </div>
+
+    <!-- Training Plan -->
+    <div class="page" id="page-plan">
+      <div style="text-align:center;padding:80px 20px;">
+        <div style="font-size:3rem;margin-bottom:16px;">📅</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.4rem;margin-bottom:10px;letter-spacing:-0.02em;">Training Plan</div>
+        <div style="color:var(--muted);font-size:0.9rem;max-width:400px;margin:0 auto 28px;line-height:1.6;">Connect your AI coach and ask it to generate a personalized training plan based on your Strava data.</div>
+        <button class="btn-sm primary" onclick="showPage('coach', document.querySelectorAll('.nav-item')[1]); setTimeout(()=>{document.getElementById('chat-input').value='Build me a personalized training plan for the next 4 weeks based on my recent activities';document.getElementById('chat-input').focus()},300)">Generate with AI Coach →</button>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ── State ──
+let state = {
+  stravaToken: localStorage.getItem('strava_token') || '',
+  aiProvider: localStorage.getItem('ai_provider') || 'claude',
+  aiKey: localStorage.getItem('ai_key') || '',
+  athlete: null,
+  activities: [],
+  currentStep: 0,
+  currentPage: 'dashboard'
+};
+
+// ── Boot ──
+window.addEventListener('load', async () => {
+  const hasCredentials = localStorage.getItem('strava_client_id') && localStorage.getItem('strava_refresh_token');
+  if (hasCredentials) {
+    // Auto refresh token on load
+    const refreshed = await refreshStravaToken();
+    if (refreshed) { enterApp(); return; }
+  } else if (state.stravaToken) {
+    enterApp();
+    return;
+  }
+  // Prefill saved keys
+  if (state.aiKey) document.getElementById('ai-key').value = '••••••••••••';
+  if (state.aiKey) document.getElementById('coach-api-key').value = '••••••••••••';
+  updateModelUI();
+});
+
+// ── Onboarding ──
+function goStep(n) {
+  document.querySelectorAll('.ob-step').forEach(s => s.classList.remove('active'));
+  document.getElementById('step-' + n).classList.add('active');
+  for (let i = 0; i <= n; i++) document.getElementById('dot-' + i).classList.add('done');
+  state.currentStep = n;
+}
+
+async function connectStrava() {
+  const clientId = document.getElementById('strava-client-id').value.trim();
+  const clientSecret = document.getElementById('strava-client-secret').value.trim();
+  const refreshToken = document.getElementById('strava-refresh-token').value.trim();
+  if (!clientId || !clientSecret || !refreshToken) return toast('Please fill all 3 fields', 'error');
+  const btn = document.getElementById('btn-strava');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Connecting…';
+  try {
+    // Exchange refresh token for access token
+    const tokenRes = await fetch('https://www.strava.com/oauth/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        client_id: clientId,
+        client_secret: clientSecret,
+        refresh_token: refreshToken,
+        grant_type: 'refresh_token'
+      })
+    });
+    if (!tokenRes.ok) throw new Error('Invalid credentials — check Client ID, Secret and Refresh Token');
+    const tokenData = await tokenRes.json();
+    if (tokenData.errors) throw new Error('Invalid credentials');
+    state.stravaToken = tokenData.access_token;
+    // Save credentials for auto-refresh
+    localStorage.setItem('strava_client_id', clientId);
+    localStorage.setItem('strava_client_secret', clientSecret);
+    localStorage.setItem('strava_refresh_token', refreshToken);
+    localStorage.setItem('strava_token', tokenData.access_token);
+    // Load athlete to verify
+    const athRes = await fetch('https://www.strava.com/api/v3/athlete', {
+      headers: { Authorization: `Bearer ${state.stravaToken}` }
+    });
+    if (!athRes.ok) throw new Error('Connected but failed to load athlete');
+    state.athlete = await athRes.json();
+    goStep(1);
+  } catch(e) {
+    toast(e.message || 'Connection failed — check your credentials', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Connect Strava';
+  }
+}
+
+async function refreshStravaToken() {
+  const clientId = localStorage.getItem('strava_client_id');
+  const clientSecret = localStorage.getItem('strava_client_secret');
+  const refreshToken = localStorage.getItem('strava_refresh_token');
+  if (!clientId || !clientSecret || !refreshToken) return false;
+  try {
+    const res = await fetch('https://www.strava.com/oauth/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ client_id: clientId, client_secret: clientSecret, refresh_token: refreshToken, grant_type: 'refresh_token' })
+    });
+    const data = await res.json();
+    if (data.access_token) {
+      state.stravaToken = data.access_token;
+      localStorage.setItem('strava_token', data.access_token);
+      return true;
+    }
+  } catch(e) {}
+  return false;
+}
+
+function selectAI(provider, el) {
+  document.querySelectorAll('.ob-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  state.aiProvider = provider;
+}
+
+function saveAI() {
+  const key = document.getElementById('ai-key').value.trim();
+  if (key && !key.includes('•')) {
+    state.aiKey = key;
+    localStorage.setItem('ai_key', key);
+    localStorage.setItem('ai_provider', state.aiProvider);
+  }
+  goStep(2);
+}
+
+function skipAI() { goStep(2); }
+
+async function enterApp() {
+  document.getElementById('screen-onboard').classList.remove('active');
+  document.getElementById('screen-app').classList.add('active');
+  await loadData();
+}
+
+// ── Data Loading ──
+async function loadData() {
+  if (!state.stravaToken) return;
+  try {
+    // Load athlete if not loaded
+    if (!state.athlete) {
+      const res = await fetch('https://www.strava.com/api/v3/athlete', {
+        headers: { Authorization: `Bearer ${state.stravaToken}` }
+      });
+      state.athlete = await res.json();
+    }
+
+    // Update UI with athlete
+    const name = `${state.athlete.firstname || ''} ${state.athlete.lastname || ''}`.trim();
+    const nameEl = document.getElementById('sidebar-name');
+    if (nameEl) nameEl.textContent = name || 'Runner';
+
+    const avatarEl = document.getElementById('sidebar-avatar');
+    if (avatarEl) {
+      if (state.athlete.profile && state.athlete.profile !== 'https://dgalywyr863hv.cloudfront.net/pictures/athletes/large.jpg') {
+        avatarEl.innerHTML = `<img src="${state.athlete.profile}" alt="">`;
+      } else {
+        avatarEl.textContent = (state.athlete.firstname || 'R')[0].toUpperCase();
+      }
+    }
+
+    // Load activities
+    const actsRes = await fetch('https://www.strava.com/api/v3/athlete/activities?per_page=60', {
+      headers: { Authorization: `Bearer ${state.stravaToken}` }
+    });
+    state.activities = await actsRes.json();
+
+    renderDashboard();
+    renderActivities();
+    renderGroups();
+    buildContext();
+
+  } catch(e) {
+    toast('Failed to load data from Strava', 'error');
+    console.error(e);
+  }
+}
+
+async function refreshData() {
+  toast('Syncing with Strava…', 'info');
+  await loadData();
+  toast('Synced! ✓', 'success');
+}
+
+// ── Dashboard ──
+function renderDashboard() {
+  const acts = state.activities;
+  const runs = acts.filter(a => a.sport_type === 'Run' || a.type === 'Run');
+
+  const totalDist = acts.reduce((s,a) => s + (a.distance||0), 0) / 1000;
+  const totalTime = acts.reduce((s,a) => s + (a.moving_time||0), 0) / 3600;
+  const totalElev = acts.reduce((s,a) => s + (a.total_elevation_gain||0), 0);
+  const avgPace = runs.length ? runs.reduce((s,a) => s + (a.moving_time / (a.distance/1000)), 0) / runs.length : 0;
+
+  document.getElementById('s-count').textContent = acts.length;
+  document.getElementById('s-dist').textContent = totalDist.toFixed(1);
+  document.getElementById('s-time').textContent = totalTime.toFixed(1);
+  document.getElementById('s-elev').textContent = Math.round(totalElev).toLocaleString();
+  document.getElementById('s-pace').textContent = avgPace > 0 ? fmtPace(avgPace) : '—';
+
+  const container = document.getElementById('dash-activities');
+  const recent = acts.slice(0, 6);
+  container.innerHTML = recent.length ? recent.map(renderActCard).join('') : '<p style="color:var(--muted);padding:40px;text-align:center">No activities found.</p>';
+}
+
+function renderActCard(a) {
+  const dist = (a.distance / 1000).toFixed(2);
+  const time = fmtTime(a.moving_time);
+  const type = a.sport_type || a.type || 'Workout';
+  const isRun = type === 'Run' || type === 'TrailRun';
+  const third = isRun && a.distance > 0 ? fmtPace(a.moving_time / (a.distance/1000)) : fmtElev(a.total_elevation_gain);
+  const thirdLbl = isRun ? 'Pace /km' : 'Elevation';
+  const date = new Date(a.start_date_local || a.start_date).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+
+  return `<div class="act-card">
+    <div class="act-header">
+      <div>
+        <div class="act-name">${escHtml(a.name)}</div>
+        <div class="act-sport">${type} · ${date}</div>
+      </div>
+      <div class="act-type-icon">${typeIcon(type)}</div>
+    </div>
+    <div class="act-stats">
+      <div class="act-stat"><span class="act-stat-val">${dist}</span><span class="act-stat-lbl">km</span></div>
+      <div class="act-stat"><span class="act-stat-val">${time}</span><span class="act-stat-lbl">Time</span></div>
+      <div class="act-stat"><span class="act-stat-val">${third}</span><span class="act-stat-lbl">${thirdLbl}</span></div>
+    </div>
+  </div>`;
+}
+
+// ── Activities page ──
+let actFilter = 'all';
+
+function renderActivities() {
+  const container = document.getElementById('all-activities');
+  const filtered = actFilter === 'all' ? state.activities : state.activities.filter(a => (a.sport_type||a.type) === actFilter);
+  container.innerHTML = filtered.length ? filtered.map(renderActCard).join('') : '<p style="color:var(--muted);padding:40px;text-align:center">No activities.</p>';
+}
+
+function filterActs(type, btn) {
+  actFilter = type;
+  document.querySelectorAll('#activity-filters .btn-sm').forEach(b => b.classList.remove('primary'));
+  btn.classList.add('primary');
+  renderActivities();
+}
+
+// ── Groups ──
+const GROUPS = [
+  { flag:'🇪🇸', name:'Madrid Centro', members:142, km:312, pct:85, joined:true },
+  { flag:'🇪🇸', name:'Barcelona Eixample', members:98, km:278, pct:75, joined:false },
+  { flag:'🇲🇽', name:'CDMX Norte', members:203, km:248, pct:67, joined:false },
+  { flag:'🇨🇴', name:'Bogotá Chapinero', members:87, km:189, pct:51, joined:false },
+  { flag:'🇦🇷', name:'Buenos Aires Palermo', members:176, km:334, pct:90, joined:false },
+  { flag:'🇺🇸', name:'Miami Beach', members:134, km:156, pct:42, joined:false },
+];
+
+function renderGroups() {
+  document.getElementById('groups-grid').innerHTML = GROUPS.map(g => `
+    <div class="group-card">
+      <div class="group-flag">${g.flag}</div>
+      <div class="group-name">${g.name}</div>
+      <div class="group-meta">${g.members} runners · This week</div>
+      <div class="group-bar-bg"><div class="group-bar-fg" style="width:${g.pct}%"></div></div>
+      <div class="group-stats">
+        <div><div class="group-stat-val">${g.km}</div><div class="group-stat-lbl">km this week</div></div>
+        <div><div class="group-stat-val">${g.members}</div><div class="group-stat-lbl">members</div></div>
+        <div><div class="group-stat-val">#${Math.ceil(Math.random()*5)}</div><div class="group-stat-lbl">ranking</div></div>
+      </div>
+      <button class="btn-join ${g.joined?'joined':'open'}" onclick="toggleJoin(this)">${g.joined?'✓ Joined':'Join group'}</button>
+    </div>
+  `).join('');
+}
+
+function toggleJoin(btn) {
+  if (btn.classList.contains('joined')) {
+    btn.classList.remove('joined'); btn.classList.add('open'); btn.textContent = 'Join group';
+  } else {
+    btn.classList.remove('open'); btn.classList.add('joined'); btn.textContent = '✓ Joined';
+    toast('Joined! You\'re now competing 🔥', 'success');
+  }
+}
+
+// ── AI Coach ──
+function buildContext() {
+  const acts = state.activities.slice(0, 10);
+  const runs = acts.filter(a => a.sport_type === 'Run' || a.type === 'Run');
+  const totalKm = acts.reduce((s,a)=>s+(a.distance||0),0)/1000;
+  const athlete = state.athlete;
+
+  const contextEl = document.getElementById('context-preview');
+  if (contextEl) {
+    contextEl.textContent = `Athlete: ${athlete?.firstname} ${athlete?.lastname}\nRecent acts: ${acts.length} (last 60d)\nRun activities: ${runs.length}\nTotal km: ${totalKm.toFixed(1)}\nSports: ${[...new Set(acts.map(a=>a.sport_type||a.type))].join(', ')}`;
+  }
+}
+
+function getContextSummary() {
+  const acts = state.activities.slice(0, 15);
+  const runs = acts.filter(a => a.sport_type==='Run'||a.type==='Run');
+  const totalKm = acts.reduce((s,a)=>s+(a.distance||0),0)/1000;
+  const avgPace = runs.length ? runs.reduce((s,a)=>s+(a.moving_time/(a.distance/1000)),0)/runs.length : 0;
+  const athlete = state.athlete;
+
+  return `Athlete: ${athlete?.firstname} ${athlete?.lastname}, ${athlete?.city||''} ${athlete?.country||''}
+Recent activities (last 60 days): ${acts.length} total
+Running activities: ${runs.length}
+Total distance: ${totalKm.toFixed(1)} km
+Average run pace: ${avgPace>0?fmtPace(avgPace):'N/A'}
+
+Recent runs:
+${runs.slice(0,5).map(a=>`- ${a.name}: ${(a.distance/1000).toFixed(2)}km in ${fmtTime(a.moving_time)}, pace ${fmtPace(a.moving_time/(a.distance/1000))}`).join('\n')}
+
+Sport breakdown: ${[...new Set(acts.map(a=>a.sport_type||a.type))].join(', ')}`;
+}
+
+let chatHistory = [];
+let selectedModel = localStorage.getItem('ai_provider') || 'claude';
+
+function switchModel(model) {
+  selectedModel = model;
+  state.aiProvider = model;
+  localStorage.setItem('ai_provider', model);
+  updateModelUI();
+}
+
+function updateModelUI() {
+  document.querySelectorAll('.ai-model-chip').forEach(c => c.classList.remove('active'));
+  const chip = document.getElementById('chip-' + selectedModel);
+  if (chip) chip.classList.add('active');
+  const label = document.getElementById('chat-model-label');
+  if (label) label.textContent = selectedModel === 'claude' ? 'Claude' : selectedModel === 'gemini' ? 'Gemini' : 'ChatGPT';
+}
+
+function saveCoachKey() {
+  const key = document.getElementById('coach-api-key').value.trim();
+  if (key && !key.includes('•')) {
+    state.aiKey = key;
+    localStorage.setItem('ai_key', key);
+    toast('API key saved ✓', 'success');
+  }
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+}
+
+function quickPrompt(btn) {
+  document.getElementById('chat-input').value = btn.textContent;
+  sendMessage();
+}
+
+async function sendMessage() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+
+  input.value = '';
+  appendMsg('user', text);
+
+  const sendBtn = document.getElementById('chat-send');
+  sendBtn.disabled = true;
+
+  const typingId = appendTyping();
+
+  const systemPrompt = `You are Cadence AI Coach, an expert running coach and sports scientist. You have access to the athlete's real Strava data:
+
+${getContextSummary()}
+
+Be specific, data-driven, and actionable. Reference their actual runs and numbers. Keep responses concise but insightful. Use emojis sparingly. Format with short paragraphs, not bullet walls.`;
+
+  chatHistory.push({ role: 'user', content: text });
+
+  try {
+    let reply = '';
+
+    if (!state.aiKey) {
+      await new Promise(r => setTimeout(r, 1200));
+      reply = `To get personalized coaching, add your API key in the panel on the right. I support:\n\n🧠 Claude (console.anthropic.com)\n⚡ ChatGPT (platform.openai.com)\n✨ Gemini (aistudio.google.com) — has a free tier!\n\nOnce you add your key, I'll analyze your actual Strava data and give you real insights! 🏃`;
+    } else if (selectedModel === 'claude') {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': state.aiKey,
+          'anthropic-version': '2023-06-01'
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 1000,
+          system: systemPrompt,
+          messages: chatHistory
+        })
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error?.message || 'API error');
+      }
+      const data = await res.json();
+      reply = data.content[0].text;
+    } else {
+      // OpenAI
+      const res = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${state.aiKey}`
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o',
+          max_tokens: 1000,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            ...chatHistory
+          ]
+        })
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error?.message || 'API error');
+      }
+      const data = await res.json();
+      reply = data.choices[0].message.content;
+    } else {
+      // Gemini
+      const geminiMessages = chatHistory.map(m => ({
+        role: m.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: m.content }]
+      }));
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${state.aiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          system_instruction: { parts: [{ text: systemPrompt }] },
+          contents: geminiMessages,
+          generationConfig: { maxOutputTokens: 1000 }
+        })
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error?.message || 'Gemini API error');
+      }
+      const data = await res.json();
+      reply = data.candidates[0].content.parts[0].text;
+    }
+
+    chatHistory.push({ role: 'assistant', content: reply });
+    removeTyping(typingId);
+    appendMsg('coach', reply);
+
+  } catch(e) {
+    removeTyping(typingId);
+    appendMsg('coach', `⚠️ ${e.message || 'Something went wrong. Check your API key.'}`);
+  } finally {
+    sendBtn.disabled = false;
+    input.focus();
+  }
+}
+
+function appendMsg(role, text) {
+  const container = document.getElementById('chat-messages');
+  const isUser = role === 'user';
+  const now = new Date().toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'});
+  const avatarHtml = isUser
+    ? (state.athlete?.profile ? `<img src="${state.athlete.profile}" alt="">` : (state.athlete?.firstname||'U')[0].toUpperCase())
+    : 'AI';
+
+  const div = document.createElement('div');
+  div.className = `msg ${isUser ? 'user' : ''}`;
+  div.innerHTML = `
+    <div class="msg-avatar ${isUser?'user-av':'coach'}">${avatarHtml}</div>
+    <div>
+      <div class="msg-bubble">${escHtml(text).replace(/\n/g,'<br>')}</div>
+      <div class="msg-time">${now}</div>
+    </div>`;
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+  return div;
+}
+
+function appendTyping() {
+  const container = document.getElementById('chat-messages');
+  const id = 'typing-' + Date.now();
+  const div = document.createElement('div');
+  div.className = 'msg';
+  div.id = id;
+  div.innerHTML = `<div class="msg-avatar coach">AI</div><div><div class="msg-bubble"><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div></div>`;
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+  return id;
+}
+
+function removeTyping(id) {
+  const el = document.getElementById(id);
+  if (el) el.remove();
+}
+
+// ── Navigation ──
+function showPage(name, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  if (btn) btn.classList.add('active');
+  const titles = { dashboard:'Dashboard', coach:'AI Coach', activities:'Activities', groups:'Groups', plan:'Training Plan' };
+  document.getElementById('page-title').textContent = titles[name] || name;
+  state.currentPage = name;
+}
+
+// ── Helpers ──
+function fmtTime(s) {
+  if (!s) return '—';
+  const h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sec = s%60;
+  if (h > 0) return `${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+  return `${m}:${String(sec).padStart(2,'0')}`;
+}
+
+function fmtPace(secPerKm) {
+  if (!secPerKm || !isFinite(secPerKm)) return '—';
+  const m = Math.floor(secPerKm/60), s = Math.round(secPerKm%60);
+  return `${m}:${String(s).padStart(2,'0')}`;
+}
+
+function fmtElev(m) { return m ? `${Math.round(m)}m` : '—'; }
+
+function typeIcon(t) {
+  const icons = { Run:'🏃', Ride:'🚴', Swim:'🏊', Walk:'🚶', Hike:'🥾', WeightTraining:'🏋️', Yoga:'🧘', TrailRun:'🏔️', VirtualRide:'🖥️', VirtualRun:'🖥️', Workout:'💪', Crossfit:'💪' };
+  return icons[t] || '⚡';
+}
+
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function toast(msg, type = 'success') {
+  const existing = document.querySelector('.toast');
+  if (existing) existing.remove();
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<span class="toast-icon">${type==='success'?'✓':type==='error'?'⚠':'ℹ'}</span> ${msg}`;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+</script>
+</body>
+</html>
