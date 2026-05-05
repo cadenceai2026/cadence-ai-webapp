@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cadence App</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Space+Grotesk:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://js.stripe.com/v3/"></script>
+<link rel="stylesheet" href="./css/styles.css">
+<link rel="stylesheet" href="./css/app.css">
+</head>
+<body>
+
+<!-- ══════════ AUTH SCREEN ══════════ -->
+<div id="screen-auth" class="auth-screen">
+  <div class="auth-grid"></div>
+  <div class="auth-orb"></div>
+  <div class="auth-card">
+    <div class="auth-logo">
+      <svg width="26" height="26" viewBox="0 0 52 52" fill="none">
+        <rect x="4" y="24" width="6" height="16" rx="3" fill="#00E5A0" opacity="0.4"/>
+        <rect x="13" y="16" width="6" height="24" rx="3" fill="#00E5A0" opacity="0.6"/>
+        <rect x="22" y="8" width="6" height="32" rx="3" fill="#00E5A0"/>
+        <rect x="31" y="14" width="6" height="26" rx="3" fill="#00E5A0" opacity="0.75"/>
+        <rect x="40" y="20" width="6" height="20" rx="3" fill="#00E5A0" opacity="0.5"/>
+        <circle cx="43" cy="14" r="5" fill="#00E5A0"/>
+        <circle cx="43" cy="14" r="2.5" fill="#080808"/>
+      </svg>
+      <span class="auth-wordmark">Ca<span>den</span>ce</span>
+    </div>
+
+    <!-- Sign in -->
+    <div id="view-signin" class="auth-view">
+      <div class="auth-h">Welcome back</div>
+      <div class="auth-sub">Sign in to continue training.</div>
+      <button class="btn-google" id="btn-google-signin">
+        <svg width="18" height="18" viewBox="0 0 48 48"><path d="M44.5 20H24v8.5h11.8C34.7 33.9 30.1 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 11.8 2 2 11.8 2 24s9.8 22 22 22c11 0 21-8 21-22 0-1.3-.2-2.7-.5-4z" fill="#FFC107"/><path d="M6.3 14.7l7.1 5.2C15.1 16 19.3 13 24 13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 16.3 2 9.7 7.4 6.3 14.7z" fill="#FF3D00"/><path d="M24 46c5.5 0 10.5-1.9 14.3-5.1l-6.6-5.6C29.6 36.9 27 38 24 38c-6 0-10.7-3.9-11.8-9.2H4.6C8 41 15.4 46 24 46z" fill="#4CAF50"/><path d="M44.5 20H24v8.5h11.8c-.7 2.5-2.2 4.7-4.2 6.3l6.6 5.6C41.7 37.5 45 31.2 45 24c0-1.3-.2-2.7-.5-4z" fill="#1976D2"/></svg>
+        Continue with Google
+      </button>
+      <div class="auth-divider"><span>or</span></div>
+      <input class="inp" id="si-email" type="email" placeholder="Email address" autocapitalize="none" autocorrect="off">
+      <input class="inp" id="si-pass" type="password" placeholder="Password">
+      <button class="btn btn-green btn-full" id="btn-signin">Sign in</button>
+      <p class="auth-foot">No account? <a class="auth-link" id="link-to-signup">Create one free →</a></p>
+      <p style="text-align:center;margin-top:8px">
+        <a class="auth-link" id="link-forgot" style="font-size:0.76rem;color:var(--muted2)">Forgot password?</a>
+      </p>
+    </div>
+
+    <!-- Sign up -->
+    <div id="view-signup" class="auth-view" style="display:none">
+      <div class="auth-h">Create account</div>
+      <div class="auth-sub">14-day free trial. No credit card needed.</div>
+      <button class="btn-google" id="btn-google-signup">
+        <svg width="18" height="18" viewBox="0 0 48 48"><path d="M44.5 20H24v8.5h11.8C34.7 33.9 30.1 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 11.8 2 2 11.8 2 24s9.8 22 22 22c11 0 21-8 21-22 0-1.3-.2-2.7-.5-4z" fill="#FFC107"/><path d="M6.3 14.7l7.1 5.2C15.1 16 19.3 13 24 13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 16.3 2 9.7 7.4 6.3 14.7z" fill="#FF3D00"/><path d="M24 46c5.5 0 10.5-1.9 14.3-5.1l-6.6-5.6C29.6 36.9 27 38 24 38c-6 0-10.7-3.9-11.8-9.2H4.6C8 41 15.4 46 24 46z" fill="#4CAF50"/><path d="M44.5 20H24v8.5h11.8c-.7 2.5-2.2 4.7-4.2 6.3l6.6 5.6C41.7 37.5 45 31.2 45 24c0-1.3-.2-2.7-.5-4z" fill="#1976D2"/></svg>
+        Sign up with Google
+      </button>
+      <div class="auth-divider"><span>or</span></div>
+      <input class="inp" id="su-email" type="email" placeholder="Email address" autocapitalize="none" autocorrect="off">
+      <input class="inp" id="su-pass" type="password" placeholder="Password (min 6 chars)">
+      <button class="btn btn-green btn-full" id="btn-signup">Create account</button>
+      <p class="auth-tip">By signing up you agree to our terms</p>
+      <p class="auth-foot">Already have account? <a class="auth-link" id="link-to-signin">Sign in →</a></p>
+    </div>
+
+    <!-- Check email -->
+    <div id="view-check-email" class="auth-view" style="display:none;text-align:center">
+      <div style="font-size:3rem;margin-bottom:14px">📬</div>
+      <div class="auth-h">Check your email</div>
+      <div class="auth-sub">We sent a verification link. Click it then come back here.</div>
+      <button class="btn btn-outline btn-full" id="btn-back-to-signin">Back to sign in</button>
+    </div>
+
+    <!-- Connect Strava -->
+    <div id="view-strava" class="auth-view" style="display:none">
+      <div class="auth-progress">
+        <div class="auth-dot done"></div>
+        <div class="auth-dot done"></div>
+        <div class="auth-dot"></div>
+      </div>
+      <div class="auth-h">Connect Strava</div>
+      <div class="auth-sub">Last step! Connect Strava to load your activities securely.</div>
+      <div class="strava-step">
+        <div class="ss-num">1</div>
+        <div class="ss-body">
+          <div class="ss-title">Create a Strava API app</div>
+          <div class="ss-desc">Free, takes 2 minutes. You'll get a Client ID and Secret.</div>
+          <a href="https://www.strava.com/settings/api" target="_blank" class="ss-link">Open Strava API settings →</a>
+        </div>
+      </div>
+      <div class="strava-step" id="ss-step-2">
+        <div class="ss-num">2</div>
+        <div class="ss-body">
+          <div class="ss-title">Connect with one click</div>
+          <div class="ss-desc">Enter your Client ID below and we'll handle the rest securely via our server.</div>
+          <input class="inp" id="strava-client-id" type="text" placeholder="Client ID (e.g. 12345)" style="margin-top:8px;margin-bottom:8px">
+          <button class="ss-link" id="btn-connect-strava" style="background:var(--green);color:#080808;border:none">Connect with Strava →</button>
+        </div>
+      </div>
+      <button class="btn btn-outline btn-full" id="btn-skip-strava" style="margin-top:10px">Skip for now</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ APP SCREEN ══════════ -->
+<div id="screen-app" style="display:none">
+
+  <!-- Mobile topbar -->
+  <div class="mob-topbar" id="mob-topbar">
+    <span class="mob-logo">Ca<span>den</span>ce</span>
+    <div class="mob-right">
+      <span class="mob-plan" id="mob-plan-badge">TRIAL</span>
+      <div class="mob-av" id="mob-avatar">?</div>
+    </div>
+  </div>
+
+  <div class="app-layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <a href="/" class="sidebar-logo">
+        <svg width="22" height="22" viewBox="0 0 52 52" fill="none">
+          <rect x="4" y="24" width="6" height="16" rx="3" fill="#00E5A0" opacity="0.4"/>
+          <rect x="13" y="16" width="6" height="24" rx="3" fill="#00E5A0" opacity="0.6"/>
+          <rect x="22" y="8" width="6" height="32" rx="3" fill="#00E5A0"/>
+          <rect x="31" y="14" width="6" height="26" rx="3" fill="#00E5A0" opacity="0.75"/>
+          <rect x="40" y="20" width="6" height="20" rx="3" fill="#00E5A0" opacity="0.5"/>
+          <circle cx="43" cy="14" r="5" fill="#00E5A0"/>
+          <circle cx="43" cy="14" r="2.5" fill="#080808"/>
+        </svg>
+        <span class="sidebar-wordmark">Ca<span>den</span>ce</span>
+      </a>
+      <nav class="sidebar-nav">
+        <button class="nav-item active" data-page="dashboard"><span class="nav-icon">🏠</span>Dashboard</button>
+        <button class="nav-item" data-page="coach"><span class="nav-icon">🤖</span>AI Coach</button>
+        <button class="nav-item" data-page="activities"><span class="nav-icon">🏃</span>Activities</button>
+        <button class="nav-item" data-page="groups"><span class="nav-icon">👥</span>Groups</button>
+        <button class="nav-item" data-page="ranking"><span class="nav-icon">🏆</span>Ranking</button>
+        <button class="nav-item" data-page="pricing"><span class="nav-icon">⚡</span>Upgrade</button>
+        <button class="nav-item" data-page="admin" id="admin-nav-item" style="display:none"><span class="nav-icon">🛡️</span>Admin</button>
+        <button class="nav-item" data-page="settings"><span class="nav-icon">⚙️</span>Settings</button>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="plan-pill trial" id="plan-pill">
+          <div class="plan-pill-label" id="plan-label">FREE TRIAL</div>
+          <div class="plan-pill-name" id="plan-name">14 days left</div>
+          <div class="plan-pill-sub" id="plan-sub">Upgrade to Elite</div>
+          <button class="upgrade-btn" id="upgrade-btn">Upgrade →</button>
+        </div>
+        <div class="user-row">
+          <div class="user-av" id="sb-avatar">?</div>
+          <div>
+            <div class="user-name" id="sb-name">Loading…</div>
+            <div class="user-plan-badge" id="sb-plan-tag">TRIAL</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="app-main">
+
+      <!-- Desktop topbar -->
+      <div class="topbar">
+        <div class="topbar-title" id="page-title">Dashboard</div>
+        <div class="topbar-actions">
+          <button class="btn-sm" id="btn-sync">↻ Sync</button>
+          <button class="btn-sm on" id="btn-ask-coach">Ask AI Coach</button>
+        </div>
+      </div>
+
+      <!-- ── DASHBOARD ── -->
+      <div class="page active" id="page-dashboard">
+        <div class="welcome-hero">
+          <div class="welcome-name" id="welcome-name">Welcome back 👋</div>
+          <div class="welcome-sub" id="welcome-sub">Here's your training overview</div>
+          <div class="welcome-plan" id="welcome-plan">FREE TRIAL</div>
+        </div>
+
+        <div class="quick-actions">
+          <button class="quick-action" data-goto="coach">
+            <span class="qa-icon">🤖</span>
+            <span class="qa-label">AI Coach</span>
+            <span class="qa-desc">Ask your coach anything</span>
+          </button>
+          <button class="quick-action" data-goto="activities">
+            <span class="qa-icon">🏃</span>
+            <span class="qa-label">Activities</span>
+            <span class="qa-desc">View all your runs</span>
+          </button>
+          <button class="quick-action" data-goto="groups">
+            <span class="qa-icon">👥</span>
+            <span class="qa-label">Groups</span>
+            <span class="qa-desc">Compete with your city</span>
+          </button>
+          <button class="quick-action" data-goto="ranking">
+            <span class="qa-icon">🏆</span>
+            <span class="qa-label">Ranking</span>
+            <span class="qa-desc">Monthly km leaderboard</span>
+          </button>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card"><div class="stat-label">Activities</div><div class="stat-value g" id="s-count">—</div><div class="stat-sub">last 60 days</div></div>
+          <div class="stat-card"><div class="stat-label">Distance</div><div class="stat-value" id="s-dist">—</div><div class="stat-sub">km total</div></div>
+          <div class="stat-card"><div class="stat-label">Time</div><div class="stat-value" id="s-time">—</div><div class="stat-sub">hours</div></div>
+          <div class="stat-card"><div class="stat-label">Elevation</div><div class="stat-value" id="s-elev">—</div><div class="stat-sub">meters</div></div>
+          <div class="stat-card"><div class="stat-label">Avg Pace</div><div class="stat-value g" id="s-pace">—</div><div class="stat-sub">min/km runs</div></div>
+        </div>
+
+        <div class="sec-head">
+          <div class="sec-title">Recent Activities</div>
+          <button class="btn-sm" data-goto="activities">View all →</button>
+        </div>
+        <div class="acts-grid" id="dash-acts">
+          <div class="empty"><span class="spinner"></span> Loading…</div>
+        </div>
+      </div>
+
+      <!-- ── AI COACH ── -->
+      <div class="page" id="page-coach">
+        <!-- Selector shown first -->
+        <div id="coach-selector">
+          <div class="coach-selector">
+            <div class="coach-selector-title">Choose your AI Coach</div>
+            <div class="coach-selector-sub">More AI options coming as Cadence grows 🚀</div>
+            <div class="coach-grid">
+              <div class="coach-card selected" id="coach-cadence" onclick="startChat()">
+                <div class="coach-icon">🟢</div>
+                <div class="coach-name">Cadence AI</div>
+                <div class="coach-desc">Powered by Cadence</div>
+                <div class="coach-badge">Free · Available now</div>
+              </div>
+              <div class="coach-card soon" onclick="toast('Claude coming soon! 🧠')">
+                <div class="soon-tag">Soon</div>
+                <div class="coach-icon">🧠</div>
+                <div class="coach-name">Claude</div>
+                <div class="coach-desc">by Anthropic</div>
+              </div>
+              <div class="coach-card soon" onclick="toast('ChatGPT coming soon! ⚡')">
+                <div class="soon-tag">Soon</div>
+                <div class="coach-icon">⚡</div>
+                <div class="coach-name">ChatGPT</div>
+                <div class="coach-desc">by OpenAI</div>
+              </div>
+              <div class="coach-card soon" onclick="toast('Gemini coming soon! ✨')">
+                <div class="soon-tag">Soon</div>
+                <div class="coach-icon">✨</div>
+                <div class="coach-name">Gemini</div>
+                <div class="coach-desc">by Google</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Chat shown after selecting -->
+        <div id="coach-chat" style="display:none">
+          <div class="quick-prompts" id="quick-prompts">
+            <button class="qp">Why is my pace dropping?</button>
+            <button class="qp">Am I overtraining?</button>
+            <button class="qp">Build me a 10K plan</button>
+            <button class="qp">When will I break 50min for 10K?</button>
+            <button class="qp">What should I focus on this week?</button>
+          </div>
+          <div class="chat-wrap">
+            <div class="chat-head">
+              <button id="btn-back-selector" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.1rem;margin-right:4px;padding:0">←</button>
+              <div class="chat-dot"></div>
+              <div class="chat-head-name">Cadence AI Coach</div>
+              <div class="chat-head-model">Free</div>
+            </div>
+            <div class="chat-msgs" id="chat-msgs"></div>
+            <div class="chat-inp-wrap">
+              <textarea class="chat-inp" id="chat-in" placeholder="Ask your coach anything…" rows="1"></textarea>
+              <button class="chat-send" id="chat-send">→</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ACTIVITIES ── -->
+      <div class="page" id="page-activities">
+        <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap" id="act-filters">
+          <button class="btn-sm on" data-filter="all">All</button>
+          <button class="btn-sm" data-filter="Run">🏃 Runs</button>
+          <button class="btn-sm" data-filter="Ride">🚴 Rides</button>
+          <button class="btn-sm" data-filter="Walk">🚶 Walks</button>
+          <button class="btn-sm" data-filter="Hike">🥾 Hikes</button>
+        </div>
+        <div class="acts-grid" id="all-acts">
+          <div class="empty"><span class="spinner"></span> Loading…</div>
+        </div>
+      </div>
+
+      <!-- ── GROUPS ── -->
+      <div class="page" id="page-groups">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+          <div>
+            <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.15rem;letter-spacing:-0.02em;margin-bottom:4px">City Groups</div>
+            <div style="font-size:0.82rem;color:var(--muted)">Compete with runners in your zone 🏆</div>
+          </div>
+          <button class="btn-sm on" id="btn-create-group">+ Create group</button>
+        </div>
+        <div class="groups-grid" id="groups-list">
+          <div class="empty"><span class="spinner"></span> Loading…</div>
+        </div>
+      </div>
+
+      <!-- ── RANKING ── -->
+      <div class="page" id="page-ranking">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+          <div>
+            <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.15rem;letter-spacing:-0.02em;margin-bottom:4px">Monthly Ranking 🏆</div>
+            <div style="font-size:0.82rem;color:var(--muted)">Top runner wins a free Elite month. Resets on the 1st.</div>
+          </div>
+          <div style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--muted)">Resets in <span id="days-left">—</span> days</div>
+        </div>
+        <div id="ranking-list">
+          <div class="empty"><span class="spinner"></span> Loading…</div>
+        </div>
+      </div>
+
+      <!-- ── PRICING ── -->
+      <div class="page" id="page-pricing">
+        <div style="margin-bottom:32px">
+          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;letter-spacing:-0.03em;margin-bottom:8px">Simple pricing</div>
+          <div style="color:var(--muted)">Start free. Upgrade when you're ready.</div>
+        </div>
+        <div class="pricing-grid">
+          <div class="pricing-card">
+            <div class="pricing-name">Starter</div>
+            <div class="pricing-price">$0 <span>/ forever</span></div>
+            <div class="pricing-desc">For runners getting started.</div>
+            <ul class="pricing-feat">
+              <li class="on"><span class="check">✓</span> Strava connection</li>
+              <li class="on"><span class="check">✓</span> Activity dashboard</li>
+              <li class="on"><span class="check">✓</span> AI Coach (free)</li>
+              <li class="on"><span class="check">✓</span> Join 1 group</li>
+              <li style="opacity:0.4"><span class="check">✗</span> Create groups</li>
+              <li style="opacity:0.4"><span class="check">✗</span> km Battles</li>
+              <li style="opacity:0.4"><span class="check">✗</span> Monthly prize</li>
+            </ul>
+            <button class="btn btn-outline btn-full">Current plan</button>
+          </div>
+          <div class="pricing-card featured">
+            <div class="pricing-badge">⚡ 14-day free trial</div>
+            <div class="pricing-name">Elite</div>
+            <div class="pricing-price">$8 <span>/ month</span></div>
+            <div class="pricing-desc">For serious runners who want to improve.</div>
+            <ul class="pricing-feat">
+              <li class="on"><span class="check">✓</span> Everything in Starter</li>
+              <li class="on"><span class="check">✓</span> Unlimited AI coaching</li>
+              <li class="on"><span class="check">✓</span> Create & lead groups</li>
+              <li class="on"><span class="check">✓</span> km Battles & ranking</li>
+              <li class="on"><span class="check">✓</span> Monthly winner = free month</li>
+              <li class="on"><span class="check">✓</span> Full activity history</li>
+              <li class="on"><span class="check">✓</span> PR predictor</li>
+            </ul>
+            <button class="btn btn-green btn-full" id="btn-checkout">Start free trial →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SETTINGS ── -->
+      <div class="page" id="page-settings">
+        <div style="max-width:580px">
+
+          <div class="settings-section">
+            <div class="settings-title">👤 Profile</div>
+            <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px">
+              <div id="settings-avatar" style="width:56px;height:56px;border-radius:50%;background:var(--green-dim);border:2px solid #00E5A030;display:flex;align-items:center;justify-content:center;font-size:1.3rem;font-weight:600;color:var(--green);overflow:hidden;flex-shrink:0">?</div>
+              <div>
+                <div style="font-size:0.9rem;font-weight:600;margin-bottom:2px" id="settings-display-name">—</div>
+                <div style="font-size:0.75rem;color:var(--muted)" id="settings-email">—</div>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+              <div>
+                <div class="settings-lbl">Display name</div>
+                <input class="inp" id="profile-name" type="text" placeholder="Your name" style="margin-bottom:0">
+              </div>
+              <div>
+                <div class="settings-lbl">City</div>
+                <input class="inp" id="profile-city" type="text" placeholder="Madrid" style="margin-bottom:0">
+              </div>
+            </div>
+            <div class="settings-lbl">Runner type</div>
+            <div class="chip-row">
+              <button class="chip" data-group="runner-type" data-val="beginner">🌱 Beginner</button>
+              <button class="chip" data-group="runner-type" data-val="intermediate">🏃 Intermediate</button>
+              <button class="chip" data-group="runner-type" data-val="advanced">⚡ Advanced</button>
+            </div>
+            <div class="settings-lbl">Goal</div>
+            <div class="chip-row">
+              <button class="chip" data-group="goal" data-val="fitness">💪 Get fit</button>
+              <button class="chip" data-group="goal" data-val="10k">🏅 10K</button>
+              <button class="chip" data-group="goal" data-val="half">🎯 Half marathon</button>
+              <button class="chip" data-group="goal" data-val="marathon">🏆 Marathon</button>
+            </div>
+            <button class="settings-save" id="btn-save-profile">Save profile</button>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-title">🔗 Connections</div>
+            <div class="settings-conn-row">
+              <div style="display:flex;align-items:center;gap:12px">
+                <div style="width:36px;height:36px;border-radius:8px;background:#FC4C0215;display:flex;align-items:center;justify-content:center;font-size:0.95rem">🟠</div>
+                <div>
+                  <div style="font-size:0.88rem;font-weight:500">Strava</div>
+                  <div style="font-size:0.7rem;color:var(--muted)" id="strava-conn-status">Not connected</div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <div id="strava-conn-dot" style="width:7px;height:7px;border-radius:50%;background:var(--muted)"></div>
+                <button class="btn-sm" id="btn-reconnect-strava">Reconnect</button>
+              </div>
+            </div>
+            <div class="settings-conn-row" style="opacity:0.5">
+              <div style="display:flex;align-items:center;gap:12px">
+                <div style="width:36px;height:36px;border-radius:8px;background:#0066CC15;display:flex;align-items:center;justify-content:center;font-size:0.95rem">⌚</div>
+                <div><div style="font-size:0.88rem;font-weight:500">Garmin</div><div style="font-size:0.7rem;color:var(--muted)">Coming soon</div></div>
+              </div>
+              <span style="font-size:0.68rem;color:var(--muted2);font-family:'DM Mono',monospace">Soon</span>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-title">🤖 AI Coach preferences</div>
+            <div class="settings-lbl">Language</div>
+            <div class="chip-row">
+              <button class="chip" data-group="lang" data-val="en">🇬🇧 English</button>
+              <button class="chip" data-group="lang" data-val="es">🇪🇸 Español</button>
+              <button class="chip" data-group="lang" data-val="fr">🇫🇷 Français</button>
+              <button class="chip" data-group="lang" data-val="de">🇩🇪 Deutsch</button>
+            </div>
+            <div class="settings-lbl">Coaching style</div>
+            <div class="chip-row">
+              <button class="chip" data-group="style" data-val="motivator">🔥 Motivator</button>
+              <button class="chip" data-group="style" data-val="technical">📊 Technical</button>
+              <button class="chip" data-group="style" data-val="friendly">😊 Friendly</button>
+              <button class="chip" data-group="style" data-val="strict">💪 Strict</button>
+            </div>
+            <button class="settings-save" id="btn-save-coach">Save preferences</button>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-title">🔔 Notifications</div>
+            <div class="settings-row">
+              <div><div style="font-size:0.88rem;font-weight:500">Weekly summary</div><div style="font-size:0.7rem;color:var(--muted)">Every Monday by email</div></div>
+              <label class="toggle"><input type="checkbox" id="notif-weekly" checked><span class="toggle-track"></span></label>
+            </div>
+            <div class="settings-row">
+              <div><div style="font-size:0.88rem;font-weight:500">Ranking alerts</div><div style="font-size:0.7rem;color:var(--muted)">When someone overtakes you</div></div>
+              <label class="toggle"><input type="checkbox" id="notif-ranking"><span class="toggle-track"></span></label>
+            </div>
+            <div class="settings-row">
+              <div><div style="font-size:0.88rem;font-weight:500">Inactivity reminder</div><div style="font-size:0.7rem;color:var(--muted)">If you haven't run in 5+ days</div></div>
+              <label class="toggle"><input type="checkbox" id="notif-inactive" checked><span class="toggle-track"></span></label>
+            </div>
+            <button class="settings-save" id="btn-save-notifs">Save notifications</button>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-title">💳 Subscription</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+              <div style="font-size:0.88rem;font-weight:500">Current plan</div>
+              <span class="plan-tag trial" id="sub-plan-tag">TRIAL</span>
+            </div>
+            <div style="font-size:0.78rem;color:var(--muted);margin-bottom:14px" id="sub-plan-detail">14-day free trial active</div>
+            <button class="settings-save" id="sub-action-btn">Upgrade to Elite →</button>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-title">🔐 Account</div>
+            <div style="font-size:0.85rem;color:var(--muted);margin-bottom:16px" id="account-email">—</div>
+            <button class="chip" style="width:100%;padding:10px;margin-bottom:8px;text-align:center" id="btn-change-pass">Change password</button>
+            <button id="btn-signout" style="width:100%;background:transparent;border:1px solid #ff444440;color:#ff4444;border-radius:8px;padding:10px;font-family:'Space Grotesk',sans-serif;font-size:0.85rem;cursor:pointer;margin-bottom:8px">Sign out</button>
+            <button id="btn-delete" style="width:100%;background:transparent;border:none;color:var(--muted2);border-radius:8px;padding:10px;font-family:'Space Grotesk',sans-serif;font-size:0.76rem;cursor:pointer">Delete account</button>
+          </div>
+
+          <!-- Admin section (hidden unless admin) -->
+          <div class="settings-section" id="admin-section" style="display:none">
+            <div class="settings-title">🛡️ Admin Panel</div>
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px">
+              <div class="stat-card"><div class="stat-label">Total users</div><div class="stat-value g" id="admin-total">—</div></div>
+              <div class="stat-card"><div class="stat-label">Elite</div><div class="stat-value" id="admin-elite">—</div></div>
+              <div class="stat-card"><div class="stat-label">Trial</div><div class="stat-value" id="admin-trial">—</div></div>
+              <div class="stat-card"><div class="stat-label">Free</div><div class="stat-value" id="admin-free">—</div></div>
+            </div>
+            <div style="background:var(--surface2);border-radius:10px;overflow:hidden">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Email</th>
+                    <th>Plan</th>
+                    <th>Joined</th>
+                    <th>City</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-tbody">
+                  <tr><td colspan="4" class="empty">Loading…</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Mobile bottom nav -->
+  <nav class="mob-nav">
+    <div class="mob-nav-items">
+      <button class="mob-nav-btn active" data-page="dashboard"><span class="mob-nav-icon">🏠</span><span class="mob-nav-label">Home</span></button>
+      <button class="mob-nav-btn" data-page="coach"><span class="mob-nav-icon">🤖</span><span class="mob-nav-label">Coach</span></button>
+      <button class="mob-nav-btn" data-page="activities"><span class="mob-nav-icon">🏃</span><span class="mob-nav-label">Runs</span></button>
+      <button class="mob-nav-btn" data-page="groups"><span class="mob-nav-icon">👥</span><span class="mob-nav-label">Groups</span></button>
+      <button class="mob-nav-btn" data-page="settings"><span class="mob-nav-icon">⚙️</span><span class="mob-nav-label">Settings</span></button>
+    </div>
+  </nav>
+
+</div>
+
+<!-- ══ MODALS ══ -->
+<div id="group-modal" style="display:none" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Create a Group</div>
+    <div class="modal-sub">Create a running group for your city or neighborhood.</div>
+    <input class="inp" id="group-name" type="text" placeholder="Group name (e.g. Madrid Centro Runners)">
+    <input class="inp" id="group-city" type="text" placeholder="City">
+    <input class="inp" id="group-flag" type="text" placeholder="Flag emoji (e.g. 🇪🇸)">
+    <button class="btn btn-green btn-full" id="btn-save-group">Create group</button>
+    <button class="btn btn-outline btn-full" id="btn-cancel-group" style="margin-top:8px">Cancel</button>
+  </div>
+</div>
+
+<div id="elite-modal" style="display:none" class="elite-overlay">
+  <div class="elite-box">
+    <div style="font-size:2.8rem;margin-bottom:12px">🏆</div>
+    <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.5rem;letter-spacing:-0.03em;margin-bottom:6px">Welcome to <span style="color:var(--green)">Elite</span></div>
+    <div style="font-size:0.85rem;color:var(--muted);margin-bottom:20px;line-height:1.6">You now have full access to all Cadence features.</div>
+    <div style="margin-bottom:24px">
+      <div class="benefit-row"><span style="font-size:1.1rem">🤖</span><div><div style="font-size:0.85rem;font-weight:600">Unlimited AI Coach</div><div style="font-size:0.72rem;color:var(--muted)">Chat as much as you want</div></div></div>
+      <div class="benefit-row"><span style="font-size:1.1rem">👥</span><div><div style="font-size:0.85rem;font-weight:600">Create & lead Groups</div><div style="font-size:0.72rem;color:var(--muted)">Lead your city running community</div></div></div>
+      <div class="benefit-row"><span style="font-size:1.1rem">🏆</span><div><div style="font-size:0.85rem;font-weight:600">Monthly Winner Prize</div><div style="font-size:0.72rem;color:var(--muted)">Top km runner wins next month free</div></div></div>
+    </div>
+    <button id="btn-close-elite" style="width:100%;background:var(--green);color:#080808;border:none;border-radius:10px;padding:13px;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:0.95rem;cursor:pointer">Let's go! 🏃</button>
+  </div>
+</div>
+
+<div id="toast-root"></div>
+
+<script type="module" src="./js/main.js"></script>
+</body>
+</html>
