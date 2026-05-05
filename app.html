@@ -1248,6 +1248,11 @@ async function loadData() {
       const res = await fetch('https://www.strava.com/api/v3/athlete', {
         headers: { Authorization: `Bearer ${state.stravaToken}` }
       });
+      if (res.status === 401) {
+        // Token expired — show refresh modal
+        showTokenExpiredModal();
+        return;
+      }
       state.athlete = await res.json();
     }
 
@@ -1375,6 +1380,42 @@ function renderGroups() {
       <button class="btn-join ${g.joined?'joined':'open'}" onclick="toggleJoin(this)">${g.joined?'✓ Joined':'Join group'}</button>
     </div>
   `).join('');
+}
+
+function showTokenExpiredModal() {
+  const existing = document.getElementById('token-expired-modal');
+  if (existing) return;
+  const modal = document.createElement('div');
+  modal.id = 'token-expired-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:#00000095;z-index:300;display:flex;align-items:center;justify-content:center;padding:20px;';
+  modal.innerHTML = `
+    <div style="background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:32px;max-width:420px;width:100%;">
+      <div style="font-size:1.8rem;margin-bottom:12px;">⏰</div>
+      <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;margin-bottom:8px;letter-spacing:-0.02em;">Strava token expired</div>
+      <div style="font-size:0.85rem;color:var(--muted);margin-bottom:6px;line-height:1.6;">Your token lasts 6 hours. Get a new one by running this in your desktop browser console:</div>
+      <div style="background:var(--bg);border-radius:8px;padding:10px;font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--green);word-break:break-all;margin-bottom:16px;line-height:1.6;cursor:pointer;" onclick="navigator.clipboard?.writeText(this.textContent.trim())">fetch('https://www.strava.com/oauth/token',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({client_id:'235355',client_secret:'3953917f0cb73a237448d320ffe01fa9d9f75fc4',refresh_token:'b872e3a132cb28955df70567f0bc55d7672dd98e',grant_type:'refresh_token'})}).then(r=>r.json()).then(d=>prompt('Your token:',d.access_token))</div>
+      <input id="expired-token-input" type="text" placeholder="Paste new access_token here…" autocomplete="off" autocorrect="off" autocapitalize="none" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:12px 16px;color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:0.9rem;outline:none;margin-bottom:12px;">
+      <button onclick="refreshFromModal()" style="width:100%;background:var(--green);color:#080808;border:none;border-radius:10px;padding:13px;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:0.9rem;cursor:pointer;margin-bottom:8px;">Reconnect Strava →</button>
+      <button onclick="logoutFromModal()" style="width:100%;background:transparent;border:none;color:var(--muted);padding:8px;cursor:pointer;font-size:0.82rem;">Sign out</button>
+    </div>`;
+  document.body.appendChild(modal);
+  setTimeout(() => document.getElementById('expired-token-input')?.focus(), 100);
+}
+
+function refreshFromModal() {
+  const token = document.getElementById('expired-token-input')?.value?.trim();
+  if (!token) return;
+  state.stravaToken = token;
+  state.athlete = null;
+  localStorage.setItem('strava_token', token);
+  document.getElementById('token-expired-modal')?.remove();
+  toast('Reconnected! Syncing…', 'success');
+  loadData();
+}
+
+function logoutFromModal() {
+  localStorage.clear();
+  location.reload();
 }
 
 function updateStravaToken() {
