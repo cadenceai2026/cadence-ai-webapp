@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -6,6 +7,7 @@
 <title>Cadence — AI Running Coach</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Space+Grotesk:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://js.stripe.com/v3/"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -16,223 +18,240 @@
 }
 html{scroll-behavior:smooth}
 body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;min-height:100vh;overflow-x:hidden}
-
-/* ── SCREENS ── */
-.screen{display:none}
-.screen.active{display:flex}
-
-/* ── AUTH SCREEN ── */
-#screen-auth{min-height:100vh;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;position:relative;overflow:hidden}
-.auth-grid{position:absolute;inset:0;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:48px 48px;opacity:0.4;mask-image:radial-gradient(ellipse 70% 70% at 50% 50%,black 20%,transparent 100%)}
-.auth-orb{position:absolute;width:500px;height:500px;background:radial-gradient(circle,#00E5A018 0%,transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);animation:pulse 4s ease-in-out infinite}
-@keyframes pulse{0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-50%) scale(1.08)}}
+.screen{display:none}.screen.active{display:flex}
 @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-50%) scale(1.08)}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes typing{0%,80%,100%{transform:scale(0.7);opacity:0.5}40%{transform:scale(1);opacity:1}}
 
-.auth-card{background:var(--surface);border:1px solid var(--border2);border-radius:20px;padding:40px;max-width:420px;width:100%;position:relative;z-index:1;animation:fadeUp 0.5s ease both}
+/* ── AUTH ── */
+#screen-auth{min-height:100vh;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;position:relative;overflow:hidden}
+.auth-grid{position:absolute;inset:0;background-image:linear-gradient(var(–border) 1px,transparent 1px),linear-gradient(90deg,var(–border) 1px,transparent 1px);background-size:48px 48px;opacity:0.4;mask-image:radial-gradient(ellipse 70% 70% at 50% 50%,black 20%,transparent 100%)}
+.auth-orb{position:absolute;width:500px;height:500px;background:radial-gradient(circle,#00E5A018 0%,transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);animation:pulse 4s ease-in-out infinite}
+.auth-card{background:var(–surface);border:1px solid var(–border2);border-radius:20px;padding:40px;max-width:420px;width:100%;position:relative;z-index:1;animation:fadeUp 0.5s ease both}
 .auth-logo{display:flex;align-items:center;gap:10px;margin-bottom:28px}
-.auth-wordmark{font-family:'Syne',sans-serif;font-weight:800;font-size:1.4rem;letter-spacing:-0.02em}
-.auth-wordmark span{color:var(--green)}
+.auth-wordmark{font-family:‘Syne’,sans-serif;font-weight:800;font-size:1.4rem;letter-spacing:-0.02em}
+.auth-wordmark span{color:var(–green)}
 .auth-view{animation:fadeUp 0.3s ease both}
-
-.auth-h{font-family:'Syne',sans-serif;font-weight:800;font-size:1.5rem;letter-spacing:-0.03em;margin-bottom:6px}
-.auth-sub{font-size:0.85rem;color:var(--muted);line-height:1.6;margin-bottom:24px}
-
-.btn-google{width:100%;background:var(--surface2);border:1px solid var(--border2);color:var(--text);border-radius:10px;padding:13px;font-family:'Space Grotesk',sans-serif;font-size:0.9rem;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all 0.2s;margin-bottom:16px}
-.btn-google:hover{border-color:var(--green);background:var(--surface3)}
-
+.auth-h{font-family:‘Syne’,sans-serif;font-weight:800;font-size:1.5rem;letter-spacing:-0.03em;margin-bottom:6px}
+.auth-sub{font-size:0.85rem;color:var(–muted);line-height:1.6;margin-bottom:24px}
+.btn-google{width:100%;background:var(–surface2);border:1px solid var(–border2);color:var(–text);border-radius:10px;padding:13px;font-family:‘Space Grotesk’,sans-serif;font-size:0.9rem;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all 0.2s;margin-bottom:16px}
+.btn-google:hover{border-color:var(–green)}
 .auth-divider{display:flex;align-items:center;gap:12px;margin-bottom:16px}
-.auth-divider::before,.auth-divider::after{content:'';flex:1;height:1px;background:var(--border2)}
-.auth-divider span{font-size:0.72rem;color:var(--muted2);font-family:'DM Mono',monospace}
-
-.auth-input{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:13px 16px;color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:0.9rem;outline:none;transition:border-color 0.2s;margin-bottom:10px;display:block}
-.auth-input:focus{border-color:var(--green)}
-.auth-input::placeholder{color:var(--muted2)}
-
-.btn-primary{width:100%;background:var(--green);color:#080808;border:none;border-radius:10px;padding:13px;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:0.9rem;cursor:pointer;transition:all 0.2s;margin-top:4px}
+.auth-divider::before,.auth-divider::after{content:’’;flex:1;height:1px;background:var(–border2)}
+.auth-divider span{font-size:0.72rem;color:var(–muted2);font-family:‘DM Mono’,monospace}
+.auth-input{width:100%;background:var(–surface2);border:1px solid var(–border2);border-radius:10px;padding:13px 16px;color:var(–text);font-family:‘Space Grotesk’,sans-serif;font-size:0.9rem;outline:none;transition:border-color 0.2s;margin-bottom:10px;display:block}
+.auth-input:focus{border-color:var(–green)}
+.auth-input::placeholder{color:var(–muted2)}
+.btn-primary{width:100%;background:var(–green);color:#080808;border:none;border-radius:10px;padding:13px;font-family:‘Space Grotesk’,sans-serif;font-weight:600;font-size:0.9rem;cursor:pointer;transition:all 0.2s;margin-top:4px}
 .btn-primary:hover{background:#00ffb3}
 .btn-primary:disabled{opacity:0.5;cursor:not-allowed}
-.btn-secondary{width:100%;background:transparent;border:1px solid var(--border2);color:var(--muted);border-radius:10px;padding:12px;font-family:'Space Grotesk',sans-serif;font-size:0.88rem;cursor:pointer;transition:all 0.2s;margin-top:8px}
-.btn-secondary:hover{border-color:var(--border2);color:var(--text)}
-
-.auth-link{color:var(--green);text-decoration:none;cursor:pointer}
-.auth-link:hover{text-decoration:underline}
-.auth-foot{text-align:center;font-size:0.82rem;color:var(--muted);margin-top:16px}
-.auth-tip{text-align:center;font-size:0.72rem;color:var(--muted2);font-family:'DM Mono',monospace;margin-top:12px}
-
-/* strava step */
+.btn-secondary{width:100%;background:transparent;border:1px solid var(–border2);color:var(–muted);border-radius:10px;padding:12px;font-family:‘Space Grotesk’,sans-serif;font-size:0.88rem;cursor:pointer;transition:all 0.2s;margin-top:8px}
+.btn-secondary:hover{color:var(–text)}
+.auth-link{color:var(–green);text-decoration:none;cursor:pointer}
+.auth-foot{text-align:center;font-size:0.82rem;color:var(–muted);margin-top:16px}
+.auth-tip{text-align:center;font-size:0.72rem;color:var(–muted2);font-family:‘DM Mono’,monospace;margin-top:12px}
 .auth-progress{display:flex;gap:6px;margin-bottom:24px}
-.auth-dot{height:3px;flex:1;background:var(--border2);border-radius:2px;transition:background 0.3s}
-.auth-dot.done{background:var(--green)}
-.code-block{background:var(--bg);border-radius:8px;padding:10px;font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--green);word-break:break-all;margin-bottom:14px;line-height:1.6;cursor:pointer;border:1px solid var(--border2);transition:border-color 0.2s}
-.code-block:hover{border-color:var(--green)}
+.auth-dot{height:3px;flex:1;background:var(–border2);border-radius:2px;transition:background 0.3s}
+.auth-dot.done{background:var(–green)}
 
-/* ── MAIN APP ── */
+/* Strava steps */
+.strava-step{display:flex;gap:12px;align-items:flex-start;background:var(–surface2);border:1px solid var(–border2);border-radius:12px;padding:16px;transition:border-color 0.2s;margin-bottom:10px}
+.strava-step.active{border-color:var(–green)}
+.ss-num{width:28px;height:28px;min-width:28px;border-radius:50%;background:var(–surface3);color:var(–muted);font-family:‘DM Mono’,monospace;font-size:0.8rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.ss-body{flex:1}
+.ss-title{font-weight:600;font-size:0.9rem;margin-bottom:4px}
+.ss-desc{font-size:0.78rem;color:var(–muted);line-height:1.5;margin-bottom:8px}
+.ss-btn{display:inline-block;background:var(–surface3);border:1px solid var(–border2);color:var(–green);border-radius:8px;padding:7px 14px;font-size:0.78rem;font-family:‘Space Grotesk’,sans-serif;cursor:pointer;text-decoration:none;transition:all 0.2s}
+.ss-btn:hover{border-color:var(–green);background:var(–green-dim)}
+
+/* ── APP ── */
 #screen-app{min-height:100vh;flex-direction:row}
-
-aside{width:var(--sidebar-w);min-height:100vh;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:24px 16px;position:fixed;top:0;left:0;bottom:0;z-index:50}
+aside{width:var(–sidebar-w);min-height:100vh;background:var(–surface);border-right:1px solid var(–border);display:flex;flex-direction:column;padding:24px 16px;position:fixed;top:0;left:0;bottom:0;z-index:50}
 .sidebar-logo{display:flex;align-items:center;gap:8px;padding:0 8px;margin-bottom:32px}
-.sidebar-wordmark{font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem;letter-spacing:-0.02em}
-.sidebar-wordmark span{color:var(--green)}
+.sidebar-wordmark{font-family:‘Syne’,sans-serif;font-weight:800;font-size:1.1rem;letter-spacing:-0.02em}
+.sidebar-wordmark span{color:var(–green)}
 .sidebar-nav{flex:1;display:flex;flex-direction:column;gap:2px}
-.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;transition:all 0.15s;color:var(--muted);font-size:0.88rem;border:none;background:none;width:100%;text-align:left}
-.nav-item:hover{background:var(--surface2);color:var(--text)}
-.nav-item.active{background:var(--green-dim);color:var(--green);border:1px solid #00E5A018}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;transition:all 0.15s;color:var(–muted);font-size:0.88rem;border:none;background:none;width:100%;text-align:left}
+.nav-item:hover{background:var(–surface2);color:var(–text)}
+.nav-item.active{background:var(–green-dim);color:var(–green);border:1px solid #00E5A018}
 .nav-icon{font-size:1rem;width:20px;text-align:center;flex-shrink:0}
-.sidebar-bottom{padding-top:16px;border-top:1px solid var(--border)}
-.trial-pill{background:var(--green-dim);border:1px solid #00E5A022;border-radius:10px;padding:12px;margin-bottom:12px}
-.trial-label{font-size:0.7rem;color:var(--green);font-family:'DM Mono',monospace;margin-bottom:4px}
-.trial-days{font-family:'Syne',sans-serif;font-weight:800;font-size:1.2rem;letter-spacing:-0.02em}
-.trial-sub{font-size:0.7rem;color:var(--muted)}
+.sidebar-bottom{padding-top:16px;border-top:1px solid var(–border)}
+.plan-pill{border-radius:10px;padding:12px;margin-bottom:12px;border:1px solid var(–border2);background:var(–surface2)}
+.plan-pill.trial{background:var(–green-dim);border-color:#00E5A022}
+.plan-pill.elite{background:linear-gradient(135deg,#00E5A015,var(–surface2));border-color:var(–green)}
+.plan-label{font-size:0.7rem;font-family:‘DM Mono’,monospace;margin-bottom:4px}
+.plan-name{font-family:‘Syne’,sans-serif;font-weight:800;font-size:1.1rem;letter-spacing:-0.02em}
+.plan-sub{font-size:0.7rem;color:var(–muted);margin-top:2px}
+.upgrade-btn{width:100%;background:var(–green);color:#080808;border:none;border-radius:8px;padding:8px;font-family:‘Space Grotesk’,sans-serif;font-weight:600;font-size:0.78rem;cursor:pointer;margin-top:8px;transition:background 0.2s}
+.upgrade-btn:hover{background:#00ffb3}
 .user-row{display:flex;align-items:center;gap:10px;padding:8px 4px}
-.user-avatar{width:32px;height:32px;border-radius:50%;background:var(--green-dim);border:1px solid #00E5A025;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:600;color:var(--green);flex-shrink:0;overflow:hidden}
+.user-avatar{width:32px;height:32px;border-radius:50%;background:var(–green-dim);border:1px solid #00E5A025;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:600;color:var(–green);flex-shrink:0;overflow:hidden}
 .user-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
 .user-name{font-size:0.82rem;font-weight:500;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.user-plan{font-size:0.65rem;color:var(--green);font-family:'DM Mono',monospace}
+.user-plan{font-size:0.65rem;color:var(–green);font-family:‘DM Mono’,monospace}
 
-main{margin-left:var(--sidebar-w);flex:1;min-height:100vh;display:flex;flex-direction:column}
-.top-bar{display:flex;align-items:center;justify-content:space-between;padding:20px 32px;border-bottom:1px solid var(--border);background:var(--bg);position:sticky;top:0;z-index:40}
-.top-bar-title{font-family:'Syne',sans-serif;font-weight:800;font-size:1.2rem;letter-spacing:-0.02em}
+main{margin-left:var(–sidebar-w);flex:1;min-height:100vh;display:flex;flex-direction:column}
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:20px 32px;border-bottom:1px solid var(–border);background:var(–bg);position:sticky;top:0;z-index:40}
+.top-bar-title{font-family:‘Syne’,sans-serif;font-weight:800;font-size:1.2rem;letter-spacing:-0.02em}
 .top-bar-actions{display:flex;gap:8px;align-items:center}
-.btn-sm{background:var(--surface);border:1px solid var(--border2);color:var(--muted);border-radius:8px;padding:7px 14px;font-family:'Space Grotesk',sans-serif;font-size:0.8rem;cursor:pointer;transition:all 0.2s}
-.btn-sm:hover{border-color:var(--green);color:var(--green)}
-.btn-sm.green{background:var(--green);color:#080808;border-color:var(--green);font-weight:600}
+.btn-sm{background:var(–surface);border:1px solid var(–border2);color:var(–muted);border-radius:8px;padding:7px 14px;font-family:‘Space Grotesk’,sans-serif;font-size:0.8rem;cursor:pointer;transition:all 0.2s}
+.btn-sm:hover{border-color:var(–green);color:var(–green)}
+.btn-sm.green{background:var(–green);color:#080808;border-color:var(–green);font-weight:600}
 .btn-sm.green:hover{background:#00ffb3}
-
 .page{display:none;padding:32px;flex:1;animation:fadeUp 0.3s ease both}
 .page.active{display:block}
 
 /* Stats */
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:28px}
-.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;transition:border-color 0.2s}
-.stat-card:hover{border-color:var(--border2)}
-.stat-label{font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;font-family:'DM Mono',monospace;margin-bottom:8px}
-.stat-value{font-family:'DM Mono',monospace;font-size:1.8rem;font-weight:500;line-height:1}
-.stat-value.accent{color:var(--green)}
-.stat-sub{font-size:0.72rem;color:var(--muted);margin-top:4px;font-family:'DM Mono',monospace}
+.stat-card{background:var(–surface);border:1px solid var(–border);border-radius:12px;padding:20px;transition:border-color 0.2s}
+.stat-card:hover{border-color:var(–border2)}
+.stat-label{font-size:0.68rem;color:var(–muted);text-transform:uppercase;letter-spacing:0.1em;font-family:‘DM Mono’,monospace;margin-bottom:8px}
+.stat-value{font-family:‘DM Mono’,monospace;font-size:1.8rem;font-weight:500;line-height:1}
+.stat-value.accent{color:var(–green)}
+.stat-sub{font-size:0.72rem;color:var(–muted);margin-top:4px;font-family:‘DM Mono’,monospace}
 
 /* Activities */
 .acts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
-.act-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;transition:border-color 0.2s,transform 0.15s;cursor:pointer}
-.act-card:hover{border-color:var(--border2);transform:translateY(-1px)}
+.act-card{background:var(–surface);border:1px solid var(–border);border-radius:12px;padding:18px;transition:border-color 0.2s,transform 0.15s}
+.act-card:hover{border-color:var(–border2);transform:translateY(-1px)}
 .act-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px}
-.act-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem;background:var(--green-dim);flex-shrink:0}
+.act-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem;background:var(–green-dim);flex-shrink:0}
 .act-name{font-weight:600;font-size:0.95rem;margin-bottom:2px}
-.act-meta{font-size:0.72rem;color:var(--muted)}
-.act-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding-top:12px;border-top:1px solid var(--border)}
+.act-meta{font-size:0.72rem;color:var(–muted)}
+.act-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding-top:12px;border-top:1px solid var(–border)}
 .act-stat{text-align:center}
-.act-stat-val{font-family:'DM Mono',monospace;font-size:1rem;font-weight:500;display:block}
-.act-stat-lbl{font-size:0.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em}
+.act-stat-val{font-family:‘DM Mono’,monospace;font-size:1rem;font-weight:500;display:block}
+.act-stat-lbl{font-size:0.62rem;color:var(–muted);text-transform:uppercase;letter-spacing:0.08em}
 
 /* Coach */
 .coach-layout{display:grid;grid-template-columns:1fr 320px;gap:20px;height:calc(100vh - 140px)}
-.chat-wrap{background:var(--surface);border:1px solid var(--border);border-radius:14px;display:flex;flex-direction:column;overflow:hidden}
-.chat-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
-.chat-dot{width:8px;height:8px;background:var(--green);border-radius:50%;animation:blink 2s ease-in-out infinite;flex-shrink:0}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+.chat-wrap{background:var(–surface);border:1px solid var(–border);border-radius:14px;display:flex;flex-direction:column;overflow:hidden}
+.chat-header{padding:16px 20px;border-bottom:1px solid var(–border);display:flex;align-items:center;gap:10px}
+.chat-dot{width:8px;height:8px;background:var(–green);border-radius:50%;animation:blink 2s ease-in-out infinite;flex-shrink:0}
 .chat-name{font-weight:600;font-size:0.9rem}
-.chat-model{font-size:0.72rem;color:var(--muted);font-family:'DM Mono',monospace;margin-left:auto}
+.chat-model{font-size:0.72rem;color:var(–muted);font-family:‘DM Mono’,monospace;margin-left:auto}
 .chat-messages{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px;scroll-behavior:smooth}
 .chat-messages::-webkit-scrollbar{width:4px}
-.chat-messages::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.chat-messages::-webkit-scrollbar-thumb{background:var(–border2);border-radius:2px}
 .msg{display:flex;gap:10px;align-items:flex-start;animation:fadeUp 0.3s ease both}
 .msg.user{flex-direction:row-reverse}
 .msg-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:600;flex-shrink:0}
-.msg-av.ai{background:var(--green-dim);color:var(--green);border:1px solid #00E5A025}
-.msg-av.me{background:var(--surface3);color:var(--muted);border:1px solid var(--border2);overflow:hidden}
+.msg-av.ai{background:var(–green-dim);color:var(–green);border:1px solid #00E5A025}
+.msg-av.me{background:var(–surface3);color:var(–muted);border:1px solid var(–border2);overflow:hidden}
 .msg-av.me img{width:100%;height:100%;object-fit:cover;border-radius:50%}
-.msg-bubble{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-size:0.88rem;line-height:1.6;max-width:80%}
-.msg.user .msg-bubble{background:var(--green-dim);border-color:#00E5A020}
-.msg-time{font-size:0.65rem;color:var(--muted2);font-family:'DM Mono',monospace;margin-top:4px}
-.msg.user .msg-time{text-align:left}
-.chat-input-wrap{padding:16px 20px;border-top:1px solid var(--border);display:flex;gap:8px}
-.chat-input{flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:11px 16px;color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:0.88rem;outline:none;resize:none;transition:border-color 0.2s;min-height:44px;max-height:120px}
-.chat-input:focus{border-color:var(--green)}
-.chat-input::placeholder{color:var(--muted2)}
-.chat-send{background:var(--green);color:#080808;border:none;border-radius:10px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:background 0.2s;font-size:1rem}
+.msg-bubble{background:var(–surface2);border:1px solid var(–border);border-radius:10px;padding:12px 14px;font-size:0.88rem;line-height:1.6;max-width:80%}
+.msg.user .msg-bubble{background:var(–green-dim);border-color:#00E5A020}
+.msg-time{font-size:0.65rem;color:var(–muted2);font-family:‘DM Mono’,monospace;margin-top:4px}
+.chat-input-wrap{padding:16px 20px;border-top:1px solid var(–border);display:flex;gap:8px}
+.chat-input{flex:1;background:var(–surface2);border:1px solid var(–border2);border-radius:10px;padding:11px 16px;color:var(–text);font-family:‘Space Grotesk’,sans-serif;font-size:0.88rem;outline:none;resize:none;transition:border-color 0.2s;min-height:44px;max-height:120px}
+.chat-input:focus{border-color:var(–green)}
+.chat-input::placeholder{color:var(–muted2)}
+.chat-send{background:var(–green);color:#080808;border:none;border-radius:10px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:background 0.2s;font-size:1rem}
 .chat-send:hover{background:#00ffb3}
 .chat-send:disabled{opacity:0.4;cursor:not-allowed}
-
 .coach-sidebar{display:flex;flex-direction:column;gap:12px;overflow-y:auto}
-.sc{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px}
-.sc-title{font-size:0.72rem;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:12px}
-.quick-btn{background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:10px 12px;font-size:0.8rem;color:var(--muted);cursor:pointer;transition:all 0.15s;margin-bottom:6px;width:100%;text-align:left;font-family:'Space Grotesk',sans-serif}
-.quick-btn:hover{border-color:var(--green);color:var(--green)}
-
-/* Coach selector */
+.sc{background:var(–surface);border:1px solid var(–border);border-radius:12px;padding:16px}
+.sc-title{font-size:0.72rem;color:var(–muted);font-family:‘DM Mono’,monospace;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:12px}
+.quick-btn{background:var(–surface2);border:1px solid var(–border2);border-radius:8px;padding:10px 12px;font-size:0.8rem;color:var(–muted);cursor:pointer;transition:all 0.15s;margin-bottom:6px;width:100%;text-align:left;font-family:‘Space Grotesk’,sans-serif}
+.quick-btn:hover{border-color:var(–green);color:var(–green)}
 .coach-selector{text-align:center;padding:40px 20px}
-.coach-selector h2{font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;letter-spacing:-0.02em;margin-bottom:8px}
-.coach-selector p{font-size:0.88rem;color:var(--muted);margin-bottom:36px}
-.coach-card{background:var(--surface);border:2px solid var(--green);border-radius:20px;padding:40px;max-width:280px;margin:0 auto;cursor:pointer;transition:all 0.2s}
+.coach-selector h2{font-family:‘Syne’,sans-serif;font-weight:800;font-size:1.6rem;letter-spacing:-0.02em;margin-bottom:8px}
+.coach-selector p{font-size:0.88rem;color:var(–muted);margin-bottom:36px}
+.coach-card{background:var(–surface);border:2px solid var(–green);border-radius:20px;padding:40px;max-width:280px;margin:0 auto;cursor:pointer;transition:all 0.2s}
 .coach-card:hover{transform:translateY(-4px);box-shadow:0 20px 40px #00E5A015}
-.coach-logo-wrap{width:80px;height:80px;border-radius:20px;background:var(--green-dim);display:flex;align-items:center;justify-content:center;margin:0 auto 16px}
-.coach-card-name{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;margin-bottom:6px;letter-spacing:-0.02em}
-.coach-card-desc{font-size:0.82rem;color:var(--muted);margin-bottom:14px}
-.coach-badge{display:inline-block;background:var(--green-dim);color:var(--green);border:1px solid #00E5A025;border-radius:100px;padding:4px 14px;font-size:0.72rem;font-family:'DM Mono',monospace}
+.coach-logo-wrap{width:80px;height:80px;border-radius:20px;background:var(–green-dim);display:flex;align-items:center;justify-content:center;margin:0 auto 16px}
+.coach-card-name{font-family:‘Syne’,sans-serif;font-weight:800;font-size:1.3rem;margin-bottom:6px;letter-spacing:-0.02em}
+.coach-card-desc{font-size:0.82rem;color:var(–muted);margin-bottom:14px}
+.coach-badge{display:inline-block;background:var(–green-dim);color:var(–green);border:1px solid #00E5A025;border-radius:100px;padding:4px 14px;font-size:0.72rem;font-family:‘DM Mono’,monospace}
 
 /* Groups */
 .groups-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
-.group-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;transition:border-color 0.2s}
-.group-card:hover{border-color:var(--border2)}
-.group-bar-bg{height:4px;background:var(--surface3);border-radius:2px;margin-bottom:10px}
-.group-bar-fg{height:100%;background:var(--green);border-radius:2px}
-.btn-join{width:100%;padding:9px;border-radius:8px;font-family:'Space Grotesk',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;border:none;transition:all 0.2s}
-.btn-join.joined{background:var(--green-dim);color:var(--green);border:1px solid #00E5A022}
-.btn-join.open{background:var(--surface2);color:var(--muted);border:1px solid var(--border2)}
-.btn-join.open:hover{border-color:var(--green);color:var(--green)}
+.group-card{background:var(–surface);border:1px solid var(–border);border-radius:12px;padding:20px;transition:border-color 0.2s}
+.group-card:hover{border-color:var(–border2)}
+.group-bar-bg{height:4px;background:var(–surface3);border-radius:2px;margin-bottom:10px}
+.group-bar-fg{height:100%;background:var(–green);border-radius:2px}
+.btn-join{width:100%;padding:9px;border-radius:8px;font-family:‘Space Grotesk’,sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;border:none;transition:all 0.2s}
+.btn-join.joined{background:var(–green-dim);color:var(–green);border:1px solid #00E5A022}
+.btn-join.open{background:var(–surface2);color:var(–muted);border:1px solid var(–border2)}
+.btn-join.open:hover{border-color:var(–green);color:var(–green)}
 
-/* Typing */
+/* Ranking */
+.ranking-card{background:var(–surface);border:1px solid var(–border);border-radius:12px;overflow:hidden;margin-bottom:12px}
+.ranking-header{padding:16px 20px;border-bottom:1px solid var(–border);display:flex;align-items:center;justify-content:space-between}
+.ranking-row{display:flex;align-items:center;gap:12px;padding:12px 20px;border-bottom:1px solid var(–border);transition:background 0.15s}
+.ranking-row:last-child{border-bottom:none}
+.ranking-row:hover{background:var(–surface2)}
+.ranking-row.top{background:linear-gradient(90deg,#00E5A008,transparent)}
+.rank-num{font-family:‘DM Mono’,monospace;font-size:0.9rem;color:var(–muted);width:24px;flex-shrink:0}
+.rank-num.gold{color:#FFD700}
+.rank-av{width:32px;height:32px;border-radius:50%;background:var(–surface3);display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:600;flex-shrink:0;border:1px solid var(–border2)}
+.rank-name{flex:1;font-size:0.88rem;font-weight:500}
+.rank-km{font-family:‘DM Mono’,monospace;font-size:0.9rem;color:var(–green)}
+.trophy{font-size:1rem}
+
+/* Pricing */
+.pricing-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:700px;margin:0 auto}
+.pricing-card{background:var(–surface);border:1px solid var(–border);border-radius:20px;padding:32px;position:relative;transition:transform 0.2s}
+.pricing-card:hover{transform:translateY(-3px)}
+.pricing-card.featured{border-color:var(–green);background:linear-gradient(135deg,#00E5A008,var(–surface))}
+.pricing-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(–green);color:#080808;font-size:0.72rem;font-weight:600;padding:4px 14px;border-radius:100px;font-family:‘DM Mono’,monospace;white-space:nowrap}
+.pricing-name{font-family:‘DM Mono’,monospace;font-size:0.72rem;color:var(–muted);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:12px}
+.pricing-price{font-family:‘Syne’,sans-serif;font-weight:800;font-size:3rem;letter-spacing:-0.03em;line-height:1;margin-bottom:4px}
+.pricing-price span{font-size:1rem;font-weight:400;color:var(–muted);font-family:‘Space Grotesk’,sans-serif;letter-spacing:0}
+.pricing-desc{font-size:0.85rem;color:var(–muted);margin-bottom:24px;line-height:1.5}
+.pricing-features{list-style:none;display:flex;flex-direction:column;gap:8px;margin-bottom:24px}
+.pricing-features li{display:flex;align-items:flex-start;gap:8px;font-size:0.85rem;color:var(–muted);line-height:1.4}
+.pricing-features li.on{color:var(–text)}
+.check{color:var(–green);flex-shrink:0}
+
+/* Admin */
+.admin-table{width:100%;border-collapse:collapse}
+.admin-table th{font-size:0.7rem;color:var(–muted);font-family:‘DM Mono’,monospace;text-transform:uppercase;letter-spacing:0.1em;padding:10px 16px;text-align:left;border-bottom:1px solid var(–border)}
+.admin-table td{padding:12px 16px;font-size:0.85rem;border-bottom:1px solid var(–border);vertical-align:middle}
+.admin-table tr:hover td{background:var(–surface2)}
+.plan-tag{display:inline-block;padding:2px 8px;border-radius:6px;font-size:0.7rem;font-family:‘DM Mono’,monospace;font-weight:500}
+.plan-tag.free{background:var(–surface3);color:var(–muted)}
+.plan-tag.trial{background:var(–green-dim);color:var(–green)}
+.plan-tag.elite{background:linear-gradient(90deg,#00E5A020,#00E5A010);color:var(–green);border:1px solid #00E5A030}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:#00000090;z-index:200;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal-box{background:var(–surface);border:1px solid var(–border2);border-radius:16px;padding:32px;max-width:440px;width:100%;animation:fadeUp 0.3s ease}
+.modal-title{font-family:‘Syne’,sans-serif;font-weight:800;font-size:1.2rem;margin-bottom:8px;letter-spacing:-0.02em}
+.modal-sub{font-size:0.85rem;color:var(–muted);margin-bottom:20px;line-height:1.5}
+
+/* Misc */
+.spinner{width:18px;height:18px;border:2px solid var(–border2);border-top-color:var(–green);border-radius:50%;animation:spin 0.7s linear infinite;display:inline-block;vertical-align:middle;margin-right:6px}
 .typing{display:flex;gap:4px;align-items:center;padding:4px 0}
-.typing-dot{width:6px;height:6px;background:var(--green);border-radius:50%;animation:typing 1.2s ease-in-out infinite}
+.typing-dot{width:6px;height:6px;background:var(–green);border-radius:50%;animation:typing 1.2s ease-in-out infinite}
 .typing-dot:nth-child(2){animation-delay:0.2s}
 .typing-dot:nth-child(3){animation-delay:0.4s}
-@keyframes typing{0%,80%,100%{transform:scale(0.7);opacity:0.5}40%{transform:scale(1);opacity:1}}
-
-/* Spinner */
-.spinner{width:18px;height:18px;border:2px solid var(--border2);border-top-color:var(--green);border-radius:50%;animation:spin 0.7s linear infinite;display:inline-block;vertical-align:middle;margin-right:6px}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-/* Toast */
-.toast{position:fixed;bottom:24px;right:24px;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:12px 18px;font-size:0.85rem;z-index:999;animation:fadeUp 0.3s ease;display:flex;align-items:center;gap:8px;max-width:320px;box-shadow:0 8px 32px #00000060}
+.toast{position:fixed;bottom:24px;right:24px;background:var(–surface2);border:1px solid var(–border2);border-radius:10px;padding:12px 18px;font-size:0.85rem;z-index:999;animation:fadeUp 0.3s ease;display:flex;align-items:center;gap:8px;max-width:320px;box-shadow:0 8px 32px #00000060}
 .toast.success{border-color:#00E5A040}
 .toast.error{border-color:#ff444440;color:#ff8080}
+.empty{text-align:center;padding:60px;color:var(–muted);font-size:0.9rem}
 
-/* Strava steps */
-  .strava-step{display:flex;gap:12px;align-items:flex-start;background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:16px;transition:border-color 0.2s}
-  .strava-step.active{border-color:var(--green)}
-  .ss-num{width:28px;height:28px;min-width:28px;border-radius:50%;background:var(--surface3);color:var(--muted);font-family:'DM Mono',monospace;font-size:0.8rem;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
-  .ss-body{flex:1}
-  .ss-title{font-weight:600;font-size:0.9rem;margin-bottom:4px}
-  .ss-desc{font-size:0.78rem;color:var(--muted);line-height:1.5;margin-bottom:8px}
-  .ss-btn{display:inline-block;background:var(--surface3);border:1px solid var(--border2);color:var(--green);border-radius:8px;padding:7px 14px;font-size:0.78rem;font-family:'Space Grotesk',sans-serif;cursor:pointer;text-decoration:none;transition:all 0.2s}
-  .ss-btn:hover{border-color:var(--green);background:var(--green-dim)}
-
-  /* Token modal */
-.modal-overlay{position:fixed;inset:0;background:#00000090;z-index:200;display:flex;align-items:center;justify-content:center;padding:20px}
-.modal-box{background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:32px;max-width:420px;width:100%}
-.modal-title{font-family:'Syne',sans-serif;font-weight:800;font-size:1.2rem;margin-bottom:8px;letter-spacing:-0.02em}
-.modal-sub{font-size:0.85rem;color:var(--muted);margin-bottom:16px;line-height:1.5}
-
-/* Mobile */
 @media(max-width:768px){
-  aside{display:none}
-  main{margin-left:0}
-  .coach-layout{grid-template-columns:1fr}
-  .coach-sidebar{display:none}
-  .page{padding:16px}
-  .top-bar{padding:14px 16px}
+aside{display:none}main{margin-left:0}
+.coach-layout{grid-template-columns:1fr}.coach-sidebar{display:none}
+.pricing-grid{grid-template-columns:1fr}
+.page{padding:16px}.top-bar{padding:14px 16px}
 }
 ::-webkit-scrollbar{width:4px;height:4px}
-::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+::-webkit-scrollbar-thumb{background:var(–border2);border-radius:2px}
 </style>
+
 </head>
 <body>
 
-<!-- ══ AUTH SCREEN ══ -->
+<!-- ══ AUTH ══ -->
+
 <div class="screen active" id="screen-auth">
   <div class="auth-grid"></div>
   <div class="auth-orb"></div>
   <div class="auth-card">
-
     <div class="auth-logo">
       <svg width="28" height="28" viewBox="0 0 52 52" fill="none">
         <rect x="4" y="24" width="6" height="16" rx="3" fill="#00E5A0" opacity="0.4"/>
@@ -246,108 +265,104 @@ main{margin-left:var(--sidebar-w);flex:1;min-height:100vh;display:flex;flex-dire
       <span class="auth-wordmark">Ca<span>den</span>ce</span>
     </div>
 
-    <!-- Sign In -->
-    <div id="view-signin" class="auth-view">
-      <div class="auth-h">Welcome back</div>
-      <div class="auth-sub">Sign in to continue training.</div>
-      <button class="btn-google" id="btn-google-signin" onclick="doGoogleSignIn()">
-        <svg width="18" height="18" viewBox="0 0 48 48"><path d="M44.5 20H24v8.5h11.8C34.7 33.9 30.1 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 11.8 2 2 11.8 2 24s9.8 22 22 22c11 0 21-8 21-22 0-1.3-.2-2.7-.5-4z" fill="#FFC107"/><path d="M6.3 14.7l7.1 5.2C15.1 16 19.3 13 24 13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 16.3 2 9.7 7.4 6.3 14.7z" fill="#FF3D00"/><path d="M24 46c5.5 0 10.5-1.9 14.3-5.1l-6.6-5.6C29.6 36.9 27 38 24 38c-6 0-10.7-3.9-11.8-9.2H4.6C8 41 15.4 46 24 46z" fill="#4CAF50"/><path d="M44.5 20H24v8.5h11.8c-.7 2.5-2.2 4.7-4.2 6.3l6.6 5.6C41.7 37.5 45 31.2 45 24c0-1.3-.2-2.7-.5-4z" fill="#1976D2"/></svg>
-        Continue with Google
-      </button>
-      <div class="auth-divider"><span>or</span></div>
-      <input class="auth-input" id="si-email" type="email" placeholder="Email address" autocapitalize="none" autocorrect="off">
-      <input class="auth-input" id="si-pass" type="password" placeholder="Password">
-      <button class="btn-primary" id="btn-signin" onclick="doEmailSignIn()">Sign in</button>
-      <p class="auth-foot">No account? <a class="auth-link" onclick="showView('signup')">Create one free →</a></p>
-      <p style="text-align:center;margin-top:8px"><a class="auth-link" style="font-size:0.78rem;color:var(--muted2)" onclick="doForgotPassword()">Forgot password?</a></p>
-    </div>
+```
+<!-- Sign in -->
+<div id="view-signin" class="auth-view">
+  <div class="auth-h">Welcome back</div>
+  <div class="auth-sub">Sign in to continue training.</div>
+  <button class="btn-google" onclick="doGoogleSignIn()">
+    <svg width="18" height="18" viewBox="0 0 48 48"><path d="M44.5 20H24v8.5h11.8C34.7 33.9 30.1 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 11.8 2 2 11.8 2 24s9.8 22 22 22c11 0 21-8 21-22 0-1.3-.2-2.7-.5-4z" fill="#FFC107"/><path d="M6.3 14.7l7.1 5.2C15.1 16 19.3 13 24 13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 16.3 2 9.7 7.4 6.3 14.7z" fill="#FF3D00"/><path d="M24 46c5.5 0 10.5-1.9 14.3-5.1l-6.6-5.6C29.6 36.9 27 38 24 38c-6 0-10.7-3.9-11.8-9.2H4.6C8 41 15.4 46 24 46z" fill="#4CAF50"/><path d="M44.5 20H24v8.5h11.8c-.7 2.5-2.2 4.7-4.2 6.3l6.6 5.6C41.7 37.5 45 31.2 45 24c0-1.3-.2-2.7-.5-4z" fill="#1976D2"/></svg>
+    Continue with Google
+  </button>
+  <div class="auth-divider"><span>or</span></div>
+  <input class="auth-input" id="si-email" type="email" placeholder="Email address" autocapitalize="none" autocorrect="off">
+  <input class="auth-input" id="si-pass" type="password" placeholder="Password">
+  <button class="btn-primary" id="btn-signin" onclick="doEmailSignIn()">Sign in</button>
+  <p class="auth-foot">No account? <a class="auth-link" onclick="showView('signup')">Create one free →</a></p>
+  <p style="text-align:center;margin-top:8px"><a class="auth-link" style="font-size:0.78rem;color:var(--muted2)" onclick="doForgotPassword()">Forgot password?</a></p>
+</div>
 
-    <!-- Sign Up -->
-    <div id="view-signup" class="auth-view" style="display:none">
-      <div class="auth-h">Create account</div>
-      <div class="auth-sub">14-day free trial. No credit card needed.</div>
-      <button class="btn-google" onclick="doGoogleSignIn()">
-        <svg width="18" height="18" viewBox="0 0 48 48"><path d="M44.5 20H24v8.5h11.8C34.7 33.9 30.1 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 11.8 2 2 11.8 2 24s9.8 22 22 22c11 0 21-8 21-22 0-1.3-.2-2.7-.5-4z" fill="#FFC107"/><path d="M6.3 14.7l7.1 5.2C15.1 16 19.3 13 24 13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 16.3 2 9.7 7.4 6.3 14.7z" fill="#FF3D00"/><path d="M24 46c5.5 0 10.5-1.9 14.3-5.1l-6.6-5.6C29.6 36.9 27 38 24 38c-6 0-10.7-3.9-11.8-9.2H4.6C8 41 15.4 46 24 46z" fill="#4CAF50"/><path d="M44.5 20H24v8.5h11.8c-.7 2.5-2.2 4.7-4.2 6.3l6.6 5.6C41.7 37.5 45 31.2 45 24c0-1.3-.2-2.7-.5-4z" fill="#1976D2"/></svg>
-        Sign up with Google
-      </button>
-      <div class="auth-divider"><span>or</span></div>
-      <input class="auth-input" id="su-email" type="email" placeholder="Email address" autocapitalize="none" autocorrect="off">
-      <input class="auth-input" id="su-pass" type="password" placeholder="Password (min 6 chars)">
-      <button class="btn-primary" id="btn-signup" onclick="doEmailSignUp()">Create account</button>
-      <p class="auth-tip">By signing up you agree to our terms</p>
-      <p class="auth-foot">Already have account? <a class="auth-link" onclick="showView('signin')">Sign in →</a></p>
-    </div>
+<!-- Sign up -->
+<div id="view-signup" class="auth-view" style="display:none">
+  <div class="auth-h">Create account</div>
+  <div class="auth-sub">14-day free trial. No credit card needed.</div>
+  <button class="btn-google" onclick="doGoogleSignIn()">
+    <svg width="18" height="18" viewBox="0 0 48 48"><path d="M44.5 20H24v8.5h11.8C34.7 33.9 30.1 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 11.8 2 2 11.8 2 24s9.8 22 22 22c11 0 21-8 21-22 0-1.3-.2-2.7-.5-4z" fill="#FFC107"/><path d="M6.3 14.7l7.1 5.2C15.1 16 19.3 13 24 13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 16.3 2 9.7 7.4 6.3 14.7z" fill="#FF3D00"/><path d="M24 46c5.5 0 10.5-1.9 14.3-5.1l-6.6-5.6C29.6 36.9 27 38 24 38c-6 0-10.7-3.9-11.8-9.2H4.6C8 41 15.4 46 24 46z" fill="#4CAF50"/><path d="M44.5 20H24v8.5h11.8c-.7 2.5-2.2 4.7-4.2 6.3l6.6 5.6C41.7 37.5 45 31.2 45 24c0-1.3-.2-2.7-.5-4z" fill="#1976D2"/></svg>
+    Sign up with Google
+  </button>
+  <div class="auth-divider"><span>or</span></div>
+  <input class="auth-input" id="su-email" type="email" placeholder="Email address" autocapitalize="none" autocorrect="off">
+  <input class="auth-input" id="su-pass" type="password" placeholder="Password (min 6 chars)">
+  <button class="btn-primary" id="btn-signup" onclick="doEmailSignUp()">Create account</button>
+  <p class="auth-tip">By signing up you agree to our terms</p>
+  <p class="auth-foot">Already have account? <a class="auth-link" onclick="showView('signin')">Sign in →</a></p>
+</div>
 
-    <!-- Check email -->
-    <div id="view-check-email" class="auth-view" style="display:none;text-align:center">
-      <div style="font-size:3rem;margin-bottom:16px">📬</div>
-      <div class="auth-h">Check your email</div>
-      <div class="auth-sub">We sent a verification link. Click it to activate your account and come back here.</div>
-      <button class="btn-secondary" onclick="showView('signin')">Back to sign in</button>
-    </div>
+<!-- Check email -->
+<div id="view-check-email" class="auth-view" style="display:none;text-align:center">
+  <div style="font-size:3rem;margin-bottom:16px">📬</div>
+  <div class="auth-h">Check your email</div>
+  <div class="auth-sub">We sent a verification link. Click it to activate your account then come back here.</div>
+  <button class="btn-secondary" onclick="showView('signin')">Back to sign in</button>
+</div>
 
-    <!-- Connect Strava -->
-    <div id="view-strava" class="auth-view" style="display:none">
-      <div class="auth-progress">
-        <div class="auth-dot done"></div>
-        <div class="auth-dot done"></div>
-        <div class="auth-dot"></div>
+<!-- Connect Strava -->
+<div id="view-strava" class="auth-view" style="display:none">
+  <div class="auth-progress">
+    <div class="auth-dot done"></div>
+    <div class="auth-dot done"></div>
+    <div class="auth-dot"></div>
+  </div>
+  <div class="auth-h">Connect Strava</div>
+  <div class="auth-sub">Last step! Connect your Strava to load your activities.</div>
+  <div class="strava-step" id="ss-0">
+    <div class="ss-num">1</div>
+    <div class="ss-body">
+      <div class="ss-title">Create a Strava API app</div>
+      <div class="ss-desc">Free and takes 2 minutes. You'll get a Client ID and Secret.</div>
+      <a href="https://www.strava.com/settings/api" target="_blank" class="ss-btn">Open Strava API settings →</a>
+    </div>
+  </div>
+  <div class="strava-step" id="ss-1">
+    <div class="ss-num">2</div>
+    <div class="ss-body">
+      <div class="ss-title">Authorize your app</div>
+      <div class="ss-desc">Click below, authorize, then copy the <strong style="color:var(--text)">code=</strong> value from the URL bar.</div>
+      <button class="ss-btn" onclick="openStravaAuth()">Open authorization →</button>
+      <input class="auth-input" id="strava-code-input" type="text" placeholder="Paste the code from the URL…" autocomplete="off" autocorrect="off" autocapitalize="none" style="margin-top:10px;margin-bottom:0">
+    </div>
+  </div>
+  <div class="strava-step" id="ss-2">
+    <div class="ss-num">3</div>
+    <div class="ss-body">
+      <div class="ss-title">Enter your Client ID and Secret</div>
+      <div class="ss-desc">From step 1 — we'll get your token automatically.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px">
+        <input class="auth-input" id="strava-cid" type="text" placeholder="Client ID" autocomplete="off" autocapitalize="none" style="margin-bottom:0">
+        <input class="auth-input" id="strava-csec" type="password" placeholder="Client Secret" autocomplete="off" style="margin-bottom:0">
       </div>
-      <div class="auth-h">Connect Strava</div>
-      <div class="auth-sub">Last step! We need your Strava token to load your activities.</div>
-
-      <!-- Step pills -->
-      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px">
-        <div class="strava-step" id="ss-0">
-          <div class="ss-num">1</div>
-          <div class="ss-body">
-            <div class="ss-title">Create a Strava API app</div>
-            <div class="ss-desc">Go to Strava and create a free developer app in seconds.</div>
-            <a href="https://www.strava.com/settings/api" target="_blank" class="ss-btn">Open Strava API settings →</a>
-          </div>
-        </div>
-        <div class="strava-step" id="ss-1">
-          <div class="ss-num">2</div>
-          <div class="ss-body">
-            <div class="ss-title">Authorize and get your code</div>
-            <div class="ss-desc">Click below — it opens Strava authorization. After you approve, copy the <strong style="color:var(--text)">code</strong> from the URL bar.</div>
-            <button class="ss-btn" onclick="openStravaAuth()">Open Strava authorization →</button>
-            <div style="margin-top:10px">
-              <input class="auth-input" id="strava-code-input" type="text" placeholder="Paste the code from the URL here…" autocomplete="off" autocorrect="off" autocapitalize="none" style="margin-bottom:0">
-            </div>
-          </div>
-        </div>
-        <div class="strava-step" id="ss-2">
-          <div class="ss-num">3</div>
-          <div class="ss-body">
-            <div class="ss-title">Exchange code for token</div>
-            <div class="ss-desc">Enter your Client ID and Secret from step 1, then we'll get your token automatically.</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px">
-              <input class="auth-input" id="strava-cid" type="text" placeholder="Client ID" autocomplete="off" autocapitalize="none" style="margin-bottom:0">
-              <input class="auth-input" id="strava-csec" type="password" placeholder="Client Secret" autocomplete="off" style="margin-bottom:0">
-            </div>
-            <button class="ss-btn" style="margin-top:10px;background:var(--green);color:#080808;border:none" onclick="exchangeCode()">Get my token →</button>
-          </div>
-        </div>
-        <div class="strava-step" id="ss-3" style="display:none">
-          <div class="ss-num" style="background:var(--green);color:#080808">✓</div>
-          <div class="ss-body">
-            <div class="ss-title" style="color:var(--green)">Token ready!</div>
-            <div class="ss-desc">Your token has been generated. Click below to connect.</div>
-          </div>
-        </div>
-      </div>
-
-      <input class="auth-input" id="strava-token-input" type="text" placeholder="Or paste your access_token directly…" autocomplete="off" autocorrect="off" autocapitalize="none">
-      <button class="btn-primary" id="btn-strava" onclick="doConnectStrava()">Connect Strava</button>
-      <button class="btn-secondary" onclick="enterApp()">Skip for now</button>
-      <p class="auth-tip">_ token stored locally · go to Settings to refresh anytime</p>
+      <button class="ss-btn" style="margin-top:10px;background:var(--green);color:#080808;border:none" onclick="exchangeStravaCode()">Get my token →</button>
     </div>
+  </div>
+  <div class="strava-step" id="ss-3" style="display:none">
+    <div class="ss-num" style="background:var(--green);color:#080808">✓</div>
+    <div class="ss-body">
+      <div class="ss-title" style="color:var(--green)">Token ready!</div>
+      <div class="ss-desc">Your token has been generated. Click Connect below.</div>
+    </div>
+  </div>
+  <input class="auth-input" id="strava-token-input" type="text" placeholder="Or paste your access_token directly…" autocomplete="off" autocorrect="off" autocapitalize="none" style="margin-top:10px">
+  <button class="btn-primary" id="btn-strava" onclick="doConnectStrava()">Connect Strava</button>
+  <button class="btn-secondary" onclick="enterApp()">Skip for now</button>
+  <p class="auth-tip">_ token stored locally · refresh anytime in Settings</p>
+</div>
+```
 
   </div>
 </div>
 
-<!-- ══ MAIN APP ══ -->
+<!-- ══ APP ══ -->
+
 <div class="screen" id="screen-app">
   <aside>
     <div class="sidebar-logo">
@@ -367,19 +382,23 @@ main{margin-left:var(--sidebar-w);flex:1;min-height:100vh;display:flex;flex-dire
       <button class="nav-item" onclick="showPage('coach',this)"><span class="nav-icon">🤖</span>AI Coach</button>
       <button class="nav-item" onclick="showPage('activities',this)"><span class="nav-icon">🏃</span>Activities</button>
       <button class="nav-item" onclick="showPage('groups',this)"><span class="nav-icon">👥</span>Groups</button>
+      <button class="nav-item" onclick="showPage('ranking',this)"><span class="nav-icon">🏆</span>Ranking</button>
+      <button class="nav-item" onclick="showPage('pricing',this)"><span class="nav-icon">⚡</span>Upgrade</button>
+      <button class="nav-item" id="admin-nav" onclick="showPage('admin',this)" style="display:none"><span class="nav-icon">🛡️</span>Admin</button>
       <button class="nav-item" onclick="showPage('settings',this)"><span class="nav-icon">⚙️</span>Settings</button>
     </nav>
     <div class="sidebar-bottom">
-      <div class="trial-pill">
-        <div class="trial-label">FREE TRIAL</div>
-        <div class="trial-days">14 days left</div>
-        <div class="trial-sub">Upgrade to Elite</div>
+      <div class="plan-pill trial" id="plan-pill">
+        <div class="plan-label" id="plan-label">FREE TRIAL</div>
+        <div class="plan-name" id="plan-name">14 days left</div>
+        <div class="plan-sub" id="plan-sub">Upgrade to Elite</div>
+        <button class="upgrade-btn" id="upgrade-btn" onclick="showPage('pricing',document.querySelectorAll('.nav-item')[5])">Upgrade →</button>
       </div>
       <div class="user-row">
         <div class="user-avatar" id="sb-avatar">?</div>
         <div>
           <div class="user-name" id="sb-name">Loading…</div>
-          <div class="user-plan">PRO TRIAL</div>
+          <div class="user-plan" id="sb-plan-tag">TRIAL</div>
         </div>
       </div>
     </div>
@@ -390,155 +409,255 @@ main{margin-left:var(--sidebar-w);flex:1;min-height:100vh;display:flex;flex-dire
       <div class="top-bar-title" id="page-title">Dashboard</div>
       <div class="top-bar-actions">
         <button class="btn-sm" onclick="syncData()">↻ Sync</button>
-        <button class="btn-sm green" onclick="showPage('coach', document.querySelectorAll('.nav-item')[1])">Ask Coach</button>
+        <button class="btn-sm green" onclick="showPage('coach',document.querySelectorAll('.nav-item')[1])">Ask Coach</button>
       </div>
     </div>
 
-    <!-- Dashboard -->
-    <div class="page active" id="page-dashboard">
-      <div class="stats-grid">
-        <div class="stat-card"><div class="stat-label">Activities</div><div class="stat-value accent" id="s-count">—</div><div class="stat-sub">last 60 days</div></div>
-        <div class="stat-card"><div class="stat-label">Distance</div><div class="stat-value" id="s-dist">—</div><div class="stat-sub">km total</div></div>
-        <div class="stat-card"><div class="stat-label">Time</div><div class="stat-value" id="s-time">—</div><div class="stat-sub">hours</div></div>
-        <div class="stat-card"><div class="stat-label">Elevation</div><div class="stat-value" id="s-elev">—</div><div class="stat-sub">meters</div></div>
-        <div class="stat-card"><div class="stat-label">Avg Pace</div><div class="stat-value accent" id="s-pace">—</div><div class="stat-sub">min/km</div></div>
-      </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-        <div style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase">Recent Activities</div>
-        <button class="btn-sm" onclick="showPage('activities',document.querySelectorAll('.nav-item')[2])">View all →</button>
-      </div>
-      <div class="acts-grid" id="dash-acts"><div style="color:var(--muted);padding:40px;text-align:center;grid-column:1/-1"><span class="spinner"></span>Loading…</div></div>
-    </div>
+```
+<!-- Dashboard -->
+<div class="page active" id="page-dashboard">
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-label">Activities</div><div class="stat-value accent" id="s-count">—</div><div class="stat-sub">last 60 days</div></div>
+    <div class="stat-card"><div class="stat-label">Distance</div><div class="stat-value" id="s-dist">—</div><div class="stat-sub">km total</div></div>
+    <div class="stat-card"><div class="stat-label">Time</div><div class="stat-value" id="s-time">—</div><div class="stat-sub">hours</div></div>
+    <div class="stat-card"><div class="stat-label">Elevation</div><div class="stat-value" id="s-elev">—</div><div class="stat-sub">meters</div></div>
+    <div class="stat-card"><div class="stat-label">Avg Pace</div><div class="stat-value accent" id="s-pace">—</div><div class="stat-sub">min/km</div></div>
+  </div>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+    <div style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase">Recent Activities</div>
+    <button class="btn-sm" onclick="showPage('activities',document.querySelectorAll('.nav-item')[2])">View all →</button>
+  </div>
+  <div class="acts-grid" id="dash-acts"><div class="empty"><span class="spinner"></span>Loading…</div></div>
+</div>
 
-    <!-- AI Coach -->
-    <div class="page" id="page-coach">
-      <!-- Selector -->
-      <div id="coach-selector" class="coach-selector">
-        <h2>Your AI Coach</h2>
-        <p>Powered by Cadence · Free · No setup needed</p>
-        <div class="coach-card" onclick="startChat()">
-          <div class="coach-logo-wrap">
-            <svg width="44" height="44" viewBox="0 0 52 52" fill="none">
-              <rect x="4" y="24" width="6" height="16" rx="3" fill="#00E5A0" opacity="0.4"/>
-              <rect x="13" y="16" width="6" height="24" rx="3" fill="#00E5A0" opacity="0.6"/>
-              <rect x="22" y="8" width="6" height="32" rx="3" fill="#00E5A0"/>
-              <rect x="31" y="14" width="6" height="26" rx="3" fill="#00E5A0" opacity="0.75"/>
-              <rect x="40" y="20" width="6" height="20" rx="3" fill="#00E5A0" opacity="0.5"/>
-              <circle cx="43" cy="14" r="5" fill="#00E5A0"/>
-              <circle cx="43" cy="14" r="2.5" fill="#080808"/>
-            </svg>
-          </div>
-          <div class="coach-card-name">Cadence AI</div>
-          <div class="coach-card-desc">Your personal running coach</div>
-          <div class="coach-badge">Free · No setup needed</div>
+<!-- AI Coach -->
+<div class="page" id="page-coach">
+  <div id="coach-selector" class="coach-selector">
+    <h2>Your AI Coach</h2>
+    <p>Powered by Cadence · Free · No setup needed</p>
+    <div class="coach-card" onclick="startChat()">
+      <div class="coach-logo-wrap">
+        <svg width="44" height="44" viewBox="0 0 52 52" fill="none">
+          <rect x="4" y="24" width="6" height="16" rx="3" fill="#00E5A0" opacity="0.4"/>
+          <rect x="13" y="16" width="6" height="24" rx="3" fill="#00E5A0" opacity="0.6"/>
+          <rect x="22" y="8" width="6" height="32" rx="3" fill="#00E5A0"/>
+          <rect x="31" y="14" width="6" height="26" rx="3" fill="#00E5A0" opacity="0.75"/>
+          <rect x="40" y="20" width="6" height="20" rx="3" fill="#00E5A0" opacity="0.5"/>
+          <circle cx="43" cy="14" r="5" fill="#00E5A0"/>
+          <circle cx="43" cy="14" r="2.5" fill="#080808"/>
+        </svg>
+      </div>
+      <div class="coach-card-name">Cadence AI</div>
+      <div class="coach-card-desc">Your personal running coach</div>
+      <div class="coach-badge">Free · No setup needed</div>
+    </div>
+  </div>
+  <div id="coach-chat" style="display:none">
+    <div class="coach-layout">
+      <div class="chat-wrap">
+        <div class="chat-header">
+          <button onclick="backToSelector()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:1rem;margin-right:4px">←</button>
+          <div class="chat-dot"></div>
+          <div class="chat-name">Cadence AI Coach</div>
+          <div class="chat-model">Free</div>
+        </div>
+        <div class="chat-messages" id="chat-msgs"></div>
+        <div class="chat-input-wrap">
+          <textarea class="chat-input" id="chat-in" placeholder="Ask your coach anything…" rows="1" onkeydown="handleChatKey(event)"></textarea>
+          <button class="chat-send" id="chat-send" onclick="sendMsg()">→</button>
         </div>
       </div>
-      <!-- Chat -->
-      <div id="coach-chat" style="display:none">
-        <div class="coach-layout">
-          <div class="chat-wrap">
-            <div class="chat-header">
-              <button onclick="backToSelector()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:1rem;margin-right:4px">←</button>
-              <div class="chat-dot"></div>
-              <div class="chat-name">Cadence AI Coach</div>
-              <div class="chat-model">Free</div>
-            </div>
-            <div class="chat-messages" id="chat-msgs"></div>
-            <div class="chat-input-wrap">
-              <textarea class="chat-input" id="chat-in" placeholder="Ask your coach anything…" rows="1" onkeydown="handleChatKey(event)"></textarea>
-              <button class="chat-send" id="chat-send" onclick="sendMsg()">→</button>
-            </div>
-          </div>
-          <div class="coach-sidebar">
-            <div class="sc">
-              <div class="sc-title">Quick prompts</div>
-              <button class="quick-btn" onclick="usePrompt(this)">Why is my pace dropping in long runs?</button>
-              <button class="quick-btn" onclick="usePrompt(this)">Am I overtraining this week?</button>
-              <button class="quick-btn" onclick="usePrompt(this)">Build me a 10K training plan</button>
-              <button class="quick-btn" onclick="usePrompt(this)">When will I break 50min for 10K?</button>
-              <button class="quick-btn" onclick="usePrompt(this)">What should I focus on this week?</button>
-            </div>
-            <div class="sc">
-              <div class="sc-title">Your data context</div>
-              <div id="ctx-preview" style="font-size:0.72rem;color:var(--muted);line-height:1.7;font-family:'DM Mono',monospace">Loading…</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Activities -->
-    <div class="page" id="page-activities">
-      <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap" id="act-filters">
-        <button class="btn-sm green" onclick="filterActs('all',this)">All</button>
-        <button class="btn-sm" onclick="filterActs('Run',this)">Runs</button>
-        <button class="btn-sm" onclick="filterActs('Ride',this)">Rides</button>
-        <button class="btn-sm" onclick="filterActs('Walk',this)">Walks</button>
-      </div>
-      <div class="acts-grid" id="all-acts"></div>
-    </div>
-
-    <!-- Groups -->
-    <div class="page" id="page-groups">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
-        <div>
-          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.2rem;letter-spacing:-0.02em;margin-bottom:4px">City Groups</div>
-          <div style="font-size:0.82rem;color:var(--muted)">Compete with runners in your zone.</div>
-        </div>
-        <button class="btn-sm green">+ Create group</button>
-      </div>
-      <div class="groups-grid" id="groups-grid"></div>
-    </div>
-
-    <!-- Settings -->
-    <div class="page" id="page-settings">
-      <div style="max-width:480px">
-        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.2rem;letter-spacing:-0.02em;margin-bottom:24px">Settings</div>
-        <div class="sc" style="margin-bottom:12px">
-          <div class="sc-title">Strava Connection</div>
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
-            <div id="strava-status-dot" style="width:8px;height:8px;border-radius:50%;background:var(--muted);flex-shrink:0"></div>
-            <div style="font-size:0.88rem" id="strava-status-txt">Not connected</div>
-          </div>
-          <div style="font-size:0.78rem;color:var(--muted);margin-bottom:10px">Token expires every 6h. Paste a new one to reconnect:</div>
-          <input class="auth-input" id="new-token-input" type="text" placeholder="Paste new access_token…" autocomplete="off" autocorrect="off" autocapitalize="none">
-          <button class="btn-primary" style="margin-top:4px" onclick="updateToken()">Update token</button>
+      <div class="coach-sidebar">
+        <div class="sc">
+          <div class="sc-title">Quick prompts</div>
+          <button class="quick-btn" onclick="usePrompt(this)">Why is my pace dropping in long runs?</button>
+          <button class="quick-btn" onclick="usePrompt(this)">Am I overtraining this week?</button>
+          <button class="quick-btn" onclick="usePrompt(this)">Build me a 10K training plan</button>
+          <button class="quick-btn" onclick="usePrompt(this)">When will I break 50min for 10K?</button>
+          <button class="quick-btn" onclick="usePrompt(this)">What should I focus on this week?</button>
         </div>
         <div class="sc">
-          <div class="sc-title">Account</div>
-          <div style="font-size:0.85rem;color:var(--muted);margin-bottom:12px" id="settings-email">—</div>
-          <button onclick="doSignOut()" style="background:transparent;border:1px solid #ff444440;color:#ff4444;border-radius:8px;padding:10px 16px;font-family:'Space Grotesk',sans-serif;font-size:0.85rem;cursor:pointer;width:100%">Sign out</button>
+          <div class="sc-title">Your data</div>
+          <div id="ctx-preview" style="font-size:0.72rem;color:var(--muted);line-height:1.7;font-family:'DM Mono',monospace">Loading…</div>
         </div>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- Activities -->
+<div class="page" id="page-activities">
+  <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap" id="act-filters">
+    <button class="btn-sm green" onclick="filterActs('all',this)">All</button>
+    <button class="btn-sm" onclick="filterActs('Run',this)">Runs</button>
+    <button class="btn-sm" onclick="filterActs('Ride',this)">Rides</button>
+    <button class="btn-sm" onclick="filterActs('Walk',this)">Walks</button>
+  </div>
+  <div class="acts-grid" id="all-acts"></div>
+</div>
+
+<!-- Groups -->
+<div class="page" id="page-groups">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+    <div>
+      <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.2rem;letter-spacing:-0.02em;margin-bottom:4px">City Groups</div>
+      <div style="font-size:0.82rem;color:var(--muted)">Compete with runners in your zone. Winner gets a free month of Elite 🏆</div>
+    </div>
+    <button class="btn-sm green" onclick="showCreateGroup()">+ Create group</button>
+  </div>
+  <div class="groups-grid" id="groups-grid"><div class="empty"><span class="spinner"></span>Loading…</div></div>
+</div>
+
+<!-- Ranking -->
+<div class="page" id="page-ranking">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+    <div>
+      <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.2rem;letter-spacing:-0.02em;margin-bottom:4px">Monthly Ranking 🏆</div>
+      <div style="font-size:0.82rem;color:var(--muted)">Top runner this month wins a free Elite month. Resets every 1st.</div>
+    </div>
+    <div style="font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--muted)" id="ranking-reset">Resets in <span id="days-left">—</span> days</div>
+  </div>
+  <div id="ranking-list"><div class="empty"><span class="spinner"></span>Loading…</div></div>
+</div>
+
+<!-- Pricing -->
+<div class="page" id="page-pricing" style="max-width:800px">
+  <div style="text-align:center;margin-bottom:40px">
+    <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.8rem;letter-spacing:-0.03em;margin-bottom:8px">Simple pricing</div>
+    <div style="color:var(--muted);font-size:0.9rem">Start free. Upgrade when you're ready.</div>
+  </div>
+  <div class="pricing-grid">
+    <div class="pricing-card">
+      <div class="pricing-name">Starter</div>
+      <div class="pricing-price">$0 <span>/ forever</span></div>
+      <div class="pricing-desc">For runners getting started.</div>
+      <ul class="pricing-features">
+        <li class="on"><span class="check">✓</span> Strava connection</li>
+        <li class="on"><span class="check">✓</span> Activity dashboard</li>
+        <li class="on"><span class="check">✓</span> 3 AI chats / week</li>
+        <li class="on"><span class="check">✓</span> Join 1 group</li>
+        <li style="opacity:0.3"><span class="check">✗</span> Unlimited AI coach</li>
+        <li style="opacity:0.3"><span class="check">✗</span> Create groups</li>
+        <li style="opacity:0.3"><span class="check">✗</span> km Battles</li>
+      </ul>
+      <button class="btn-secondary" style="margin-top:0" onclick="showPage('dashboard',document.querySelectorAll('.nav-item')[0])">Current plan</button>
+    </div>
+    <div class="pricing-card featured">
+      <div class="pricing-badge">⚡ 14-day free trial</div>
+      <div class="pricing-name">Elite</div>
+      <div class="pricing-price">$8 <span>/ month</span></div>
+      <div class="pricing-desc">For serious runners who want to improve.</div>
+      <ul class="pricing-features">
+        <li class="on"><span class="check">✓</span> Everything in Starter</li>
+        <li class="on"><span class="check">✓</span> Unlimited AI coaching</li>
+        <li class="on"><span class="check">✓</span> Create & lead groups</li>
+        <li class="on"><span class="check">✓</span> km Battles & ranking</li>
+        <li class="on"><span class="check">✓</span> Monthly winner = free month</li>
+        <li class="on"><span class="check">✓</span> Full activity history</li>
+        <li class="on"><span class="check">✓</span> PR predictor</li>
+      </ul>
+      <button class="btn-primary" style="margin-top:0" id="stripe-btn" onclick="doStripeCheckout()">Start free trial →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Admin -->
+<div class="page" id="page-admin">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+    <div>
+      <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.2rem;letter-spacing:-0.02em;margin-bottom:4px">Admin Panel 🛡️</div>
+      <div style="font-size:0.82rem;color:var(--muted)">Non-sensitive user data overview</div>
+    </div>
+    <button class="btn-sm" onclick="loadAdminData()">↻ Refresh</button>
+  </div>
+  <!-- Stats -->
+  <div class="stats-grid" style="margin-bottom:24px">
+    <div class="stat-card"><div class="stat-label">Total Users</div><div class="stat-value accent" id="admin-total">—</div></div>
+    <div class="stat-card"><div class="stat-label">Elite</div><div class="stat-value" id="admin-elite">—</div></div>
+    <div class="stat-card"><div class="stat-label">Trial</div><div class="stat-value" id="admin-trial">—</div></div>
+    <div class="stat-card"><div class="stat-label">Free</div><div class="stat-value" id="admin-free">—</div></div>
+  </div>
+  <!-- Table -->
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden">
+    <table class="admin-table" id="admin-table">
+      <thead>
+        <tr>
+          <th>Email</th>
+          <th>Plan</th>
+          <th>Trial ends</th>
+          <th>Joined</th>
+          <th>Strava</th>
+        </tr>
+      </thead>
+      <tbody id="admin-tbody"><tr><td colspan="5" style="text-align:center;padding:40px;color:var(--muted)"><span class="spinner"></span>Loading…</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Settings -->
+<div class="page" id="page-settings">
+  <div style="max-width:480px">
+    <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.2rem;letter-spacing:-0.02em;margin-bottom:24px">Settings</div>
+    <div class="sc" style="margin-bottom:12px">
+      <div class="sc-title">Strava Connection</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+        <div id="strava-status-dot" style="width:8px;height:8px;border-radius:50%;background:var(--muted);flex-shrink:0"></div>
+        <div style="font-size:0.88rem" id="strava-status-txt">Not connected</div>
+      </div>
+      <div style="font-size:0.78rem;color:var(--muted);margin-bottom:10px">Token expires every 6h. Paste a new one to reconnect:</div>
+      <input class="auth-input" id="new-token-input" type="text" placeholder="Paste new access_token…" autocomplete="off" autocorrect="off" autocapitalize="none">
+      <button class="btn-primary" style="margin-top:4px" onclick="updateToken()">Update token</button>
+    </div>
+    <div class="sc">
+      <div class="sc-title">Account</div>
+      <div style="font-size:0.85rem;color:var(--muted);margin-bottom:12px" id="settings-email">—</div>
+      <button onclick="doSignOut()" style="background:transparent;border:1px solid #ff444440;color:#ff4444;border-radius:8px;padding:10px 16px;font-family:'Space Grotesk',sans-serif;font-size:0.85rem;cursor:pointer;width:100%">Sign out</button>
+    </div>
+  </div>
+</div>
+```
 
   </main>
 </div>
 
+<!-- Create Group Modal -->
+
+<div id="group-modal" style="display:none" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-title">Create a Group</div>
+    <div class="modal-sub">Create a running group for your city or neighborhood.</div>
+    <input class="auth-input" id="group-name" type="text" placeholder="Group name (e.g. Madrid Centro Runners)">
+    <input class="auth-input" id="group-city" type="text" placeholder="City">
+    <input class="auth-input" id="group-country" type="text" placeholder="Country">
+    <input class="auth-input" id="group-flag" type="text" placeholder="Flag emoji (e.g. 🇪🇸)">
+    <button class="btn-primary" onclick="createGroup()">Create group</button>
+    <button class="btn-secondary" onclick="document.getElementById('group-modal').style.display='none'">Cancel</button>
+  </div>
+</div>
+
 <!-- Token expired modal -->
+
 <div id="token-modal" style="display:none" class="modal-overlay">
   <div class="modal-box">
     <div style="font-size:2rem;margin-bottom:12px">⏰</div>
     <div class="modal-title">Strava token expired</div>
-    <div class="modal-sub">Your token lasts 6 hours. Get a new one by running this in browser console on desktop:</div>
-    <div class="code-block" onclick="copyCode(this)">fetch('https://www.strava.com/oauth/token',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({client_id:'YOUR_ID',client_secret:'YOUR_SECRET',refresh_token:'YOUR_REFRESH',grant_type:'refresh_token'})}).then(r=>r.json()).then(d=>alert(d.access_token))</div>
-    <input class="auth-input" id="modal-token-input" type="text" placeholder="Paste new access_token…" autocomplete="off" autocorrect="off" autocapitalize="none">
-    <button class="btn-primary" onclick="refreshFromModal()">Reconnect →</button>
+    <div class="modal-sub">Your token lasts 6 hours. Go to Settings to paste a new one, or sign out and reconnect.</div>
+    <button class="btn-primary" onclick="document.getElementById('token-modal').style.display='none';showPage('settings',document.querySelectorAll('.nav-item')[7])">Go to Settings →</button>
     <button class="btn-secondary" onclick="doSignOut()">Sign out</button>
   </div>
 </div>
 
 <script>
-// ── Supabase ──
+// ── Init ──
 const { createClient } = window.supabase;
-const sb = createClient(
-  'https://arjjukxsnffmhjlgmmoz.supabase.co',
-  'sb_publishable_1mCLOBQJMpY-2-1R32OwdA_B2cT9qTK'
-);
+const sb = createClient('https://arjjukxsnffmhjlgmmoz.supabase.co','sb_publishable_1mCLOBQJMpY-2-1R32OwdA_B2cT9qTK');
+const stripe = Stripe('pk_live_51TTVFaFiPJTB5pwwyDlB5XV4nk0PR3mnHhmrLMswXtAxzDtF1yTl9R0U8FNJbHLGxszhXUbJYsSrrNQyjajon2Cb00SekpnkoA');
+const PRICE_ID = 'price_1TTiBpFiPJTB5pwwACXcfXhy';
+const ADMIN_EMAIL = 'cadenceai2026@gmail.com'; // change to your email
 
-// ── State ──
 const S = {
   user: null,
+  profile: null,
   stravaToken: localStorage.getItem('strava_token') || '',
   athlete: null,
   activities: [],
@@ -551,18 +670,83 @@ window.addEventListener('load', async () => {
   const { data: { session } } = await sb.auth.getSession();
   if (session) {
     S.user = session.user;
+    await loadProfile();
     if (S.stravaToken) enterApp();
     else showView('strava');
   }
-  sb.auth.onAuthStateChange((event, session) => {
+  sb.auth.onAuthStateChange(async (event, session) => {
     if (event === 'SIGNED_IN' && session) {
       S.user = session.user;
+      await loadProfile();
       if (S.stravaToken) enterApp();
       else showView('strava');
     }
     if (event === 'SIGNED_OUT') location.reload();
   });
+  updateRankingCountdown();
 });
+
+// ── Profile ──
+async function loadProfile() {
+  if (!S.user) return;
+  const { data } = await sb.from('profiles').select('*').eq('id', S.user.id).single();
+  if (data) {
+    S.profile = data;
+    if (data.strava_token && !S.stravaToken) {
+      S.stravaToken = data.strava_token;
+      localStorage.setItem('strava_token', data.strava_token);
+    }
+  } else {
+    // Create profile
+    await sb.from('profiles').insert({
+      id: S.user.id,
+      email: S.user.email,
+      plan: 'trial',
+      trial_ends_at: new Date(Date.now() + 14*24*60*60*1000).toISOString()
+    });
+    S.profile = { plan: 'trial' };
+  }
+  updatePlanUI();
+  if (S.user.email === ADMIN_EMAIL) {
+    document.getElementById('admin-nav').style.display = 'flex';
+  }
+}
+
+async function saveStravaToProfile(token) {
+  if (!S.user) return;
+  await sb.from('profiles').update({ strava_token: token }).eq('id', S.user.id);
+}
+
+function updatePlanUI() {
+  const plan = S.profile?.plan || 'trial';
+  const pill = document.getElementById('plan-pill');
+  const label = document.getElementById('plan-label');
+  const name = document.getElementById('plan-name');
+  const sub = document.getElementById('plan-sub');
+  const upgradeBtn = document.getElementById('upgrade-btn');
+  const planTag = document.getElementById('sb-plan-tag');
+
+  if (plan === 'elite') {
+    pill.className = 'plan-pill elite';
+    label.textContent = 'ELITE';
+    name.textContent = 'Cadence Elite';
+    sub.textContent = 'Full access';
+    upgradeBtn.style.display = 'none';
+    planTag.textContent = 'ELITE';
+  } else if (plan === 'trial') {
+    const days = S.profile?.trial_ends_at ? Math.max(0, Math.ceil((new Date(S.profile.trial_ends_at) - Date.now()) / 86400000)) : 14;
+    pill.className = 'plan-pill trial';
+    label.textContent = 'FREE TRIAL';
+    name.textContent = `${days} days left`;
+    sub.textContent = 'Upgrade to Elite';
+    planTag.textContent = 'TRIAL';
+  } else {
+    label.textContent = 'FREE';
+    name.textContent = 'Starter';
+    sub.textContent = 'Upgrade to Elite';
+    planTag.textContent = 'FREE';
+  }
+}
 
 // ── View switcher ──
 function showView(name) {
@@ -574,10 +758,7 @@ function showView(name) {
 
 // ── Auth ──
 async function doGoogleSignIn() {
-  const { error } = await sb.auth.signInWithOAuth({
-    provider: 'google',
-    options: { redirectTo: window.location.href }
-  });
+  const { error } = await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } });
   if (error) toast(error.message, 'error');
 }
 
@@ -598,10 +779,7 @@ async function doEmailSignUp() {
   if (pass.length < 6) return toast('Password must be at least 6 characters', 'error');
   const btn = document.getElementById('btn-signup');
   btn.disabled = true; btn.textContent = 'Creating account…';
-  const { error } = await sb.auth.signUp({
-    email, password: pass,
-    options: { emailRedirectTo: window.location.href }
-  });
+  const { error } = await sb.auth.signUp({ email, password: pass, options: { emailRedirectTo: window.location.href } });
   if (error) { toast(error.message, 'error'); btn.disabled = false; btn.textContent = 'Create account'; }
   else showView('check-email');
 }
@@ -621,47 +799,66 @@ async function doSignOut() {
 }
 
 // ── Strava ──
+function openStravaAuth() {
+  const cid = document.getElementById('strava-cid').value.trim() || prompt('Enter your Client ID:');
+  if (!cid) return;
+  document.getElementById('strava-cid').value = cid;
+  document.getElementById('ss-1').classList.add('active');
+  window.open(`https://www.strava.com/oauth/authorize?client_id=${cid}&response_type=code&redirect_uri=http://localhost&scope=activity:read_all`, '_blank');
+  toast('After authorizing, copy the code= from the URL and paste it above', 'success');
+}
+
+async function exchangeStravaCode() {
+  const code = document.getElementById('strava-code-input').value.trim();
+  const cid = document.getElementById('strava-cid').value.trim();
+  const csec = document.getElementById('strava-csec').value.trim();
+  if (!code || !cid || !csec) return toast('Fill in all fields first', 'error');
+  const btn = event.target;
+  btn.textContent = 'Getting token…'; btn.disabled = true;
+  try {
+    const res = await fetch('https://www.strava.com/oauth/token', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ client_id: cid, client_secret: csec, code, grant_type: 'authorization_code' })
+    });
+    const data = await res.json();
+    if (!data.access_token) throw new Error('Invalid code or credentials');
+    localStorage.setItem('strava_cid', cid);
+    localStorage.setItem('strava_csec', csec);
+    localStorage.setItem('strava_refresh', data.refresh_token);
+    document.getElementById('strava-token-input').value = data.access_token;
+    document.getElementById('ss-2').classList.add('active');
+    document.getElementById('ss-3').style.display = 'flex';
+    toast('Token ready! Click "Connect Strava" ✓', 'success');
+  } catch(e) { toast(e.message, 'error'); }
+  finally { btn.textContent = 'Get my token →'; btn.disabled = false; }
+}
+
 async function doConnectStrava() {
   const token = document.getElementById('strava-token-input').value.trim();
   if (!token) return toast('Paste your access token first', 'error');
   const btn = document.getElementById('btn-strava');
   btn.disabled = true; btn.textContent = 'Connecting…';
   try {
-    const res = await fetch('https://www.strava.com/api/v3/athlete', {
-      headers: { Authorization: `Bearer ${token}` }
-    });
+    const res = await fetch('https://www.strava.com/api/v3/athlete', { headers: { Authorization: `Bearer ${token}` } });
     if (res.status === 401) throw new Error('Token invalid or expired');
     if (!res.ok) throw new Error('Strava connection failed');
     S.athlete = await res.json();
     S.stravaToken = token;
     localStorage.setItem('strava_token', token);
+    await saveStravaToProfile(token);
     enterApp();
-  } catch(e) {
-    toast(e.message, 'error');
-    btn.disabled = false; btn.textContent = 'Connect Strava';
-  }
+  } catch(e) { toast(e.message, 'error'); btn.disabled = false; btn.textContent = 'Connect Strava'; }
 }
 
 function updateToken() {
   const token = document.getElementById('new-token-input').value.trim();
   if (!token) return toast('Paste a token first', 'error');
-  S.stravaToken = token;
-  S.athlete = null;
+  S.stravaToken = token; S.athlete = null;
   localStorage.setItem('strava_token', token);
+  saveStravaToProfile(token);
   document.getElementById('new-token-input').value = '';
   document.getElementById('token-modal').style.display = 'none';
   toast('Token updated ✓ Syncing…', 'success');
-  loadData();
-}
-
-function refreshFromModal() {
-  const token = document.getElementById('modal-token-input').value.trim();
-  if (!token) return toast('Paste your new token first', 'error');
-  S.stravaToken = token;
-  S.athlete = null;
-  localStorage.setItem('strava_token', token);
-  document.getElementById('token-modal').style.display = 'none';
-  toast('Reconnected ✓', 'success');
   loadData();
 }
 
@@ -677,10 +874,8 @@ async function loadData() {
   if (!S.stravaToken) return;
   try {
     if (!S.athlete) {
-      const res = await fetch('https://www.strava.com/api/v3/athlete', {
-        headers: { Authorization: `Bearer ${S.stravaToken}` }
-      });
-      if (res.status === 401) { showTokenExpiredModal(); return; }
+      const res = await fetch('https://www.strava.com/api/v3/athlete', { headers: { Authorization: `Bearer ${S.stravaToken}` } });
+      if (res.status === 401) { document.getElementById('token-modal').style.display = 'flex'; return; }
       S.athlete = await res.json();
     }
     const name = `${S.athlete.firstname||''} ${S.athlete.lastname||''}`.trim();
@@ -689,22 +884,26 @@ async function loadData() {
     document.getElementById('strava-status-txt').textContent = `Connected as ${name}`;
     if (S.user?.email) document.getElementById('settings-email').textContent = S.user.email;
     const av = document.getElementById('sb-avatar');
-    if (S.athlete.profile && !S.athlete.profile.includes('large.jpg')) {
-      av.innerHTML = `<img src="${S.athlete.profile}" alt="">`;
-    } else av.textContent = (S.athlete.firstname||'R')[0].toUpperCase();
-
-    const r = await fetch('https://www.strava.com/api/v3/athlete/activities?per_page=60', {
-      headers: { Authorization: `Bearer ${S.stravaToken}` }
-    });
-    if (r.status === 401) { showTokenExpiredModal(); return; }
+    if (S.athlete.profile && !S.athlete.profile.includes('large.jpg')) av.innerHTML = `<img src="${S.athlete.profile}" alt="">`;
+    else av.textContent = (S.athlete.firstname||'R')[0].toUpperCase();
+    const r = await fetch('https://www.strava.com/api/v3/athlete/activities?per_page=60', { headers: { Authorization: `Bearer ${S.stravaToken}` } });
+    if (r.status === 401) { document.getElementById('token-modal').style.display = 'flex'; return; }
     S.activities = await r.json();
-    renderDashboard();
-    renderActivities();
-    renderGroups();
-    buildContext();
-  } catch(e) {
-    toast('Failed to load Strava data', 'error');
-  }
+    await syncActivitiesToSupabase();
+    renderDashboard(); renderActivities(); buildContext();
+    loadGroups(); loadRanking();
+  } catch(e) { toast('Failed to load data', 'error'); }
+}
+
+async function syncActivitiesToSupabase() {
+  if (!S.user || !S.activities.length) return;
+  const acts = S.activities.map(a => ({
+    id: a.id, user_id: S.user.id, name: a.name,
+    distance: a.distance, moving_time: a.moving_time,
+    sport_type: a.sport_type || a.type,
+    start_date: a.start_date
+  }));
+  await sb.from('activities').upsert(acts, { onConflict: 'id' });
 }
 
 async function syncData() {
@@ -714,55 +913,34 @@ async function syncData() {
   toast('Synced ✓', 'success');
 }
 
-function showTokenExpiredModal() {
-  document.getElementById('token-modal').style.display = 'flex';
-}
-
 // ── Dashboard ──
 function renderDashboard() {
   const a = S.activities;
   const runs = a.filter(x => (x.sport_type||x.type) === 'Run');
-  const dist = a.reduce((s,x)=>s+(x.distance||0),0)/1000;
-  const time = a.reduce((s,x)=>s+(x.moving_time||0),0)/3600;
-  const elev = a.reduce((s,x)=>s+(x.total_elevation_gain||0),0);
-  const pace = runs.length ? runs.reduce((s,x)=>s+(x.moving_time/(x.distance/1000)),0)/runs.length : 0;
   document.getElementById('s-count').textContent = a.length;
-  document.getElementById('s-dist').textContent = dist.toFixed(1);
-  document.getElementById('s-time').textContent = time.toFixed(1);
-  document.getElementById('s-elev').textContent = Math.round(elev).toLocaleString();
+  document.getElementById('s-dist').textContent = (a.reduce((s,x)=>s+(x.distance||0),0)/1000).toFixed(1);
+  document.getElementById('s-time').textContent = (a.reduce((s,x)=>s+(x.moving_time||0),0)/3600).toFixed(1);
+  document.getElementById('s-elev').textContent = Math.round(a.reduce((s,x)=>s+(x.total_elevation_gain||0),0)).toLocaleString();
+  const pace = runs.length ? runs.reduce((s,x)=>s+(x.moving_time/(x.distance/1000)),0)/runs.length : 0;
   document.getElementById('s-pace').textContent = pace > 0 ? fmtPace(pace) : '—';
-  const el = document.getElementById('dash-acts');
-  el.innerHTML = a.slice(0,6).map(actCard).join('') || '<p style="color:var(--muted);padding:40px;text-align:center">No activities found.</p>';
+  document.getElementById('dash-acts').innerHTML = a.slice(0,6).map(actCard).join('') || '<div class="empty">No activities found.</div>';
 }
 
 function actCard(a) {
-  const type = a.sport_type || a.type || 'Workout';
+  const type = a.sport_type||a.type||'Workout';
   const dist = (a.distance/1000).toFixed(2);
   const time = fmtTime(a.moving_time);
   const isRun = type==='Run'||type==='TrailRun';
   const third = isRun && a.distance>0 ? fmtPace(a.moving_time/(a.distance/1000)) : fmtElev(a.total_elevation_gain);
-  const thirdL = isRun ? 'Pace /km' : 'Elevation';
   const date = new Date(a.start_date_local||a.start_date).toLocaleDateString('en-US',{month:'short',day:'numeric'});
-  return `<div class="act-card">
-    <div class="act-header">
-      <div><div class="act-name">${esc(a.name)}</div><div class="act-meta">${type} · ${date}</div></div>
-      <div class="act-icon">${typeIcon(type)}</div>
-    </div>
-    <div class="act-stats">
-      <div class="act-stat"><span class="act-stat-val">${dist}</span><span class="act-stat-lbl">km</span></div>
-      <div class="act-stat"><span class="act-stat-val">${time}</span><span class="act-stat-lbl">Time</span></div>
-      <div class="act-stat"><span class="act-stat-val">${third}</span><span class="act-stat-lbl">${thirdL}</span></div>
-    </div>
-  </div>`;
+  return `<div class="act-card"><div class="act-header"><div><div class="act-name">${esc(a.name)}</div><div class="act-meta">${type} · ${date}</div></div><div class="act-icon">${typeIcon(type)}</div></div><div class="act-stats"><div class="act-stat"><span class="act-stat-val">${dist}</span><span class="act-stat-lbl">km</span></div><div class="act-stat"><span class="act-stat-val">${time}</span><span class="act-stat-lbl">Time</span></div><div class="act-stat"><span class="act-stat-val">${third}</span><span class="act-stat-lbl">${isRun?'Pace':'Elev'}</span></div></div></div>`;
 }
 
 // ── Activities ──
 function renderActivities() {
-  const filtered = S.actFilter === 'all' ? S.activities : S.activities.filter(a=>(a.sport_type||a.type)===S.actFilter);
-  const el = document.getElementById('all-acts');
-  el.innerHTML = filtered.map(actCard).join('') || '<p style="color:var(--muted);padding:40px;text-align:center">No activities.</p>';
+  const filtered = S.actFilter==='all' ? S.activities : S.activities.filter(a=>(a.sport_type||a.type)===S.actFilter);
+  document.getElementById('all-acts').innerHTML = filtered.map(actCard).join('') || '<div class="empty">No activities.</div>';
 }
-
 function filterActs(type, btn) {
   S.actFilter = type;
   document.querySelectorAll('#act-filters .btn-sm').forEach(b=>b.classList.remove('green'));
@@ -771,47 +949,167 @@ function filterActs(type, btn) {
 }
 
 // ── Groups ──
-const GROUPS = [
-  {flag:'🇪🇸',name:'Madrid Centro',members:142,km:312,pct:85,joined:true},
-  {flag:'🇪🇸',name:'Barcelona Eixample',members:98,km:278,pct:75,joined:false},
-  {flag:'🇲🇽',name:'CDMX Norte',members:203,km:248,pct:67,joined:false},
-  {flag:'🇨🇴',name:'Bogotá Chapinero',members:87,km:189,pct:51,joined:false},
-  {flag:'🇦🇷',name:'Buenos Aires Palermo',members:176,km:334,pct:90,joined:false},
-  {flag:'🇺🇸',name:'Miami Beach',members:134,km:156,pct:42,joined:false},
-];
-
-function renderGroups() {
-  document.getElementById('groups-grid').innerHTML = GROUPS.map(g=>`
-    <div class="group-card">
-      <div style="font-size:1.4rem;margin-bottom:10px">${g.flag}</div>
-      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.05rem;margin-bottom:4px;letter-spacing:-0.02em">${g.name}</div>
-      <div style="font-size:0.78rem;color:var(--muted);margin-bottom:14px">${g.members} runners · This week</div>
-      <div class="group-bar-bg"><div class="group-bar-fg" style="width:${g.pct}%"></div></div>
-      <div style="display:flex;justify-content:space-between;margin-bottom:14px">
-        <div><div style="font-family:'DM Mono',monospace;font-size:1rem">${g.km}</div><div style="font-size:0.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em">km/week</div></div>
-        <div><div style="font-family:'DM Mono',monospace;font-size:1rem">${g.members}</div><div style="font-size:0.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em">members</div></div>
-      </div>
-      <button class="btn-join ${g.joined?'joined':'open'}" onclick="toggleJoin(this)">${g.joined?'✓ Joined':'Join group'}</button>
-    </div>`).join('');
+async function loadGroups() {
+  const { data: groups } = await sb.from('groups').select('*, group_members(count)');
+  const { data: myMemberships } = S.user ? await sb.from('group_members').select('group_id').eq('user_id', S.user.id) : { data: [] };
+  const myGroupIds = new Set((myMemberships||[]).map(m=>m.group_id));
+  const el = document.getElementById('groups-grid');
+  if (!groups || !groups.length) { el.innerHTML = '<div class="empty">No groups yet. Create the first one! 🏃</div>'; return; }
+  el.innerHTML = groups.map(g => {
+    const count = g.group_members?.[0]?.count || 0;
+    const joined = myGroupIds.has(g.id);
+    return `<div class="group-card">
+      <div style="font-size:1.4rem;margin-bottom:10px">${g.flag||'🌍'}</div>
+      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.05rem;margin-bottom:4px;letter-spacing:-0.02em">${esc(g.name)}</div>
+      <div style="font-size:0.78rem;color:var(--muted);margin-bottom:14px">${g.city||''} · ${count} members</div>
+      <div class="group-bar-bg"><div class="group-bar-fg" style="width:${Math.min(100,count*5)}%"></div></div>
+      <button class="btn-join ${joined?'joined':'open'}" data-id="${g.id}" onclick="toggleJoin(this,'${g.id}')">${joined?'✓ Joined':'Join group'}</button>
+    </div>`;
+  }).join('');
 }
 
-function toggleJoin(btn) {
+async function toggleJoin(btn, groupId) {
+  if (!S.user) return toast('Sign in to join groups', 'error');
   const isJoined = btn.classList.contains('joined');
-  btn.classList.toggle('joined', !isJoined);
-  btn.classList.toggle('open', isJoined);
-  btn.textContent = isJoined ? 'Join group' : '✓ Joined';
-  if (!isJoined) toast('Joined! You\'re now competing 🔥', 'success');
+  if (isJoined) {
+    await sb.from('group_members').delete().eq('group_id', groupId).eq('user_id', S.user.id);
+    btn.className = 'btn-join open'; btn.textContent = 'Join group';
+  } else {
+    await sb.from('group_members').insert({ group_id: groupId, user_id: S.user.id });
+    btn.className = 'btn-join joined'; btn.textContent = '✓ Joined';
+    toast('Joined! You\'re now competing 🔥', 'success');
+  }
 }
 
-// ── AI Coach ──
+function showCreateGroup() {
+  document.getElementById('group-modal').style.display = 'flex';
+}
+
+async function createGroup() {
+  if (!S.user) return toast('Sign in first', 'error');
+  const name = document.getElementById('group-name').value.trim();
+  const city = document.getElementById('group-city').value.trim();
+  const country = document.getElementById('group-country').value.trim();
+  const flag = document.getElementById('group-flag').value.trim();
+  if (!name) return toast('Group name is required', 'error');
+  const { error } = await sb.from('groups').insert({ name, city, country, flag, created_by: S.user.id });
+  if (error) return toast(error.message, 'error');
+  document.getElementById('group-modal').style.display = 'none';
+  ['group-name','group-city','group-country','group-flag'].forEach(id => document.getElementById(id).value = '');
+  toast('Group created! 🎉', 'success');
+  loadGroups();
+}
+
+// ── Ranking ──
+async function loadRanking() {
+  const now = new Date();
+  const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+  const { data } = await sb.from('activities')
+    .select('user_id, distance, profiles(email)')
+    .gte('start_date', firstOfMonth)
+    .eq('sport_type', 'Run');
+
+  if (!data || !data.length) {
+    document.getElementById('ranking-list').innerHTML = '<div class="empty">No runs this month yet. Be the first! 🏃</div>';
+    return;
+  }
+
+  const totals = {};
+  data.forEach(a => {
+    const uid = a.user_id;
+    const email = a.profiles?.email || 'Runner';
+    if (!totals[uid]) totals[uid] = { email, km: 0 };
+    totals[uid].km += (a.distance || 0) / 1000;
+  });
+
+  const sorted = Object.entries(totals).sort((a,b) => b[1].km - a[1].km).slice(0, 20);
+
+  document.getElementById('ranking-list').innerHTML = `
+    <div class="ranking-card">
+      <div class="ranking-header">
+        <div style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em">Monthly km ranking</div>
+        <div style="font-size:0.78rem;color:var(--green);font-family:'DM Mono',monospace">🏆 Winner gets free Elite month</div>
+      </div>
+      ${sorted.map(([uid, d], i) => {
+        const isMe = uid === S.user?.id;
+        const medals = ['🥇','🥈','🥉'];
+        const emailDisplay = d.email.split('@')[0];
+        return `<div class="ranking-row ${i===0?'top':''}${isMe?' '+' ':''}" style="${isMe?'background:var(--green-dim)':''}">
+          <div class="rank-num ${i===0?'gold':''}">${medals[i]||i+1}</div>
+          <div class="rank-av">${emailDisplay[0].toUpperCase()}</div>
+          <div class="rank-name">${emailDisplay}${isMe?' (you)':''}</div>
+          <div class="rank-km">${d.km.toFixed(1)} km</div>
+          ${i===0?'<div class="trophy">🏆</div>':''}
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+function updateRankingCountdown() {
+  const now = new Date();
+  const lastDay = new Date(now.getFullYear(), now.getMonth()+1, 0);
+  const days = Math.ceil((lastDay - now) / 86400000);
+  const el = document.getElementById('days-left');
+  if (el) el.textContent = days;
+}
+
+// ── Stripe ──
+async function doStripeCheckout() {
+  const btn = document.getElementById('stripe-btn');
+  btn.disabled = true; btn.textContent = 'Loading…';
+  try {
+    const { error } = await stripe.redirectToCheckout({
+      lineItems: [{ price: PRICE_ID, quantity: 1 }],
+      mode: 'subscription',
+      successUrl: window.location.origin + window.location.pathname + '?upgraded=true',
+      cancelUrl: window.location.href,
+      customerEmail: S.user?.email
+    });
+    if (error) throw error;
+  } catch(e) {
+    toast(e.message || 'Checkout failed', 'error');
+    btn.disabled = false; btn.textContent = 'Start free trial →';
+  }
+}
+
+// Check for successful upgrade on load
+window.addEventListener('load', () => {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('upgraded') === 'true') {
+    if (S.user) sb.from('profiles').update({ plan: 'elite' }).eq('id', S.user.id);
+    toast('🎉 Welcome to Cadence Elite!', 'success');
+    window.history.replaceState({}, '', window.location.pathname);
+  }
+});
+
+// ── Admin ──
+async function loadAdminData() {
+  if (!S.user || S.user.email !== ADMIN_EMAIL) return;
+  const { data: profiles } = await sb.from('profiles').select('*').order('created_at', { ascending: false });
+  if (!profiles) return;
+  const elite = profiles.filter(p=>p.plan==='elite').length;
+  const trial = profiles.filter(p=>p.plan==='trial').length;
+  const free = profiles.filter(p=>p.plan==='free').length;
+  document.getElementById('admin-total').textContent = profiles.length;
+  document.getElementById('admin-elite').textContent = elite;
+  document.getElementById('admin-trial').textContent = trial;
+  document.getElementById('admin-free').textContent = free;
+  document.getElementById('admin-tbody').innerHTML = profiles.map(p => `
+    <tr>
+      <td>${p.email||'—'}</td>
+      <td><span class="plan-tag ${p.plan}">${p.plan}</span></td>
+      <td style="color:var(--muted);font-size:0.78rem">${p.trial_ends_at ? new Date(p.trial_ends_at).toLocaleDateString() : '—'}</td>
+      <td style="color:var(--muted);font-size:0.78rem">${p.created_at ? new Date(p.created_at).toLocaleDateString() : '—'}</td>
+      <td>${p.strava_token ? '<span style="color:var(--green);font-size:0.78rem">✓ Connected</span>' : '<span style="color:var(--muted);font-size:0.78rem">—</span>'}</td>
+    </tr>`).join('');
+}
+
+// ── Coach ──
 function buildContext() {
   const a = S.activities.slice(0,10);
-  const runs = a.filter(x=>(x.sport_type||x.type)==='Run');
   const km = a.reduce((s,x)=>s+(x.distance||0),0)/1000;
   const el = document.getElementById('ctx-preview');
-  if (el && S.athlete) {
-    el.textContent = `Athlete: ${S.athlete.firstname} ${S.athlete.lastname}\nActivities: ${a.length} (60d)\nRuns: ${runs.length}\nTotal km: ${km.toFixed(1)}\nSports: ${[...new Set(a.map(x=>x.sport_type||x.type))].join(', ')}`;
-  }
+  if (el && S.athlete) el.textContent = `Athlete: ${S.athlete.firstname} ${S.athlete.lastname}\nActivities: ${a.length} (60d)\nTotal km: ${km.toFixed(1)}\nSports: ${[...new Set(a.map(x=>x.sport_type||x.type))].join(', ')}`;
 }
 
 function getContext() {
@@ -820,37 +1118,27 @@ function getContext() {
   const km = a.reduce((s,x)=>s+(x.distance||0),0)/1000;
   const pace = runs.length ? runs.reduce((s,x)=>s+(x.moving_time/(x.distance/1000)),0)/runs.length : 0;
   const ath = S.athlete;
-  return `Athlete: ${ath?.firstname} ${ath?.lastname}, ${ath?.city||''} ${ath?.country||''}
-Recent activities (60 days): ${a.length} total, ${runs.length} runs
-Total distance: ${km.toFixed(1)} km
-Average run pace: ${pace>0?fmtPace(pace):'N/A'}
-Recent runs:
-${runs.slice(0,5).map(x=>`- ${x.name}: ${(x.distance/1000).toFixed(2)}km in ${fmtTime(x.moving_time)}, pace ${fmtPace(x.moving_time/(x.distance/1000))}`).join('\n')}`;
+  return `Athlete: ${ath?.firstname} ${ath?.lastname}
+Total distance: ${km.toFixed(1)} km, ${runs.length} runs
+Avg pace: ${pace>0?fmtPace(pace):'N/A'}
+Recent: ${runs.slice(0,3).map(x=>`${(x.distance/1000).toFixed(1)}km @ ${fmtPace(x.moving_time/(x.distance/1000))}`).join(', ')}`;
 }
 
 function startChat() {
   document.getElementById('coach-selector').style.display = 'none';
   document.getElementById('coach-chat').style.display = 'block';
   S.chatHistory = [];
-  const msgs = document.getElementById('chat-msgs');
-  msgs.innerHTML = '';
-  appendMsg('ai', 'Hey! I\'m your Cadence AI Coach 🏃 I have your Strava data loaded. Ask me anything about your training!');
+  document.getElementById('chat-msgs').innerHTML = '';
+  appendMsg('ai', 'Hey! I\'m your Cadence AI Coach 🏃 I have your Strava data loaded. Ask me anything!');
 }
 
 function backToSelector() {
   document.getElementById('coach-selector').style.display = 'block';
   document.getElementById('coach-chat').style.display = 'none';
-  S.chatHistory = [];
 }
 
-function handleChatKey(e) {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
-}
-
-function usePrompt(btn) {
-  document.getElementById('chat-in').value = btn.textContent;
-  sendMsg();
-}
+function handleChatKey(e) { if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); } }
+function usePrompt(btn) { document.getElementById('chat-in').value = btn.textContent; sendMsg(); }
 
 async function sendMsg() {
   const input = document.getElementById('chat-in');
@@ -860,153 +1148,79 @@ async function sendMsg() {
   appendMsg('user', text);
   const sendBtn = document.getElementById('chat-send');
   sendBtn.disabled = true;
-  const typingId = appendTyping();
+  const tid = appendTyping();
   S.chatHistory.push({ role: 'user', content: text });
-
-  const systemPrompt = `You are Cadence AI Coach, an expert running coach and sports scientist. Athlete data:\n\n${getContext()}\n\nBe specific, data-driven, actionable. Reference their actual runs. Keep responses concise. No bullet walls.`;
-
   try {
     const res = await fetch('https://text.pollinations.ai/openai', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'openai',
-        messages: [{ role: 'system', content: systemPrompt }, ...S.chatHistory],
-        max_tokens: 800
-      })
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'openai', messages: [{ role: 'system', content: `You are Cadence AI Coach, an expert running coach. Athlete data:\n${getContext()}\n\nBe specific, data-driven, concise.` }, ...S.chatHistory], max_tokens: 800 })
     });
     if (!res.ok) throw new Error('Coach unavailable — try again');
     const data = await res.json();
     const reply = data.choices[0].message.content;
     S.chatHistory.push({ role: 'assistant', content: reply });
-    removeTyping(typingId);
+    removeTyping(tid);
     appendMsg('ai', reply);
-  } catch(e) {
-    removeTyping(typingId);
-    appendMsg('ai', `⚠️ ${e.message}`);
-  } finally {
-    sendBtn.disabled = false;
-    input.focus();
-  }
+  } catch(e) { removeTyping(tid); appendMsg('ai', `⚠️ ${e.message}`); }
+  finally { sendBtn.disabled = false; input.focus(); }
 }
 
 function appendMsg(role, text) {
-  const container = document.getElementById('chat-msgs');
+  const c = document.getElementById('chat-msgs');
   const isUser = role === 'user';
   const now = new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
-  const avHtml = isUser
-    ? (S.athlete?.profile && !S.athlete.profile.includes('large.jpg') ? `<img src="${S.athlete.profile}" alt="">` : (S.athlete?.firstname||'U')[0])
-    : 'AI';
+  const avHtml = isUser ? ((S.athlete?.profile && !S.athlete.profile.includes('large.jpg')) ? `<img src="${S.athlete.profile}" alt="">` : (S.athlete?.firstname||'U')[0]) : 'AI';
   const div = document.createElement('div');
   div.className = `msg ${isUser?'user':''}`;
   div.innerHTML = `<div class="msg-av ${isUser?'me':'ai'}">${avHtml}</div><div><div class="msg-bubble">${esc(text).replace(/\n/g,'<br>')}</div><div class="msg-time">${now}</div></div>`;
-  container.appendChild(div);
-  container.scrollTop = container.scrollHeight;
+  c.appendChild(div);
+  c.scrollTop = c.scrollHeight;
 }
 
 function appendTyping() {
-  const id = 'ty-' + Date.now();
-  const container = document.getElementById('chat-msgs');
+  const id = 'ty-'+Date.now();
+  const c = document.getElementById('chat-msgs');
   const div = document.createElement('div');
   div.className = 'msg'; div.id = id;
   div.innerHTML = `<div class="msg-av ai">AI</div><div><div class="msg-bubble"><div class="typing"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div></div>`;
-  container.appendChild(div);
-  container.scrollTop = container.scrollHeight;
+  c.appendChild(div);
+  c.scrollTop = c.scrollHeight;
   return id;
 }
-
 function removeTyping(id) { document.getElementById(id)?.remove(); }
 
 // ── Navigation ──
 function showPage(name, btn) {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  document.getElementById('page-' + name).classList.add('active');
+  document.getElementById('page-'+name).classList.add('active');
   if (btn) btn.classList.add('active');
-  const titles = {dashboard:'Dashboard',coach:'AI Coach',activities:'Activities',groups:'Groups',settings:'Settings'};
+  const titles = { dashboard:'Dashboard', coach:'AI Coach', activities:'Activities', groups:'Groups', ranking:'Ranking 🏆', pricing:'Upgrade to Elite', admin:'Admin Panel 🛡️', settings:'Settings' };
   document.getElementById('page-title').textContent = titles[name] || name;
+  if (name === 'admin') loadAdminData();
+  if (name === 'groups') loadGroups();
+  if (name === 'ranking') loadRanking();
 }
 
 // ── Helpers ──
 function fmtTime(s) {
   if (!s) return '—';
   const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=s%60;
-  return h>0 ? `${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}` : `${m}:${String(sec).padStart(2,'0')}`;
+  return h>0?`${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`:`${m}:${String(sec).padStart(2,'0')}`;
 }
-function fmtPace(spk) {
-  if (!spk||!isFinite(spk)) return '—';
-  return `${Math.floor(spk/60)}:${String(Math.round(spk%60)).padStart(2,'0')}`;
-}
-function fmtElev(m) { return m ? `${Math.round(m)}m` : '—'; }
-function typeIcon(t) {
-  return {Run:'🏃',Ride:'🚴',Swim:'🏊',Walk:'🚶',Hike:'🥾',WeightTraining:'🏋️',Yoga:'🧘',TrailRun:'🏔️',VirtualRide:'🖥️',Workout:'💪'}[t]||'⚡';
-}
-function esc(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-// ── Strava step helpers ──
-let stravaClientId = '';
-
-function openStravaAuth() {
-  const cid = prompt('Enter your Client ID from strava.com/settings/api:');
-  if (!cid) return;
-  stravaClientId = cid.trim();
-  localStorage.setItem('strava_cid_temp', stravaClientId);
-  document.getElementById('strava-cid').value = stravaClientId;
-  const url = `https://www.strava.com/oauth/authorize?client_id=${stravaClientId}&response_type=code&redirect_uri=http://localhost&scope=activity:read_all`;
-  window.open(url, '_blank');
-  toast('After authorizing, copy the code= value from the URL bar and paste it above ↑', 'success');
-  document.getElementById('ss-1').classList.add('active');
-  document.getElementById('strava-code-input').focus();
-}
-
-async function exchangeCode() {
-  const code = document.getElementById('strava-code-input').value.trim();
-  const cid = document.getElementById('strava-cid').value.trim();
-  const csec = document.getElementById('strava-csec').value.trim();
-  if (!code) return toast('Paste the code from the URL first', 'error');
-  if (!cid || !csec) return toast('Enter your Client ID and Client Secret', 'error');
-
-  const btn = event.target;
-  btn.textContent = 'Getting token…';
-  btn.disabled = true;
-
-  try {
-    const res = await fetch('https://www.strava.com/oauth/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ client_id: cid, client_secret: csec, code, grant_type: 'authorization_code' })
-    });
-    const data = await res.json();
-    if (data.errors || !data.access_token) throw new Error('Invalid credentials or code expired');
-    // Save refresh token for future use
-    localStorage.setItem('strava_cid', cid);
-    localStorage.setItem('strava_csec', csec);
-    localStorage.setItem('strava_refresh', data.refresh_token);
-    // Prefill token input
-    document.getElementById('strava-token-input').value = data.access_token;
-    document.getElementById('ss-2').classList.add('active');
-    document.getElementById('ss-3').style.display = 'flex';
-    toast('Token ready! Click "Connect Strava" below ✓', 'success');
-  } catch(e) {
-    toast(e.message, 'error');
-  } finally {
-    btn.textContent = 'Get my token →';
-    btn.disabled = false;
-  }
-}
-
-function copyCode(el) {
-  navigator.clipboard?.writeText(el.textContent.trim()).then(()=>toast('Copied ✓', 'success'));
-}
+function fmtPace(spk) { if(!spk||!isFinite(spk))return'—'; return`${Math.floor(spk/60)}:${String(Math.round(spk%60)).padStart(2,'0')}`; }
+function fmtElev(m) { return m?`${Math.round(m)}m`:'—'; }
+function typeIcon(t) { return {Run:'🏃',Ride:'🚴',Swim:'🏊',Walk:'🚶',Hike:'🥾',WeightTraining:'🏋️',Yoga:'🧘',TrailRun:'🏔️',VirtualRide:'🖥️',Workout:'💪'}[t]||'⚡'; }
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function toast(msg, type='success') {
   document.querySelector('.toast')?.remove();
   const t = document.createElement('div');
   t.className = `toast ${type}`;
-  t.innerHTML = `<span style="color:var(--green)">${type==='success'?'✓':'⚠'}</span> ${msg}`;
+  t.innerHTML = `<span style="color:${type==='success'?'var(--green)':'#ff6666'}">${type==='success'?'✓':'⚠'}</span> ${msg}`;
   document.body.appendChild(t);
-  setTimeout(()=>t.remove(), 3000);
+  setTimeout(()=>t.remove(), 3500);
 }
 </script>
+
 </body>
 </html>
