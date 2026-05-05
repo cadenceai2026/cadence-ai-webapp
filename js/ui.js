@@ -3,15 +3,24 @@ import { qs, qsa, show, hide } from './utils.js';
 export function showAuthScreen() {
   qs('#screen-auth').classList.add('active');
   qs('#screen-app').classList.remove('active');
-  qs('#mobile-topbar').style.display = 'none';
-  qs('#mobile-nav').style.display = 'none';
+  
+  const topbar = qs('#mob-topbar') || qs('#mobile-topbar');
+  const nav = qs('#mobile-nav');
+  
+  if (topbar) topbar.style.display = 'none';
+  if (nav) nav.style.display = 'none';
 }
 
 export function showAppScreen() {
   qs('#screen-auth').classList.remove('active');
   qs('#screen-app').classList.add('active');
-  qs('#mobile-topbar').style.display = 'flex';
-  qs('#mobile-nav').style.display = 'block';
+  
+  // Corrección: usar el ID correcto que sí existe en app.html
+  const topbar = qs('#mob-topbar') || qs('#mobile-topbar');
+  const nav = qs('#mobile-nav');
+  
+  if (topbar) topbar.style.display = 'flex';
+  if (nav) nav.style.display = 'block';
 }
 
 export function showAuthView(name) {
@@ -50,7 +59,6 @@ export function updatePlanUI(profile) {
   const plan = profile?.plan || 'trial';
   const days = daysUntil(profile?.trial_ends_at);
 
-  // Sidebar pill
   const label = qs('#plan-label');
   const name = qs('#plan-name');
   const sub = qs('#plan-sub');
