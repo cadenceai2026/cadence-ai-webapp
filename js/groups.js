@@ -15,7 +15,7 @@ export function initGroups() {
 }
 
 export async function loadGroups() {
-  const container = qs('#groups-grid');
+  const container = qs('#groups-list');
   if (!container) return;
   container.innerHTML = '<div class="empty"><span class="spinner"></span> Loading…</div>';
 
@@ -69,18 +69,17 @@ async function createGroup() {
 
   const name = qs('#group-name')?.value.trim();
   const city = qs('#group-city')?.value.trim();
-  const country = qs('#group-country')?.value.trim();
   const flag = qs('#group-flag')?.value.trim();
 
   if (!name) return toast('Group name is required', 'error');
 
   const { error } = await supabase
     .from('groups')
-    .insert({ name, city, country, flag, created_by: state.user.id });
+    .insert({ name, city, flag, created_by: state.user.id });
 
   if (error) return toast(error.message, 'error');
 
-  ['group-name', 'group-city', 'group-country', 'group-flag']
+  ['group-name', 'group-city', 'group-flag']
     .forEach(id => { const el = qs(`#${id}`); if (el) el.value = ''; });
 
   qs('#group-modal').style.display = 'none';

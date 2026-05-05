@@ -4,6 +4,7 @@ import { qs, toast } from './utils.js';
 import { showAuthScreen, showAppScreen, showAuthView, updatePlanUI } from './ui.js';
 import { navigate } from './router.js';
 import { CONFIG } from './config.js';
+import { checkStravaConnection } from './strava.js';
 
 export async function initAuth() {
   // Buttons
@@ -12,9 +13,10 @@ export async function initAuth() {
   qs('#btn-signin')?.addEventListener('click', signInWithEmail);
   qs('#btn-signup')?.addEventListener('click', signUpWithEmail);
   qs('#btn-signout')?.addEventListener('click', signOut);
-  qs('#link-signup')?.addEventListener('click', (e) => { e.preventDefault(); showAuthView('signup'); });
-  qs('#link-signin')?.addEventListener('click', (e) => { e.preventDefault(); showAuthView('signin'); });
+  qs('#link-to-signup')?.addEventListener('click', (e) => { e.preventDefault(); showAuthView('signup'); });
+  qs('#link-to-signin')?.addEventListener('click', (e) => { e.preventDefault(); showAuthView('signin'); });
   qs('#link-forgot')?.addEventListener('click', (e) => { e.preventDefault(); forgotPassword(); });
+  qs('#btn-back-to-signin')?.addEventListener('click', () => showAuthView('signin'));
 
   // Listen for auth changes
   supabase.auth.onAuthStateChange(async (event, session) => {
@@ -23,8 +25,7 @@ export async function initAuth() {
 
     if (event === 'SIGNED_IN' && state.user) {
       await loadProfile();
-      showAppScreen();
-      navigate('dashboard');
+      await checkStravaConnection();
       // Check if coming from Stripe
       const params = new URLSearchParams(window.location.search);
       if (params.get('upgraded') === 'true') {
@@ -49,8 +50,7 @@ export async function initAuth() {
 
   if (state.user) {
     await loadProfile();
-    showAppScreen();
-    navigate('dashboard');
+    await checkStravaConnection();
     // Check Stripe redirect
     const params = new URLSearchParams(window.location.search);
     if (params.get('upgraded') === 'true') {
@@ -163,9 +163,10 @@ export async function loadProfile() {
 
   updatePlanUI(state.profile);
 
-  // Show admin nav if admin
+  // Show admin nav and settings section if admin
   if (state.user.email === CONFIG.adminEmail) {
-    qs('#admin-nav')?.style.setProperty('display', 'flex');
+    qs('#admin-nav-item')?.style.setProperty('display', 'flex');
+    qs('#admin-section')?.style.setProperty('display', 'block');
   }
 }
 

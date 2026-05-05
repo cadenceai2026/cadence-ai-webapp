@@ -32,20 +32,20 @@
 
       if (error) {
         status.textContent = 'Authorization denied. Redirecting…';
-        setTimeout(() => window.location.href = './index.html', 1500);
+        setTimeout(() => window.location.href = './app.html', 1500);
         return;
       }
 
       if (!code) {
         status.textContent = 'No authorization code found.';
-        setTimeout(() => window.location.href = './index.html', 1500);
+        setTimeout(() => window.location.href = './app.html', 1500);
         return;
       }
 
       const { data: sessionData } = await supabase.auth.getSession();
       if (!sessionData?.session) {
         status.textContent = 'You must be logged in first.';
-        setTimeout(() => window.location.href = './index.html', 1500);
+        setTimeout(() => window.location.href = './app.html', 1500);
         return;
       }
 
@@ -57,12 +57,12 @@
 
       if (fnError || !data?.ok) {
         status.textContent = 'Failed to connect Strava. Please try again.';
-        setTimeout(() => window.location.href = './index.html', 2000);
+        setTimeout(() => window.location.href = './app.html', 2000);
         return;
       }
 
       status.textContent = 'Strava connected! Redirecting…';
-      setTimeout(() => window.location.href = './index.html?strava=connected', 1000);
+      setTimeout(() => window.location.href = './app.html?strava=connected', 1000);
     }
 
     run();

@@ -1,24 +1,21 @@
 import { qs, qsa, show, hide } from './utils.js';
 
 export function showAuthScreen() {
-  qs('#screen-auth').classList.add('active');
-  qs('#screen-app').classList.remove('active');
-  
-  const topbar = qs('#mob-topbar') || qs('#mobile-topbar');
-  const nav = qs('#mobile-nav') || qs('#mob-nav');
-  
+  qs('#screen-auth').style.display = 'block';
+  qs('#screen-app').style.display = 'none';
+
+  const topbar = qs('#mob-topbar');
+  const nav = qs('#mob-nav');
   if (topbar) topbar.style.display = 'none';
   if (nav) nav.style.display = 'none';
 }
 
 export function showAppScreen() {
-  qs('#screen-auth').classList.remove('active');
-  qs('#screen-app').classList.add('active');
-  
-  // Corrección importante: usa el ID correcto del HTML
-  const topbar = qs('#mob-topbar') || qs('#mobile-topbar');
-  const nav = qs('#mobile-nav') || qs('#mob-nav');
-  
+  qs('#screen-auth').style.display = 'none';
+  qs('#screen-app').style.display = 'block';
+
+  const topbar = qs('#mob-topbar');
+  const nav = qs('#mob-nav');
   if (topbar) topbar.style.display = 'flex';
   if (nav) nav.style.display = 'block';
 }
@@ -33,13 +30,13 @@ export function showAuthView(name) {
 export function showPage(name) {
   qsa('.page').forEach(p => p.classList.remove('active'));
   qsa('.nav-item').forEach(n => n.classList.remove('active'));
-  qsa('.mob-nav-item').forEach(n => n.classList.remove('active'));
+  qsa('.mob-nav-btn').forEach(n => n.classList.remove('active'));
 
   const page = qs(`#page-${name}`);
   if (page) page.classList.add('active');
 
   qs(`.nav-item[data-page="${name}"]`)?.classList.add('active');
-  qs(`#mob-nav-${name}`)?.classList.add('active');
+  qs(`.mob-nav-btn[data-page="${name}"]`)?.classList.add('active');
 
   const titles = {
     dashboard: 'Dashboard',

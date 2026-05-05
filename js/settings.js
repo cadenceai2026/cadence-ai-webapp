@@ -7,14 +7,23 @@ export function initSettings() {
   qs('#btn-save-profile')?.addEventListener('click', saveProfile);
   qs('#btn-save-coach')?.addEventListener('click', saveCoachPrefs);
   qs('#btn-save-notifs')?.addEventListener('click', saveNotifications);
-  qs('#btn-change-password')?.addEventListener('click', changePassword);
-  qs('#btn-signout-settings')?.addEventListener('click', signOut);
-  qs('#btn-delete-account')?.addEventListener('click', deleteAccount);
+  qs('#btn-change-pass')?.addEventListener('click', changePassword);
+  qs('#btn-delete')?.addEventListener('click', deleteAccount);
   qs('#btn-toggle-strava-refresh')?.addEventListener('click', () => {
     const wrap = qs('#strava-refresh-wrap');
     if (wrap) wrap.style.display = wrap.style.display === 'none' ? 'block' : 'none';
   });
   qs('#btn-update-token')?.addEventListener('click', updateStravaToken);
+
+  // Chip selection handlers
+  document.querySelectorAll('.chip[data-group]').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const group = chip.dataset.group;
+      document.querySelectorAll(`.chip[data-group="${group}"]`)
+        .forEach(c => c.classList.remove('on'));
+      chip.classList.add('on');
+    });
+  });
 }
 
 export function loadSettingsUI() {
@@ -57,8 +66,8 @@ export function loadSettingsUI() {
   setToggle('notif-winner', p.notif_winner);
 
   // Strava status
-  const dot = qs('#strava-status-dot');
-  const txt = qs('#strava-status-txt');
+  const dot = qs('#strava-conn-dot');
+  const txt = qs('#strava-conn-status');
   if (sc) {
     if (dot) dot.style.background = 'var(--green)';
     if (txt) txt.textContent = `Connected as ${sc.athlete_firstname} ${sc.athlete_lastname}`;
@@ -214,12 +223,12 @@ async function deleteAccount() {
 // ── Helpers ──
 function selectChipByVal(group, val) {
   if (!val) return;
-  document.querySelectorAll(`.settings-chip[data-group="${group}"]`)
-    .forEach(c => c.classList.toggle('selected', c.dataset.val === val));
+  document.querySelectorAll(`.chip[data-group="${group}"]`)
+    .forEach(c => c.classList.toggle('on', c.dataset.val === val));
 }
 
 function getSelectedChip(group) {
-  return document.querySelector(`.settings-chip[data-group="${group}"].selected`)?.dataset?.val || null;
+  return document.querySelector(`.chip[data-group="${group}"].on`)?.dataset?.val || null;
 }
 
 function setToggle(id, val) {

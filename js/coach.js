@@ -12,7 +12,7 @@ export function initCoach() {
   });
 
   // Quick prompts
-  document.querySelectorAll('.quick-btn').forEach(btn => {
+  document.querySelectorAll('.qp').forEach(btn => {
     btn.addEventListener('click', () => {
       const input = qs('#chat-in');
       if (input) { input.value = btn.textContent; sendMsg(); }
@@ -20,9 +20,11 @@ export function initCoach() {
   });
 
   // Coming soon coaches
-  document.querySelectorAll('.coach-coming-soon').forEach(btn => {
+  document.querySelectorAll('.coach-card.soon').forEach(btn => {
     btn.addEventListener('click', () => toast('Coming soon! 🚀'));
   });
+
+  window.startChat = startChat;
 }
 
 function startChat() {

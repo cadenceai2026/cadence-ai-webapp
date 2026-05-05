@@ -8,7 +8,6 @@ import { initCoach } from './coach.js';
 import { initActivities } from './activities.js';
 
 async function boot() {
-  // Init all modules
   initRouter();
   initStrava();
   initBilling();
@@ -17,7 +16,20 @@ async function boot() {
   initCoach();
   initActivities();
 
-  // Auth last — it controls what screen shows
+  // Wire dashboard quick-action cards and "View all →" buttons
+  document.querySelectorAll('[data-goto]').forEach(btn => {
+    btn.addEventListener('click', () => navigate(btn.dataset.goto));
+  });
+
+  // Wire topbar "Ask AI Coach" button
+  document.querySelector('#btn-ask-coach')?.addEventListener('click', () => navigate('coach'));
+
+  // Wire elite welcome modal close button
+  document.querySelector('#btn-close-elite')?.addEventListener('click', () => {
+    document.querySelector('#elite-modal').style.display = 'none';
+  });
+
+  // Auth last — it controls what screen shows and calls checkStravaConnection
   await initAuth();
 }
 

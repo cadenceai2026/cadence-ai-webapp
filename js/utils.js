@@ -66,3 +66,5 @@ export function daysUntil(dateStr) {
   if (!dateStr) return 0;
   return Math.max(0, Math.ceil((new Date(dateStr) - Date.now()) / 86400000));
 }
+
+window.toast = toast;
