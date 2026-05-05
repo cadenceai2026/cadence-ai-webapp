@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connecting Strava… — Cadence</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@800&family=Space+Grotesk:wght@400;500&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./css/styles.css">
+</head>
+<body>
+  <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px">
+    <div class="auth-card" style="text-align:center;max-width:400px">
+      <div class="brand">Ca<span>den</span>ce</div>
+      <div style="font-size:2.5rem;margin-bottom:16px">🔗</div>
+      <h2 style="margin-bottom:8px">Connecting Strava…</h2>
+      <p id="callback-status" style="color:var(--muted);font-size:0.88rem">Processing authorization…</p>
+      <div style="margin-top:20px">
+        <div class="spinner"></div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { supabase } from './js/supabase-client.js';
+
+    async function run() {
+      const status = document.getElementById('callback-status');
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get('code');
+      const error = params.get('error');
+
+      if (error) {
+        status.textContent = 'Authorization denied. Redirecting…';
+        setTimeout(() => window.location.href = './index.html', 1500);
+        return;
+      }
+
+      if (!code) {
+        status.textContent = 'No authorization code found.';
+        setTimeout(() => window.location.href = './index.html', 1500);
+        return;
+      }
+
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData?.session) {
+        status.textContent = 'You must be logged in first.';
+        setTimeout(() => window.location.href = './index.html', 1500);
+        return;
+      }
+
+      status.textContent = 'Exchanging authorization code…';
+
+      const { data, error: fnError } = await supabase.functions.invoke('exchange-strava-code', {
+        body: { code }
+      });
+
+      if (fnError || !data?.ok) {
+        status.textContent = 'Failed to connect Strava. Please try again.';
+        setTimeout(() => window.location.href = './index.html', 2000);
+        return;
+      }
+
+      status.textContent = 'Strava connected! Redirecting…';
+      setTimeout(() => window.location.href = './index.html?strava=connected', 1000);
+    }
+
+    run();
+  </script>
+</body>
+</html>
