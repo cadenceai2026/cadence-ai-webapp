@@ -196,7 +196,17 @@ main{margin-left:var(--sidebar-w);flex:1;min-height:100vh;display:flex;flex-dire
 .toast.success{border-color:#00E5A040}
 .toast.error{border-color:#ff444440;color:#ff8080}
 
-/* Token modal */
+/* Strava steps */
+  .strava-step{display:flex;gap:12px;align-items:flex-start;background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:16px;transition:border-color 0.2s}
+  .strava-step.active{border-color:var(--green)}
+  .ss-num{width:28px;height:28px;min-width:28px;border-radius:50%;background:var(--surface3);color:var(--muted);font-family:'DM Mono',monospace;font-size:0.8rem;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+  .ss-body{flex:1}
+  .ss-title{font-weight:600;font-size:0.9rem;margin-bottom:4px}
+  .ss-desc{font-size:0.78rem;color:var(--muted);line-height:1.5;margin-bottom:8px}
+  .ss-btn{display:inline-block;background:var(--surface3);border:1px solid var(--border2);color:var(--green);border-radius:8px;padding:7px 14px;font-size:0.78rem;font-family:'Space Grotesk',sans-serif;cursor:pointer;text-decoration:none;transition:all 0.2s}
+  .ss-btn:hover{border-color:var(--green);background:var(--green-dim)}
+
+  /* Token modal */
 .modal-overlay{position:fixed;inset:0;background:#00000090;z-index:200;display:flex;align-items:center;justify-content:center;padding:20px}
 .modal-box{background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:32px;max-width:420px;width:100%}
 .modal-title{font-family:'Syne',sans-serif;font-weight:800;font-size:1.2rem;margin-bottom:8px;letter-spacing:-0.02em}
@@ -284,12 +294,54 @@ main{margin-left:var(--sidebar-w);flex:1;min-height:100vh;display:flex;flex-dire
         <div class="auth-dot"></div>
       </div>
       <div class="auth-h">Connect Strava</div>
-      <div class="auth-sub">Paste your Strava access token to load your runs.</div>
-      <div class="code-block" onclick="copyCode(this)" title="Click to copy">fetch('https://www.strava.com/oauth/token',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({client_id:'YOUR_ID',client_secret:'YOUR_SECRET',refresh_token:'YOUR_REFRESH',grant_type:'refresh_token'})}).then(r=>r.json()).then(d=>alert(d.access_token))</div>
-      <input class="auth-input" id="strava-token-input" type="text" placeholder="Paste access_token here…" autocomplete="off" autocorrect="off" autocapitalize="none">
+      <div class="auth-sub">Last step! We need your Strava token to load your activities.</div>
+
+      <!-- Step pills -->
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px">
+        <div class="strava-step" id="ss-0">
+          <div class="ss-num">1</div>
+          <div class="ss-body">
+            <div class="ss-title">Create a Strava API app</div>
+            <div class="ss-desc">Go to Strava and create a free developer app in seconds.</div>
+            <a href="https://www.strava.com/settings/api" target="_blank" class="ss-btn">Open Strava API settings →</a>
+          </div>
+        </div>
+        <div class="strava-step" id="ss-1">
+          <div class="ss-num">2</div>
+          <div class="ss-body">
+            <div class="ss-title">Authorize and get your code</div>
+            <div class="ss-desc">Click below — it opens Strava authorization. After you approve, copy the <strong style="color:var(--text)">code</strong> from the URL bar.</div>
+            <button class="ss-btn" onclick="openStravaAuth()">Open Strava authorization →</button>
+            <div style="margin-top:10px">
+              <input class="auth-input" id="strava-code-input" type="text" placeholder="Paste the code from the URL here…" autocomplete="off" autocorrect="off" autocapitalize="none" style="margin-bottom:0">
+            </div>
+          </div>
+        </div>
+        <div class="strava-step" id="ss-2">
+          <div class="ss-num">3</div>
+          <div class="ss-body">
+            <div class="ss-title">Exchange code for token</div>
+            <div class="ss-desc">Enter your Client ID and Secret from step 1, then we'll get your token automatically.</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px">
+              <input class="auth-input" id="strava-cid" type="text" placeholder="Client ID" autocomplete="off" autocapitalize="none" style="margin-bottom:0">
+              <input class="auth-input" id="strava-csec" type="password" placeholder="Client Secret" autocomplete="off" style="margin-bottom:0">
+            </div>
+            <button class="ss-btn" style="margin-top:10px;background:var(--green);color:#080808;border:none" onclick="exchangeCode()">Get my token →</button>
+          </div>
+        </div>
+        <div class="strava-step" id="ss-3" style="display:none">
+          <div class="ss-num" style="background:var(--green);color:#080808">✓</div>
+          <div class="ss-body">
+            <div class="ss-title" style="color:var(--green)">Token ready!</div>
+            <div class="ss-desc">Your token has been generated. Click below to connect.</div>
+          </div>
+        </div>
+      </div>
+
+      <input class="auth-input" id="strava-token-input" type="text" placeholder="Or paste your access_token directly…" autocomplete="off" autocorrect="off" autocapitalize="none">
       <button class="btn-primary" id="btn-strava" onclick="doConnectStrava()">Connect Strava</button>
       <button class="btn-secondary" onclick="enterApp()">Skip for now</button>
-      <p class="auth-tip">_ token expires every 6h · go to Settings to refresh</p>
+      <p class="auth-tip">_ token stored locally · go to Settings to refresh anytime</p>
     </div>
 
   </div>
@@ -892,6 +944,58 @@ function typeIcon(t) {
 function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
+// ── Strava step helpers ──
+let stravaClientId = '';
+
+function openStravaAuth() {
+  const cid = prompt('Enter your Client ID from strava.com/settings/api:');
+  if (!cid) return;
+  stravaClientId = cid.trim();
+  localStorage.setItem('strava_cid_temp', stravaClientId);
+  document.getElementById('strava-cid').value = stravaClientId;
+  const url = `https://www.strava.com/oauth/authorize?client_id=${stravaClientId}&response_type=code&redirect_uri=http://localhost&scope=activity:read_all`;
+  window.open(url, '_blank');
+  toast('After authorizing, copy the code= value from the URL bar and paste it above ↑', 'success');
+  document.getElementById('ss-1').classList.add('active');
+  document.getElementById('strava-code-input').focus();
+}
+
+async function exchangeCode() {
+  const code = document.getElementById('strava-code-input').value.trim();
+  const cid = document.getElementById('strava-cid').value.trim();
+  const csec = document.getElementById('strava-csec').value.trim();
+  if (!code) return toast('Paste the code from the URL first', 'error');
+  if (!cid || !csec) return toast('Enter your Client ID and Client Secret', 'error');
+
+  const btn = event.target;
+  btn.textContent = 'Getting token…';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch('https://www.strava.com/oauth/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ client_id: cid, client_secret: csec, code, grant_type: 'authorization_code' })
+    });
+    const data = await res.json();
+    if (data.errors || !data.access_token) throw new Error('Invalid credentials or code expired');
+    // Save refresh token for future use
+    localStorage.setItem('strava_cid', cid);
+    localStorage.setItem('strava_csec', csec);
+    localStorage.setItem('strava_refresh', data.refresh_token);
+    // Prefill token input
+    document.getElementById('strava-token-input').value = data.access_token;
+    document.getElementById('ss-2').classList.add('active');
+    document.getElementById('ss-3').style.display = 'flex';
+    toast('Token ready! Click "Connect Strava" below ✓', 'success');
+  } catch(e) {
+    toast(e.message, 'error');
+  } finally {
+    btn.textContent = 'Get my token →';
+    btn.disabled = false;
+  }
+}
+
 function copyCode(el) {
   navigator.clipboard?.writeText(el.textContent.trim()).then(()=>toast('Copied ✓', 'success'));
 }
