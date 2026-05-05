@@ -1,7 +1,8 @@
 import { supabase } from './supabase-client.js';
 import { state } from './state.js';
 import { qs, toast } from './utils.js';
-import { updateAthleteUI, showAuthView } from './ui.js';
+import { updateAthleteUI, showAuthView, showAuthScreen, showAppScreen } from './ui.js';
+import { navigate } from './router.js';
 import { CONFIG } from './config.js';
 import { renderDashboard } from './dashboard.js';
 import { renderActivities } from './activities.js';
@@ -11,8 +12,10 @@ export async function initStrava() {
   qs('#btn-reconnect-strava')?.addEventListener('click', connectStrava);
   qs('#btn-sync')?.addEventListener('click', syncActivities);
 
-  // Check connection on load
-  await checkStravaConnection();
+  qs('#btn-skip-strava')?.addEventListener('click', () => {
+    showAppScreen();
+    navigate('dashboard');
+  });
 }
 
 export async function checkStravaConnection() {
@@ -26,6 +29,8 @@ export async function checkStravaConnection() {
 
   if (error) {
     console.error('checkStravaConnection:', error);
+    showAppScreen();
+    navigate('dashboard');
     return;
   }
 
@@ -34,9 +39,19 @@ export async function checkStravaConnection() {
   if (state.stravaConnection) {
     updateAthleteUI(state.stravaConnection);
     await loadActivitiesFromDb();
+    showAppScreen();
+    navigate('dashboard');
   } else {
-    // No strava connected — show connect prompt
-    showAuthView('strava');
+    // New accounts (created within the last hour) see Strava onboarding
+    const justCreated = state.profile?.created_at &&
+      (Date.now() - new Date(state.profile.created_at).getTime()) < 3600000;
+    if (justCreated) {
+      showAuthScreen();
+      showAuthView('strava');
+    } else {
+      showAppScreen();
+      navigate('dashboard');
+    }
   }
 }
 

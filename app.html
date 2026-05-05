@@ -81,24 +81,15 @@
         <div class="auth-dot"></div>
       </div>
       <div class="auth-h">Connect Strava</div>
-      <div class="auth-sub">Last step! Connect Strava to load your activities securely.</div>
-      <div class="strava-step">
-        <div class="ss-num">1</div>
-        <div class="ss-body">
-          <div class="ss-title">Create a Strava API app</div>
-          <div class="ss-desc">Free, takes 2 minutes. You'll get a Client ID and Secret.</div>
-          <a href="https://www.strava.com/settings/api" target="_blank" class="ss-link">Open Strava API settings →</a>
-        </div>
+      <div class="auth-sub">Last step — sync your activities automatically.</div>
+      <div style="background:#FC4C0215;border:1px solid #FC4C0230;border-radius:14px;padding:24px;text-align:center;margin-bottom:20px">
+        <div style="font-size:2.8rem;margin-bottom:10px">🟠</div>
+        <div style="font-size:0.85rem;font-weight:500;margin-bottom:4px">Strava</div>
+        <div style="font-size:0.78rem;color:var(--muted);line-height:1.5">Cadence will read your runs, rides and activities.<br>No posting, no modifying — read only.</div>
       </div>
-      <div class="strava-step" id="ss-step-2">
-        <div class="ss-num">2</div>
-        <div class="ss-body">
-          <div class="ss-title">Connect with one click</div>
-          <div class="ss-desc">Enter your Client ID below and we'll handle the rest securely via our server.</div>
-          <input class="inp" id="strava-client-id" type="text" placeholder="Client ID (e.g. 12345)" style="margin-top:8px;margin-bottom:8px">
-          <button class="ss-link" id="btn-connect-strava" style="background:var(--green);color:#080808;border:none">Connect with Strava →</button>
-        </div>
-      </div>
+      <button class="btn btn-full" id="btn-connect-strava" style="background:#FC4C02;color:#fff;border:none;font-weight:600;font-size:0.95rem;padding:14px;border-radius:10px;cursor:pointer">
+        🟠 Connect with Strava
+      </button>
       <button class="btn btn-outline btn-full" id="btn-skip-strava" style="margin-top:10px">Skip for now</button>
     </div>
   </div>

@@ -12,7 +12,7 @@ export function initRouter() {
   });
 
   // Mobile nav
-  qsa('.mob-nav-item[data-page]').forEach(btn => {
+  qsa('.mob-nav-btn[data-page]').forEach(btn => {
     btn.addEventListener('click', () => navigate(btn.dataset.page));
   });
 

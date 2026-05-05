@@ -3,7 +3,7 @@ import { state } from './state.js';
 import { qs, toast } from './utils.js';
 
 export function initBilling() {
-  qs('#btn-start-checkout')?.addEventListener('click', startCheckout);
+  qs('#btn-checkout')?.addEventListener('click', startCheckout);
   qs('#upgrade-btn')?.addEventListener('click', startCheckout);
   qs('#mob-plan-badge')?.addEventListener('click', () => {
     if (state.profile?.plan !== 'elite') startCheckout();
@@ -13,7 +13,7 @@ export function initBilling() {
 async function startCheckout() {
   if (!state.user) return toast('Sign in first', 'error');
 
-  const btn = qs('#btn-start-checkout');
+  const btn = qs('#btn-checkout');
   if (btn) { btn.disabled = true; btn.textContent = 'Loading…'; }
 
   const { data, error } = await supabase.functions.invoke('create-checkout-session', {
