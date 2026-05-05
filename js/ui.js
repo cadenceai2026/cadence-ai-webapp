@@ -5,7 +5,7 @@ export function showAuthScreen() {
   qs('#screen-app').classList.remove('active');
   
   const topbar = qs('#mob-topbar') || qs('#mobile-topbar');
-  const nav = qs('#mobile-nav');
+  const nav = qs('#mobile-nav') || qs('#mob-nav');
   
   if (topbar) topbar.style.display = 'none';
   if (nav) nav.style.display = 'none';
@@ -15,9 +15,9 @@ export function showAppScreen() {
   qs('#screen-auth').classList.remove('active');
   qs('#screen-app').classList.add('active');
   
-  // Corrección: usar el ID correcto que sí existe en app.html
+  // Corrección importante: usa el ID correcto del HTML
   const topbar = qs('#mob-topbar') || qs('#mobile-topbar');
-  const nav = qs('#mobile-nav');
+  const nav = qs('#mobile-nav') || qs('#mob-nav');
   
   if (topbar) topbar.style.display = 'flex';
   if (nav) nav.style.display = 'block';
@@ -72,19 +72,28 @@ export function updatePlanUI(profile) {
     if (sub) sub.textContent = 'Full access';
     if (upgradeBtn) upgradeBtn.style.display = 'none';
     if (planTag) planTag.textContent = 'ELITE';
-    if (mobBadge) { mobBadge.textContent = 'ELITE'; mobBadge.className = 'mob-plan-badge elite'; }
+    if (mobBadge) { 
+      mobBadge.textContent = 'ELITE'; 
+      mobBadge.className = 'mob-plan-badge elite'; 
+    }
   } else if (plan === 'trial') {
     if (label) label.textContent = 'FREE TRIAL';
     if (name) name.textContent = `${days} days left`;
     if (sub) sub.textContent = 'Upgrade to Elite';
     if (planTag) planTag.textContent = 'TRIAL';
-    if (mobBadge) { mobBadge.textContent = 'TRIAL'; mobBadge.className = 'mob-plan-badge trial'; }
+    if (mobBadge) { 
+      mobBadge.textContent = 'TRIAL'; 
+      mobBadge.className = 'mob-plan-badge trial'; 
+    }
   } else {
     if (label) label.textContent = 'FREE';
     if (name) name.textContent = 'Starter';
     if (sub) sub.textContent = 'Upgrade to Elite';
     if (planTag) planTag.textContent = 'FREE';
-    if (mobBadge) { mobBadge.textContent = 'FREE'; mobBadge.className = 'mob-plan-badge free'; }
+    if (mobBadge) { 
+      mobBadge.textContent = 'FREE'; 
+      mobBadge.className = 'mob-plan-badge free'; 
+    }
   }
 }
 
