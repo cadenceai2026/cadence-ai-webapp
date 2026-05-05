@@ -237,8 +237,58 @@ main{margin-left:var(–sidebar-w);flex:1;min-height:100vh;display:flex;flex-dir
 aside{display:none}main{margin-left:0}
 .coach-layout{grid-template-columns:1fr}.coach-sidebar{display:none}
 .pricing-grid{grid-template-columns:1fr}
-.page{padding:16px}.top-bar{padding:14px 16px}
+.page{padding:16px;padding-bottom:90px}.top-bar{padding:14px 16px}
+.mobile-nav{display:flex!important}
+#screen-app main{padding-bottom:0}
 }
+
+/* Mobile bottom nav */
+.mobile-nav{
+display:none;position:fixed;bottom:0;left:0;right:0;
+background:var(–surface);border-top:1px solid var(–border);
+padding:8px 0 max(8px,env(safe-area-inset-bottom));
+z-index:100;
+}
+.mob-nav-items{display:flex;justify-content:space-around;align-items:center}
+.mob-nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 12px;border:none;background:none;cursor:pointer;color:var(–muted);transition:color 0.2s;min-width:56px}
+.mob-nav-item.active{color:var(–green)}
+.mob-nav-icon{font-size:1.3rem}
+.mob-nav-label{font-size:0.6rem;font-family:‘DM Mono’,monospace;letter-spacing:0.05em;text-transform:uppercase}
+
+/* Mobile top bar */
+.mobile-topbar{
+display:none;position:sticky;top:0;z-index:40;
+background:var(–bg);border-bottom:1px solid var(–border);
+padding:12px 16px;
+}
+@media(max-width:768px){.mobile-topbar{display:flex;align-items:center;justify-content:space-between}.top-bar{display:none}}
+.mob-logo{font-family:‘Syne’,sans-serif;font-weight:800;font-size:1.1rem;letter-spacing:-0.02em}
+.mob-logo span{color:var(–green)}
+.mob-user{display:flex;align-items:center;gap:8px}
+.mob-avatar{width:32px;height:32px;border-radius:50%;background:var(–green-dim);border:1px solid #00E5A025;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:600;color:var(–green);overflow:hidden;cursor:pointer}
+.mob-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.mob-plan-badge{font-size:0.65rem;font-family:‘DM Mono’,monospace;padding:3px 8px;border-radius:100px;cursor:pointer}
+.mob-plan-badge.trial{background:var(–green-dim);color:var(–green);border:1px solid #00E5A025}
+.mob-plan-badge.elite{background:linear-gradient(90deg,#00E5A020,#00E5A010);color:var(–green);border:1px solid #00E5A030}
+.mob-plan-badge.free{background:var(–surface2);color:var(–muted);border:1px solid var(–border2)}
+
+/* Elite welcome modal */
+.elite-modal{position:fixed;inset:0;background:#00000095;z-index:500;display:flex;align-items:center;justify-content:center;padding:20px}
+.elite-modal-box{background:var(–surface);border:1px solid var(–green);border-radius:20px;padding:36px;max-width:420px;width:100%;text-align:center;animation:fadeUp 0.5s ease;position:relative;overflow:hidden}
+.elite-modal-box::before{content:’’;position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(–green),transparent)}
+.elite-glow{position:absolute;width:300px;height:300px;background:radial-gradient(circle,#00E5A015 0%,transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none}
+
+/* Coach coming soon */
+.coach-options-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:600px;margin:0 auto}
+.coach-option-card{background:var(–surface);border:1px solid var(–border);border-radius:14px;padding:20px;text-align:center;cursor:pointer;transition:all 0.2s;position:relative}
+.coach-option-card:hover{border-color:var(–border2);transform:translateY(-2px)}
+.coach-option-card.active-coach{border-color:var(–green);background:var(–green-dim)}
+.coach-option-card.coming-soon{opacity:0.6;cursor:not-allowed}
+.coming-soon-tag{position:absolute;top:-8px;right:-8px;background:var(–surface3);color:var(–muted);font-size:0.6rem;font-family:‘DM Mono’,monospace;padding:2px 8px;border-radius:100px;border:1px solid var(–border2)}
+.coach-opt-icon{font-size:2rem;margin-bottom:8px}
+.coach-opt-name{font-family:‘Syne’,sans-serif;font-weight:700;font-size:0.95rem;margin-bottom:3px;letter-spacing:-0.02em}
+.coach-opt-desc{font-size:0.72rem;color:var(–muted)}
+.coach-opt-badge{display:inline-block;margin-top:6px;background:var(–green-dim);color:var(–green);border:1px solid #00E5A025;border-radius:100px;padding:2px 10px;font-size:0.65rem;font-family:‘DM Mono’,monospace}
 ::-webkit-scrollbar{width:4px;height:4px}
 ::-webkit-scrollbar-thumb{background:var(–border2);border-radius:2px}
 </style>
@@ -432,24 +482,36 @@ aside{display:none}main{margin-left:0}
 
 <!-- AI Coach -->
 <div class="page" id="page-coach">
-  <div id="coach-selector" class="coach-selector">
-    <h2>Your AI Coach</h2>
-    <p>Powered by Cadence · Free · No setup needed</p>
-    <div class="coach-card" onclick="startChat()">
-      <div class="coach-logo-wrap">
-        <svg width="44" height="44" viewBox="0 0 52 52" fill="none">
-          <rect x="4" y="24" width="6" height="16" rx="3" fill="#00E5A0" opacity="0.4"/>
-          <rect x="13" y="16" width="6" height="24" rx="3" fill="#00E5A0" opacity="0.6"/>
-          <rect x="22" y="8" width="6" height="32" rx="3" fill="#00E5A0"/>
-          <rect x="31" y="14" width="6" height="26" rx="3" fill="#00E5A0" opacity="0.75"/>
-          <rect x="40" y="20" width="6" height="20" rx="3" fill="#00E5A0" opacity="0.5"/>
-          <circle cx="43" cy="14" r="5" fill="#00E5A0"/>
-          <circle cx="43" cy="14" r="2.5" fill="#080808"/>
-        </svg>
+  <div id="coach-selector" style="padding:32px 20px">
+    <div style="text-align:center;margin-bottom:28px">
+      <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.5rem;letter-spacing:-0.02em;margin-bottom:6px">Choose your AI Coach</div>
+      <div style="font-size:0.85rem;color:var(--muted)">More AI options coming soon as Cadence grows 🚀</div>
+    </div>
+    <div class="coach-options-grid">
+      <div class="coach-option-card active-coach" onclick="startChat('free')">
+        <div class="coach-opt-icon">🟢</div>
+        <div class="coach-opt-name">Cadence AI</div>
+        <div class="coach-opt-desc">Powered by Cadence</div>
+        <div class="coach-opt-badge">Free · Available now</div>
       </div>
-      <div class="coach-card-name">Cadence AI</div>
-      <div class="coach-card-desc">Your personal running coach</div>
-      <div class="coach-badge">Free · No setup needed</div>
+      <div class="coach-option-card coming-soon" onclick="toast('Claude coming soon! 🧠','success')">
+        <div class="coming-soon-tag">Coming soon</div>
+        <div class="coach-opt-icon">🧠</div>
+        <div class="coach-opt-name">Claude</div>
+        <div class="coach-opt-desc">by Anthropic</div>
+      </div>
+      <div class="coach-option-card coming-soon" onclick="toast('ChatGPT coming soon! ⚡','success')">
+        <div class="coming-soon-tag">Coming soon</div>
+        <div class="coach-opt-icon">⚡</div>
+        <div class="coach-opt-name">ChatGPT</div>
+        <div class="coach-opt-desc">by OpenAI</div>
+      </div>
+      <div class="coach-option-card coming-soon" onclick="toast('Gemini coming soon! ✨','success')">
+        <div class="coming-soon-tag">Coming soon</div>
+        <div class="coach-opt-icon">✨</div>
+        <div class="coach-opt-name">Gemini</div>
+        <div class="coach-opt-desc">by Google</div>
+      </div>
     </div>
   </div>
   <div id="coach-chat" style="display:none">
@@ -647,6 +709,69 @@ aside{display:none}main{margin-left:0}
   </div>
 </div>
 
+<!-- Mobile top bar -->
+
+<div class="mobile-topbar" id="mobile-topbar" style="display:none">
+  <span class="mob-logo">Ca<span>den</span>ce</span>
+  <div class="mob-user">
+    <span class="mob-plan-badge trial" id="mob-plan-badge" onclick="showPage('pricing',null)">TRIAL</span>
+    <div class="mob-avatar" id="mob-avatar" onclick="showPage('settings',null)">?</div>
+  </div>
+</div>
+
+<!-- Mobile bottom nav -->
+
+<nav class="mobile-nav" id="mobile-nav">
+  <div class="mob-nav-items">
+    <button class="mob-nav-item active" onclick="showPage('dashboard',this)" id="mob-nav-dashboard">
+      <span class="mob-nav-icon">📊</span>
+      <span class="mob-nav-label">Home</span>
+    </button>
+    <button class="mob-nav-item" onclick="showPage('coach',this)" id="mob-nav-coach">
+      <span class="mob-nav-icon">🤖</span>
+      <span class="mob-nav-label">Coach</span>
+    </button>
+    <button class="mob-nav-item" onclick="showPage('groups',this)" id="mob-nav-groups">
+      <span class="mob-nav-icon">👥</span>
+      <span class="mob-nav-label">Groups</span>
+    </button>
+    <button class="mob-nav-item" onclick="showPage('ranking',this)" id="mob-nav-ranking">
+      <span class="mob-nav-icon">🏆</span>
+      <span class="mob-nav-label">Ranking</span>
+    </button>
+    <button class="mob-nav-item" onclick="showPage('settings',this)" id="mob-nav-settings">
+      <span class="mob-nav-icon">⚙️</span>
+      <span class="mob-nav-label">Settings</span>
+    </button>
+  </div>
+</nav>
+
+<!-- Elite Welcome Modal -->
+
+<div class="elite-modal" id="elite-modal" style="display:none">
+  <div class="elite-modal-box">
+    <div class="elite-glow"></div>
+    <div style="font-size:3rem;margin-bottom:12px">🏆</div>
+    <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;letter-spacing:-0.03em;margin-bottom:6px">Welcome to <span style="color:var(--green)">Elite</span></div>
+    <div style="font-size:0.85rem;color:var(--muted);margin-bottom:24px;line-height:1.6">You now have full access to all Cadence features.</div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:28px;text-align:left">
+      <div style="display:flex;gap:10px;align-items:center;background:var(--surface2);border-radius:10px;padding:12px">
+        <span style="font-size:1.2rem">🤖</span>
+        <div><div style="font-size:0.88rem;font-weight:600">Unlimited AI Coach</div><div style="font-size:0.75rem;color:var(--muted)">Chat with your coach as much as you want</div></div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;background:var(--surface2);border-radius:10px;padding:12px">
+        <span style="font-size:1.2rem">👥</span>
+        <div><div style="font-size:0.88rem;font-weight:600">Create Groups</div><div style="font-size:0.75rem;color:var(--muted)">Lead your city running community</div></div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;background:var(--surface2);border-radius:10px;padding:12px">
+        <span style="font-size:1.2rem">🏆</span>
+        <div><div style="font-size:0.88rem;font-weight:600">Monthly Winner = Free Month</div><div style="font-size:0.75rem;color:var(--muted)">Top km runner wins next month free</div></div>
+      </div>
+    </div>
+    <button onclick="document.getElementById('elite-modal').style.display='none'" style="width:100%;background:var(--green);color:#080808;border:none;border-radius:10px;padding:14px;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:0.95rem;cursor:pointer">Let's go! 🏃</button>
+  </div>
+</div>
+
 <script>
 // ── Init ──
 const { createClient } = window.supabase;
@@ -715,6 +840,23 @@ async function loadProfile() {
 async function saveStravaToProfile(token) {
   if (!S.user) return;
   await sb.from('profiles').update({ strava_token: token }).eq('id', S.user.id);
+}
+
+function updateMobileUI() {
+  const plan = S.profile?.plan || 'trial';
+  const mobBadge = document.getElementById('mob-plan-badge');
+  const mobAv = document.getElementById('mob-avatar');
+  if (mobBadge) {
+    mobBadge.textContent = plan.toUpperCase();
+    mobBadge.className = `mob-plan-badge ${plan}`;
+  }
+  if (mobAv && S.athlete) {
+    if (S.athlete.profile && !S.athlete.profile.includes('large.jpg')) {
+      mobAv.innerHTML = `<img src="${S.athlete.profile}" alt="">`;
+    } else {
+      mobAv.textContent = (S.athlete.firstname||'R')[0].toUpperCase();
+    }
+  }
 }
 
 function updatePlanUI() {
@@ -866,7 +1008,27 @@ function updateToken() {
 function enterApp() {
   document.getElementById('screen-auth').classList.remove('active');
   document.getElementById('screen-app').classList.add('active');
+  // Show mobile UI
+  document.getElementById('mobile-topbar').style.display = 'flex';
+  document.getElementById('mobile-nav').style.display = 'block';
   loadData();
+  // Check if coming from Stripe upgrade
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('upgraded') === 'true') {
+    setTimeout(() => showEliteWelcome(), 1000);
+    window.history.replaceState({}, '', window.location.pathname);
+  }
+}
+
+function showEliteWelcome() {
+  document.getElementById('elite-modal').style.display = 'flex';
+  // Update plan in DB
+  if (S.user) {
+    sb.from('profiles').update({ plan: 'elite' }).eq('id', S.user.id);
+    if (S.profile) S.profile.plan = 'elite';
+    updatePlanUI();
+    updateMobileUI();
+  }
 }
 
 // ── Data ──
@@ -886,6 +1048,7 @@ async function loadData() {
     const av = document.getElementById('sb-avatar');
     if (S.athlete.profile && !S.athlete.profile.includes('large.jpg')) av.innerHTML = `<img src="${S.athlete.profile}" alt="">`;
     else av.textContent = (S.athlete.firstname||'R')[0].toUpperCase();
+    updateMobileUI();
     const r = await fetch('https://www.strava.com/api/v3/athlete/activities?per_page=60', { headers: { Authorization: `Bearer ${S.stravaToken}` } });
     if (r.status === 401) { document.getElementById('token-modal').style.display = 'flex'; return; }
     S.activities = await r.json();
@@ -1072,15 +1235,7 @@ async function doStripeCheckout() {
   }
 }
 
-// Check for successful upgrade on load
-window.addEventListener('load', () => {
-  const params = new URLSearchParams(window.location.search);
-  if (params.get('upgraded') === 'true') {
-    if (S.user) sb.from('profiles').update({ plan: 'elite' }).eq('id', S.user.id);
-    toast('🎉 Welcome to Cadence Elite!', 'success');
-    window.history.replaceState({}, '', window.location.pathname);
-  }
-});
+
 
 // ── Admin ──
 async function loadAdminData() {
@@ -1193,8 +1348,12 @@ function removeTyping(id) { document.getElementById(id)?.remove(); }
 function showPage(name, btn) {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.querySelectorAll('.mob-nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('page-'+name).classList.add('active');
   if (btn) btn.classList.add('active');
+  // Sync mobile nav
+  const mobNav = document.getElementById('mob-nav-' + name);
+  if (mobNav) mobNav.classList.add('active');
   const titles = { dashboard:'Dashboard', coach:'AI Coach', activities:'Activities', groups:'Groups', ranking:'Ranking 🏆', pricing:'Upgrade to Elite', admin:'Admin Panel 🛡️', settings:'Settings' };
   document.getElementById('page-title').textContent = titles[name] || name;
   if (name === 'admin') loadAdminData();
