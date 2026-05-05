@@ -242,6 +242,25 @@ aside{display:none}main{margin-left:0}
 #screen-app main{padding-bottom:0}
 }
 
+/* Settings */
+.settings-section{background:var(–surface);border:1px solid var(–border);border-radius:14px;padding:20px;margin-bottom:12px}
+.settings-section-title{font-family:‘DM Mono’,monospace;font-size:0.72rem;color:var(–muted);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:16px}
+.settings-label{font-size:0.72rem;color:var(–muted);font-family:‘DM Mono’,monospace;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px}
+.settings-chip{background:var(–surface2);border:1px solid var(–border2);color:var(–muted);border-radius:8px;padding:6px 12px;font-family:‘Space Grotesk’,sans-serif;font-size:0.78rem;cursor:pointer;transition:all 0.15s}
+.settings-chip:hover{border-color:var(–green);color:var(–green)}
+.settings-chip.selected{background:var(–green-dim);border-color:var(–green);color:var(–green)}
+.settings-save-btn{width:100%;background:var(–green);color:#080808;border:none;border-radius:8px;padding:10px;font-family:‘Space Grotesk’,sans-serif;font-weight:600;font-size:0.85rem;cursor:pointer;transition:background 0.2s}
+.settings-save-btn:hover{background:#00ffb3}
+.settings-connection-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(–border)}
+.settings-connection-row:last-of-type{border-bottom:none}
+.settings-toggle-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(–border);gap:16px}
+.toggle{position:relative;display:inline-block;width:44px;height:24px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;cursor:pointer;inset:0;background:var(–surface3);border-radius:24px;transition:0.3s;border:1px solid var(–border2)}
+.toggle-slider::before{content:’’;position:absolute;width:18px;height:18px;left:2px;bottom:2px;background:var(–muted);border-radius:50%;transition:0.3s}
+.toggle input:checked + .toggle-slider{background:var(–green-dim);border-color:var(–green)}
+.toggle input:checked + .toggle-slider::before{transform:translateX(20px);background:var(–green)}
+
 /* Mobile bottom nav */
 .mobile-nav{
 display:none;position:fixed;bottom:0;left:0;right:0;
@@ -658,23 +677,185 @@ padding:12px 16px;
 
 <!-- Settings -->
 <div class="page" id="page-settings">
-  <div style="max-width:480px">
+  <div style="max-width:560px">
+
+    <!-- Section header helper -->
     <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.2rem;letter-spacing:-0.02em;margin-bottom:24px">Settings</div>
-    <div class="sc" style="margin-bottom:12px">
-      <div class="sc-title">Strava Connection</div>
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
-        <div id="strava-status-dot" style="width:8px;height:8px;border-radius:50%;background:var(--muted);flex-shrink:0"></div>
-        <div style="font-size:0.88rem" id="strava-status-txt">Not connected</div>
+
+    <!-- ── PROFILE ── -->
+    <div class="settings-section">
+      <div class="settings-section-title">👤 Profile</div>
+
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
+        <div id="settings-avatar" style="width:64px;height:64px;border-radius:50%;background:var(--green-dim);border:2px solid #00E5A030;display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:600;color:var(--green);flex-shrink:0;overflow:hidden;cursor:pointer" onclick="document.getElementById('avatar-upload').click()">?</div>
+        <div>
+          <div style="font-size:0.85rem;font-weight:500;margin-bottom:4px" id="settings-display-name">—</div>
+          <div style="font-size:0.75rem;color:var(--muted)">Tap avatar to change photo</div>
+          <input type="file" id="avatar-upload" accept="image/*" style="display:none" onchange="uploadAvatar(this)">
+        </div>
       </div>
-      <div style="font-size:0.78rem;color:var(--muted);margin-bottom:10px">Token expires every 6h. Paste a new one to reconnect:</div>
-      <input class="auth-input" id="new-token-input" type="text" placeholder="Paste new access_token…" autocomplete="off" autocorrect="off" autocapitalize="none">
-      <button class="btn-primary" style="margin-top:4px" onclick="updateToken()">Update token</button>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        <div>
+          <div class="settings-label">Display name</div>
+          <input class="auth-input" id="profile-name" type="text" placeholder="Your name" style="margin-bottom:0">
+        </div>
+        <div>
+          <div class="settings-label">City</div>
+          <input class="auth-input" id="profile-city" type="text" placeholder="Madrid" style="margin-bottom:0">
+        </div>
+      </div>
+
+      <div style="margin-bottom:10px">
+        <div class="settings-label">Runner type</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="settings-chip" onclick="selectChip(this,'runner-type')" data-val="beginner">🌱 Beginner</button>
+          <button class="settings-chip" onclick="selectChip(this,'runner-type')" data-val="intermediate">🏃 Intermediate</button>
+          <button class="settings-chip" onclick="selectChip(this,'runner-type')" data-val="advanced">⚡ Advanced</button>
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px">
+        <div class="settings-label">Main goal</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="settings-chip" onclick="selectChip(this,'goal')" data-val="fitness">💪 Get fit</button>
+          <button class="settings-chip" onclick="selectChip(this,'goal')" data-val="10k">🏅 Run 10K</button>
+          <button class="settings-chip" onclick="selectChip(this,'goal')" data-val="half">🎯 Half marathon</button>
+          <button class="settings-chip" onclick="selectChip(this,'goal')" data-val="marathon">🏆 Marathon</button>
+          <button class="settings-chip" onclick="selectChip(this,'goal')" data-val="weight">⚖️ Lose weight</button>
+        </div>
+      </div>
+
+      <button class="settings-save-btn" onclick="saveProfile()">Save profile</button>
     </div>
-    <div class="sc">
-      <div class="sc-title">Account</div>
-      <div style="font-size:0.85rem;color:var(--muted);margin-bottom:12px" id="settings-email">—</div>
-      <button onclick="doSignOut()" style="background:transparent;border:1px solid #ff444440;color:#ff4444;border-radius:8px;padding:10px 16px;font-family:'Space Grotesk',sans-serif;font-size:0.85rem;cursor:pointer;width:100%">Sign out</button>
+
+    <!-- ── CONNECTIONS ── -->
+    <div class="settings-section">
+      <div class="settings-section-title">🔗 Connections</div>
+
+      <div class="settings-connection-row">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:36px;height:36px;border-radius:8px;background:#FC4C0220;display:flex;align-items:center;justify-content:center;font-size:1rem">🟠</div>
+          <div>
+            <div style="font-size:0.88rem;font-weight:500">Strava</div>
+            <div style="font-size:0.72rem;color:var(--muted)" id="strava-status-txt">Not connected</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div id="strava-status-dot" style="width:8px;height:8px;border-radius:50%;background:var(--muted)"></div>
+          <button class="settings-chip" onclick="showStravaRefresh()">Refresh token</button>
+        </div>
+      </div>
+
+      <div class="settings-connection-row" style="opacity:0.5">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:36px;height:36px;border-radius:8px;background:#0066CC20;display:flex;align-items:center;justify-content:center;font-size:1rem">⌚</div>
+          <div>
+            <div style="font-size:0.88rem;font-weight:500">Garmin</div>
+            <div style="font-size:0.72rem;color:var(--muted)">Coming soon</div>
+          </div>
+        </div>
+        <span style="font-size:0.7rem;color:var(--muted2);font-family:'DM Mono',monospace">Soon</span>
+      </div>
+
+      <div id="strava-refresh-wrap" style="display:none;margin-top:12px">
+        <input class="auth-input" id="new-token-input" type="text" placeholder="Paste new access_token…" autocomplete="off" autocorrect="off" autocapitalize="none">
+        <button class="settings-save-btn" onclick="updateToken()">Update token</button>
+      </div>
     </div>
+
+    <!-- ── AI COACH ── -->
+    <div class="settings-section">
+      <div class="settings-section-title">🤖 AI Coach preferences</div>
+
+      <div style="margin-bottom:12px">
+        <div class="settings-label">Coach language</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="settings-chip" onclick="selectChip(this,'lang')" data-val="en">🇬🇧 English</button>
+          <button class="settings-chip" onclick="selectChip(this,'lang')" data-val="es">🇪🇸 Español</button>
+          <button class="settings-chip" onclick="selectChip(this,'lang')" data-val="fr">🇫🇷 Français</button>
+          <button class="settings-chip" onclick="selectChip(this,'lang')" data-val="de">🇩🇪 Deutsch</button>
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px">
+        <div class="settings-label">Coaching style</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="settings-chip" onclick="selectChip(this,'style')" data-val="motivator">🔥 Motivator</button>
+          <button class="settings-chip" onclick="selectChip(this,'style')" data-val="technical">📊 Technical</button>
+          <button class="settings-chip" onclick="selectChip(this,'style')" data-val="friendly">😊 Friendly</button>
+          <button class="settings-chip" onclick="selectChip(this,'style')" data-val="strict">💪 Strict</button>
+        </div>
+      </div>
+
+      <button class="settings-save-btn" onclick="saveCoachPrefs()">Save preferences</button>
+    </div>
+
+    <!-- ── NOTIFICATIONS ── -->
+    <div class="settings-section">
+      <div class="settings-section-title">🔔 Notifications</div>
+
+      <div class="settings-toggle-row">
+        <div>
+          <div style="font-size:0.88rem;font-weight:500">Weekly training summary</div>
+          <div style="font-size:0.72rem;color:var(--muted)">Email every Monday with your week recap</div>
+        </div>
+        <label class="toggle"><input type="checkbox" id="notif-weekly" checked><span class="toggle-slider"></span></label>
+      </div>
+
+      <div class="settings-toggle-row">
+        <div>
+          <div style="font-size:0.88rem;font-weight:500">Ranking alerts</div>
+          <div style="font-size:0.72rem;color:var(--muted)">When someone overtakes you in the ranking</div>
+        </div>
+        <label class="toggle"><input type="checkbox" id="notif-ranking"><span class="toggle-slider"></span></label>
+      </div>
+
+      <div class="settings-toggle-row">
+        <div>
+          <div style="font-size:0.88rem;font-weight:500">Inactivity reminder</div>
+          <div style="font-size:0.72rem;color:var(--muted)">If you haven't run in 5+ days</div>
+        </div>
+        <label class="toggle"><input type="checkbox" id="notif-inactive" checked><span class="toggle-slider"></span></label>
+      </div>
+
+      <div class="settings-toggle-row" style="border-bottom:none">
+        <div>
+          <div style="font-size:0.88rem;font-weight:500">Monthly winner announcement</div>
+          <div style="font-size:0.72rem;color:var(--muted)">Results on the 1st of each month</div>
+        </div>
+        <label class="toggle"><input type="checkbox" id="notif-winner" checked><span class="toggle-slider"></span></label>
+      </div>
+
+      <button class="settings-save-btn" style="margin-top:16px" onclick="saveNotifications()">Save notifications</button>
+    </div>
+
+    <!-- ── SUBSCRIPTION ── -->
+    <div class="settings-section" id="subscription-section">
+      <div class="settings-section-title">💳 Subscription</div>
+      <div id="sub-current" style="margin-bottom:16px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <div style="font-size:0.88rem;font-weight:500">Current plan</div>
+          <span class="plan-tag trial" id="sub-plan-tag">TRIAL</span>
+        </div>
+        <div style="font-size:0.78rem;color:var(--muted);margin-bottom:14px" id="sub-plan-detail">14-day free trial active</div>
+        <button class="settings-save-btn" id="sub-action-btn" onclick="showPage('pricing',null)">Upgrade to Elite →</button>
+      </div>
+      <div style="font-size:0.72rem;color:var(--muted2);font-family:'DM Mono',monospace">To cancel your subscription, contact support@cadenceapp.io</div>
+    </div>
+
+    <!-- ── ACCOUNT ── -->
+    <div class="settings-section">
+      <div class="settings-section-title">🔐 Account</div>
+      <div style="font-size:0.85rem;color:var(--muted);margin-bottom:16px" id="settings-email">—</div>
+
+      <button class="settings-chip" style="width:100%;padding:10px;margin-bottom:8px;text-align:center" onclick="changePassword()">Change password</button>
+
+      <button onclick="doSignOut()" style="width:100%;background:transparent;border:1px solid #ff444440;color:#ff4444;border-radius:8px;padding:10px;font-family:'Space Grotesk',sans-serif;font-size:0.85rem;cursor:pointer;margin-bottom:8px;transition:background 0.2s" onmouseover="this.style.background='#ff444415'" onmouseout="this.style.background='transparent'">Sign out</button>
+
+      <button onclick="deleteAccount()" style="width:100%;background:transparent;border:1px solid transparent;color:var(--muted2);border-radius:8px;padding:10px;font-family:'Space Grotesk',sans-serif;font-size:0.78rem;cursor:pointer">Delete account</button>
+    </div>
+
   </div>
 </div>
 ```
@@ -1359,6 +1540,149 @@ function showPage(name, btn) {
   if (name === 'admin') loadAdminData();
   if (name === 'groups') loadGroups();
   if (name === 'ranking') loadRanking();
+  if (name === 'settings') loadSettingsUI();
+}
+
+// ── Settings ──
+let settingsPrefs = JSON.parse(localStorage.getItem('cadence_prefs') || '{}');
+
+function loadSettingsUI() {
+  // Profile
+  const name = settingsPrefs.name || S.athlete?.firstname || '';
+  const city = settingsPrefs.city || S.athlete?.city || '';
+  document.getElementById('profile-name').value = name;
+  document.getElementById('profile-city').value = city;
+  document.getElementById('settings-display-name').textContent = name || S.user?.email || '—';
+  if (S.user?.email) document.getElementById('settings-email').textContent = S.user.email;
+
+  // Avatar
+  const av = document.getElementById('settings-avatar');
+  if (av && S.athlete?.profile && !S.athlete.profile.includes('large.jpg')) {
+    av.innerHTML = `<img src="${S.athlete.profile}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+  } else if (av) {
+    av.textContent = (S.athlete?.firstname || S.user?.email || '?')[0].toUpperCase();
+  }
+
+  // Chips
+  if (settingsPrefs.runnerType) selectChipByVal('runner-type', settingsPrefs.runnerType);
+  if (settingsPrefs.goal) selectChipByVal('goal', settingsPrefs.goal);
+  if (settingsPrefs.lang) selectChipByVal('lang', settingsPrefs.lang);
+  if (settingsPrefs.coachStyle) selectChipByVal('style', settingsPrefs.coachStyle);
+
+  // Toggles
+  if (settingsPrefs.notifWeekly !== undefined) document.getElementById('notif-weekly').checked = settingsPrefs.notifWeekly;
+  if (settingsPrefs.notifRanking !== undefined) document.getElementById('notif-ranking').checked = settingsPrefs.notifRanking;
+  if (settingsPrefs.notifInactive !== undefined) document.getElementById('notif-inactive').checked = settingsPrefs.notifInactive;
+  if (settingsPrefs.notifWinner !== undefined) document.getElementById('notif-winner').checked = settingsPrefs.notifWinner;
+
+  // Subscription
+  updateSubSection();
+}
+
+function updateSubSection() {
+  const plan = S.profile?.plan || 'trial';
+  const tag = document.getElementById('sub-plan-tag');
+  const detail = document.getElementById('sub-plan-detail');
+  const btn = document.getElementById('sub-action-btn');
+  if (tag) { tag.textContent = plan.toUpperCase(); tag.className = `plan-tag ${plan}`; }
+  if (detail) {
+    if (plan === 'elite') detail.textContent = 'Full access · renews monthly';
+    else if (plan === 'trial') {
+      const days = S.profile?.trial_ends_at ? Math.max(0, Math.ceil((new Date(S.profile.trial_ends_at) - Date.now()) / 86400000)) : 14;
+      detail.textContent = `Free trial · ${days} days remaining`;
+    } else detail.textContent = 'Free plan · limited features';
+  }
+  if (btn) {
+    if (plan === 'elite') { btn.textContent = 'Manage subscription'; btn.onclick = () => toast('To cancel, email support@cadenceapp.io', 'success'); }
+    else { btn.textContent = 'Upgrade to Elite →'; btn.onclick = () => showPage('pricing', null); }
+  }
+}
+
+function selectChip(el, group) {
+  document.querySelectorAll(`[data-group="${group}"], .settings-chip[onclick*="${group}"]`).forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function selectChipByVal(group, val) {
+  document.querySelectorAll(`.settings-chip[data-val="${val}"]`).forEach(c => c.classList.add('selected'));
+}
+
+async function saveProfile() {
+  const name = document.getElementById('profile-name').value.trim();
+  const city = document.getElementById('profile-city').value.trim();
+  const runnerType = document.querySelector('.settings-chip[data-val].selected[onclick*="runner-type"]')?.dataset?.val;
+  const goal = document.querySelector('.settings-chip[data-val].selected[onclick*="goal"]')?.dataset?.val;
+  settingsPrefs = { ...settingsPrefs, name, city, runnerType, goal };
+  localStorage.setItem('cadence_prefs', JSON.stringify(settingsPrefs));
+  if (S.user) await sb.from('profiles').update({ email: S.user.email }).eq('id', S.user.id);
+  document.getElementById('settings-display-name').textContent = name || S.user?.email || '—';
+  toast('Profile saved ✓', 'success');
+}
+
+function saveCoachPrefs() {
+  const lang = document.querySelector('.settings-chip[data-val].selected[onclick*="lang"]')?.dataset?.val || 'en';
+  const coachStyle = document.querySelector('.settings-chip[data-val].selected[onclick*="style"]')?.dataset?.val || 'friendly';
+  settingsPrefs = { ...settingsPrefs, lang, coachStyle };
+  localStorage.setItem('cadence_prefs', JSON.stringify(settingsPrefs));
+  toast('Coach preferences saved ✓', 'success');
+}
+
+function saveNotifications() {
+  settingsPrefs = {
+    ...settingsPrefs,
+    notifWeekly: document.getElementById('notif-weekly').checked,
+    notifRanking: document.getElementById('notif-ranking').checked,
+    notifInactive: document.getElementById('notif-inactive').checked,
+    notifWinner: document.getElementById('notif-winner').checked
+  };
+  localStorage.setItem('cadence_prefs', JSON.stringify(settingsPrefs));
+  toast('Notification preferences saved ✓', 'success');
+}
+
+function showStravaRefresh() {
+  const wrap = document.getElementById('strava-refresh-wrap');
+  wrap.style.display = wrap.style.display === 'none' ? 'block' : 'none';
+}
+
+async function changePassword() {
+  const email = S.user?.email;
+  if (!email) return toast('No email found', 'error');
+  const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: window.location.href });
+  if (error) toast(error.message, 'error');
+  else toast('Password reset link sent to your email ✓', 'success');
+}
+
+async function deleteAccount() {
+  const confirm1 = confirm('Are you sure you want to delete your account? This cannot be undone.');
+  if (!confirm1) return;
+  const confirm2 = prompt('Type DELETE to confirm:');
+  if (confirm2 !== 'DELETE') return toast('Account deletion cancelled', 'success');
+  if (S.user) {
+    await sb.from('profiles').delete().eq('id', S.user.id);
+    await sb.from('activities').delete().eq('user_id', S.user.id);
+    await sb.from('group_members').delete().eq('user_id', S.user.id);
+  }
+  await sb.auth.signOut();
+  localStorage.clear();
+  toast('Account deleted', 'success');
+  setTimeout(() => location.reload(), 1500);
+}
+
+function uploadAvatar(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const av = document.getElementById('settings-avatar');
+    const mobAv = document.getElementById('mob-avatar');
+    const sbAv = document.getElementById('sb-avatar');
+    const img = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+    if (av) av.innerHTML = img;
+    if (mobAv) mobAv.innerHTML = img;
+    if (sbAv) sbAv.innerHTML = img;
+    toast('Avatar updated ✓', 'success');
+  };
+  reader.readAsDataURL(file);
 }
 
 // ── Helpers ──
