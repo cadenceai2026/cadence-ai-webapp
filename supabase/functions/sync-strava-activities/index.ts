@@ -39,9 +39,11 @@ serve(async (req) => {
       })
     }
 
-    // Refresh access token if expired
+    // Refresh access token if expired or expiry unknown
     let accessToken = conn.access_token
-    if (conn.expires_at && Math.floor(Date.now() / 1000) >= conn.expires_at) {
+    const nowSec = Math.floor(Date.now() / 1000)
+    const tokenExpired = !conn.expires_at || nowSec >= conn.expires_at
+    if (tokenExpired && conn.refresh_token) {
       const refreshRes = await fetch('https://www.strava.com/oauth/token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -64,6 +66,11 @@ serve(async (req) => {
             updated_at: new Date().toISOString(),
           })
           .eq('user_id', user.id)
+      } else {
+        console.error('Token refresh failed:', JSON.stringify(refreshData))
+        return new Response(JSON.stringify({ error: 'Strava token refresh failed — please reconnect Strava', details: refreshData }), {
+          status: 401, headers: { ...cors, 'Content-Type': 'application/json' }
+        })
       }
     }
 
@@ -104,10 +111,10 @@ serve(async (req) => {
       max_heartrate: a.max_heartrate ?? null,
     }))
 
-    // Try bulk upsert first (works if strava_id has a UNIQUE constraint)
+    // Try bulk upsert with composite unique key (user_id, strava_id)
     const { error: upsertErr } = await supabase
       .from('activities')
-      .upsert(rows, { onConflict: 'strava_id' })
+      .upsert(rows, { onConflict: 'user_id,strava_id' })
 
     if (!upsertErr) {
       return new Response(JSON.stringify({ ok: true, count: activities.length }), {

@@ -79,17 +79,23 @@ serve(async (req) => {
       .upsert(record, { onConflict: 'user_id' })
 
     if (dbErr) {
-      // Retry with only the core columns (in case some columns don't exist yet)
-      console.error('Full upsert failed, retrying with core columns:', dbErr.message)
+      // Retry preserving token refresh fields (critical for sync to work after token expiry)
+      console.error('Full upsert failed, retrying without optional fields:', dbErr.message)
+      const retryRecord: Record<string, unknown> = {
+        user_id: user.id,
+        athlete_firstname: athlete.firstname ?? '',
+        athlete_lastname: athlete.lastname ?? '',
+        athlete_profile: athlete.profile_medium ?? athlete.profile ?? '',
+        access_token: tokenData.access_token,
+        updated_at: new Date().toISOString(),
+      }
+      // Always include token refresh fields so sync can refresh expired tokens
+      if (tokenData.refresh_token) retryRecord.refresh_token = tokenData.refresh_token
+      if (tokenData.expires_at) retryRecord.expires_at = tokenData.expires_at
+
       const { error: retryErr } = await supabase
         .from('strava_connections')
-        .upsert({
-          user_id: user.id,
-          athlete_firstname: athlete.firstname ?? '',
-          athlete_lastname: athlete.lastname ?? '',
-          athlete_profile: athlete.profile_medium ?? athlete.profile ?? '',
-          access_token: tokenData.access_token,
-        }, { onConflict: 'user_id' })
+        .upsert(retryRecord, { onConflict: 'user_id' })
 
       if (retryErr) {
         console.error('Core upsert also failed:', retryErr.message)
