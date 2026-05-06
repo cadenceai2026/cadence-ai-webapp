@@ -13,6 +13,13 @@ serve(async (req) => {
   }
 
   try {
+    const stripeKey = Deno.env.get('STRIPE_SECRET_KEY')
+    if (!stripeKey) {
+      return new Response(JSON.stringify({ error: 'STRIPE_SECRET_KEY not configured' }), {
+        status: 500, headers: { ...cors, 'Content-Type': 'application/json' }
+      })
+    }
+
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -26,7 +33,7 @@ serve(async (req) => {
       })
     }
 
-    const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, {
+    const stripe = new Stripe(stripeKey, {
       apiVersion: '2023-10-16',
       httpClient: Stripe.createFetchHttpClient(),
     })

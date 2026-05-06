@@ -81,37 +81,75 @@ serve(async (req) => {
       })
     }
 
-    if (activities.length > 0) {
-      const rows = activities.map((a: any) => ({
-        user_id: user.id,
-        strava_id: String(a.id),
-        name: a.name,
-        sport_type: a.sport_type || a.type,
-        distance: a.distance,
-        moving_time: a.moving_time,
-        elapsed_time: a.elapsed_time,
-        total_elevation_gain: a.total_elevation_gain,
-        start_date: a.start_date,
-        start_date_local: a.start_date_local,
-        average_speed: a.average_speed,
-        max_speed: a.max_speed,
-        average_heartrate: a.average_heartrate ?? null,
-        max_heartrate: a.max_heartrate ?? null,
-      }))
+    if (activities.length === 0) {
+      return new Response(JSON.stringify({ ok: true, count: 0 }), {
+        headers: { ...cors, 'Content-Type': 'application/json' }
+      })
+    }
 
-      const { error: upsertErr } = await supabase
+    const rows = activities.map((a: any) => ({
+      user_id: user.id,
+      strava_id: String(a.id),
+      name: a.name,
+      sport_type: a.sport_type || a.type,
+      distance: a.distance,
+      moving_time: a.moving_time,
+      elapsed_time: a.elapsed_time,
+      total_elevation_gain: a.total_elevation_gain,
+      start_date: a.start_date,
+      start_date_local: a.start_date_local,
+      average_speed: a.average_speed,
+      max_speed: a.max_speed,
+      average_heartrate: a.average_heartrate ?? null,
+      max_heartrate: a.max_heartrate ?? null,
+    }))
+
+    // Try bulk upsert first (works if strava_id has a UNIQUE constraint)
+    const { error: upsertErr } = await supabase
+      .from('activities')
+      .upsert(rows, { onConflict: 'strava_id' })
+
+    if (!upsertErr) {
+      return new Response(JSON.stringify({ ok: true, count: activities.length }), {
+        headers: { ...cors, 'Content-Type': 'application/json' }
+      })
+    }
+
+    // Fallback: fetch existing strava_ids for this user, insert only new ones
+    console.log('Upsert fallback (no unique constraint):', upsertErr.message)
+
+    const { data: existing } = await supabase
+      .from('activities')
+      .select('strava_id')
+      .eq('user_id', user.id)
+
+    const existingIds = new Set((existing || []).map((r: any) => String(r.strava_id)))
+    const newRows = rows.filter(r => !existingIds.has(r.strava_id))
+
+    if (newRows.length > 0) {
+      const { error: insertErr } = await supabase
         .from('activities')
-        .upsert(rows, { onConflict: 'strava_id' })
+        .insert(newRows)
 
-      if (upsertErr) {
-        console.error('Upsert error:', upsertErr)
-        return new Response(JSON.stringify({ error: 'DB upsert error', details: upsertErr }), {
+      if (insertErr) {
+        console.error('Insert error:', insertErr)
+        return new Response(JSON.stringify({ error: 'DB insert error', details: insertErr }), {
           status: 500, headers: { ...cors, 'Content-Type': 'application/json' }
         })
       }
     }
 
-    return new Response(JSON.stringify({ ok: true, count: activities.length }), {
+    // Update existing activities in bulk via upsert on user_id+strava_id
+    const updateRows = rows.filter(r => existingIds.has(r.strava_id))
+    for (const row of updateRows) {
+      await supabase
+        .from('activities')
+        .update(row)
+        .eq('user_id', user.id)
+        .eq('strava_id', row.strava_id)
+    }
+
+    return new Response(JSON.stringify({ ok: true, count: activities.length, inserted: newRows.length }), {
       headers: { ...cors, 'Content-Type': 'application/json' }
     })
 
