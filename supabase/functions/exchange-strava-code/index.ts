@@ -26,7 +26,7 @@ serve(async (req) => {
       })
     }
 
-    const { code } = await req.json()
+    const { code, redirectUri } = await req.json()
     if (!code) {
       return new Response(JSON.stringify({ error: 'Missing code' }), {
         status: 400, headers: { ...cors, 'Content-Type': 'application/json' }
@@ -34,15 +34,20 @@ serve(async (req) => {
     }
 
     // Exchange OAuth code for Strava tokens
+    const exchangeBody: Record<string, string | number> = {
+      client_id: parseInt(Deno.env.get('STRAVA_CLIENT_ID') ?? '0'),
+      client_secret: Deno.env.get('STRAVA_CLIENT_SECRET') ?? '',
+      code,
+      grant_type: 'authorization_code',
+    }
+    if (redirectUri) exchangeBody.redirect_uri = redirectUri
+
+    console.log('Exchanging code with Strava, client_id:', exchangeBody.client_id)
+
     const tokenRes = await fetch('https://www.strava.com/oauth/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        client_id: Deno.env.get('STRAVA_CLIENT_ID'),
-        client_secret: Deno.env.get('STRAVA_CLIENT_SECRET'),
-        code,
-        grant_type: 'authorization_code',
-      }),
+      body: JSON.stringify(exchangeBody),
     })
 
     const tokenData = await tokenRes.json()
