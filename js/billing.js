@@ -16,8 +16,10 @@ async function startCheckout() {
   const btn = qs('#btn-checkout');
   if (btn) { btn.disabled = true; btn.textContent = 'Loading…'; }
 
+  const { data: { session } } = await supabase.auth.getSession();
   const { data, error } = await supabase.functions.invoke('create-checkout-session', {
-    body: { email: state.user.email }
+    body: { email: state.user.email },
+    headers: { Authorization: `Bearer ${session?.access_token}` }
   });
 
   if (error || !data?.url) {

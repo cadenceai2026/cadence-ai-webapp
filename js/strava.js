@@ -82,8 +82,10 @@ export async function syncActivities() {
   if (!state.user) return;
   toast('Syncing with Strava…');
 
+  const { data: { session } } = await supabase.auth.getSession();
   const { error } = await supabase.functions.invoke('sync-strava-activities', {
-    body: {}
+    body: {},
+    headers: { Authorization: `Bearer ${session?.access_token}` }
   });
 
   if (error) {
