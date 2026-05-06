@@ -21,37 +21,43 @@ export async function initStrava() {
 export async function checkStravaConnection() {
   if (!state.user) return;
 
-  const { data, error } = await supabase
-    .from('strava_connections')
-    .select('*')
-    .eq('user_id', state.user.id)
-    .maybeSingle();
+  try {
+    const { data, error } = await supabase
+      .from('strava_connections')
+      .select('*')
+      .eq('user_id', state.user.id)
+      .maybeSingle();
 
-  if (error) {
-    console.error('checkStravaConnection:', error);
-    showAppScreen();
-    navigate('dashboard');
-    return;
-  }
-
-  state.stravaConnection = data || null;
-
-  if (state.stravaConnection) {
-    updateAthleteUI(state.stravaConnection);
-    await loadActivitiesFromDb();
-    showAppScreen();
-    navigate('dashboard');
-  } else {
-    // New accounts (created within the last hour) see Strava onboarding
-    const justCreated = state.profile?.created_at &&
-      (Date.now() - new Date(state.profile.created_at).getTime()) < 3600000;
-    if (justCreated) {
-      showAuthScreen();
-      showAuthView('strava');
-    } else {
+    if (error) {
+      console.error('checkStravaConnection:', error);
       showAppScreen();
       navigate('dashboard');
+      return;
     }
+
+    state.stravaConnection = data || null;
+
+    if (state.stravaConnection) {
+      updateAthleteUI(state.stravaConnection);
+      showAppScreen();
+      navigate('dashboard');
+      loadActivitiesFromDb().catch(e => console.error('loadActivities error:', e));
+    } else {
+      // New accounts (created within the last hour) see Strava onboarding
+      const justCreated = state.profile?.created_at &&
+        (Date.now() - new Date(state.profile.created_at).getTime()) < 3600000;
+      if (justCreated) {
+        showAuthScreen();
+        showAuthView('strava');
+      } else {
+        showAppScreen();
+        navigate('dashboard');
+      }
+    }
+  } catch (e) {
+    console.error('checkStravaConnection unexpected error:', e);
+    showAppScreen();
+    navigate('dashboard');
   }
 }
 
