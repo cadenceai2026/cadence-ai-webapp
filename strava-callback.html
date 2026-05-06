@@ -52,7 +52,7 @@
       status.textContent = 'Exchanging authorization code…';
 
       const { data, error: fnError } = await supabase.functions.invoke('exchange-strava-code', {
-        body: { code }
+        body: { code, redirectUri: `${window.location.origin}/strava-callback.html` }
       });
 
       if (fnError || !data?.ok) {
