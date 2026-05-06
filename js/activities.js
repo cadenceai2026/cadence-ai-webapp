@@ -7,8 +7,8 @@ let currentFilter = 'all';
 export function initActivities() {
   document.querySelectorAll('#act-filters .btn-sm').forEach(btn => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('#act-filters .btn-sm').forEach(b => b.classList.remove('green'));
-      btn.classList.add('green');
+      document.querySelectorAll('#act-filters .btn-sm').forEach(b => b.classList.remove('on'));
+      btn.classList.add('on');
       currentFilter = btn.dataset.filter;
       renderActivities();
     });

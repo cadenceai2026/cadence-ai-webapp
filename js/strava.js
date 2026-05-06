@@ -41,9 +41,14 @@ export async function checkStravaConnection() {
       updateAthleteUI(state.stravaConnection);
       showAppScreen();
       navigate('dashboard');
-      loadActivitiesFromDb().catch(e => console.error('loadActivities error:', e));
+      loadActivitiesFromDb()
+        .then(() => {
+          if (state.activities.length === 0) {
+            syncActivities();
+          }
+        })
+        .catch(e => console.error('loadActivities error:', e));
     } else {
-      // New accounts (created within the last hour) see Strava onboarding
       const justCreated = state.profile?.created_at &&
         (Date.now() - new Date(state.profile.created_at).getTime()) < 3600000;
       if (justCreated) {
