@@ -11,7 +11,6 @@ export function initCoach() {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
   });
 
-  // Quick prompts
   document.querySelectorAll('.qp').forEach(btn => {
     btn.addEventListener('click', () => {
       const input = qs('#chat-in');
@@ -19,7 +18,6 @@ export function initCoach() {
     });
   });
 
-  // Coming soon coaches
   document.querySelectorAll('.coach-card.soon').forEach(btn => {
     btn.addEventListener('click', () => toast('Coming soon! 🚀'));
   });
@@ -53,10 +51,10 @@ async function sendMsg() {
   const sendBtn = qs('#chat-send');
   if (sendBtn) sendBtn.disabled = true;
 
-  const typingId = appendTyping();
   chatHistory.push({ role: 'user', content: text });
 
   const systemPrompt = buildSystemPrompt();
+  const aiBubble = appendStreamingBubble();
 
   try {
     const res = await fetch('https://text.pollinations.ai/openai', {
@@ -68,21 +66,45 @@ async function sendMsg() {
           { role: 'system', content: systemPrompt },
           ...chatHistory
         ],
-        max_tokens: 800
+        max_tokens: 1200,
+        stream: true
       })
     });
 
     if (!res.ok) throw new Error('Coach unavailable — try again');
 
-    const data = await res.json();
-    const reply = data.choices[0].message.content;
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let reply = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      const chunk = decoder.decode(value, { stream: true });
+      const lines = chunk.split('\n');
+
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const payload = line.slice(6).trim();
+        if (payload === '[DONE]') break;
+        try {
+          const parsed = JSON.parse(payload);
+          const delta = parsed.choices?.[0]?.delta?.content || '';
+          if (delta) {
+            reply += delta;
+            updateStreamingBubble(aiBubble, reply);
+          }
+        } catch {
+          // ignore malformed SSE chunks
+        }
+      }
+    }
+
     chatHistory.push({ role: 'assistant', content: reply });
-    removeTyping(typingId);
-    appendMsg('ai', reply);
 
   } catch (e) {
-    removeTyping(typingId);
-    appendMsg('ai', `⚠️ ${e.message}`);
+    updateStreamingBubble(aiBubble, `⚠️ ${e.message}`);
   } finally {
     if (sendBtn) sendBtn.disabled = false;
     input?.focus();
@@ -90,9 +112,9 @@ async function sendMsg() {
 }
 
 function buildSystemPrompt() {
-  const acts = state.activities.slice(0, 15);
-  const runs = acts.filter(a => a.sport_type === 'Run');
-  const km = acts.reduce((s, a) => s + (a.distance || 0), 0) / 1000;
+  const acts = state.activities.slice(0, 20);
+  const runs = acts.filter(a => a.sport_type === 'Run' || a.sport_type === 'TrailRun');
+  const totalKm = acts.reduce((s, a) => s + (a.distance || 0), 0) / 1000;
   const sc = state.stravaConnection;
   const prefs = state.profile;
 
@@ -105,21 +127,27 @@ function buildSystemPrompt() {
                 prefs?.coach_style === 'strict'     ? 'Be strict and demanding.' :
                 'Be friendly and supportive.';
 
+  const recentRuns = runs.slice(0, 6).map(a => {
+    const km = (a.distance / 1000).toFixed(2);
+    const min = Math.floor(a.moving_time / 60);
+    const paceSecPerKm = a.distance > 0 ? (a.moving_time / (a.distance / 1000)) : 0;
+    const paceMin = Math.floor(paceSecPerKm / 60);
+    const paceSec = Math.round(paceSecPerKm % 60);
+    const hr = a.average_heartrate ? ` HR:${Math.round(a.average_heartrate)}bpm` : '';
+    return `- ${a.name}: ${km}km in ${min}min (${paceMin}:${String(paceSec).padStart(2,'0')}/km)${hr}`;
+  }).join('\n');
+
   return `You are Cadence AI Coach, an expert running coach and sports scientist.
 ${lang} ${style}
 
 Athlete: ${sc?.athlete_firstname || 'Runner'} ${sc?.athlete_lastname || ''}
-Total activities: ${acts.length} (last 60 days)
-Running activities: ${runs.length}
-Total distance: ${km.toFixed(1)} km
-Goal: ${prefs?.goal || 'fitness'} · Level: ${prefs?.runner_type || 'beginner'}
+Goal: ${prefs?.goal || 'general fitness'} · Level: ${prefs?.runner_type || 'beginner'}
+Activities last 60 days: ${acts.length} total, ${runs.length} runs, ${totalKm.toFixed(1)} km
 
 Recent runs:
-${runs.slice(0, 5).map(a =>
-  `- ${a.name}: ${(a.distance / 1000).toFixed(2)}km, ${Math.floor(a.moving_time / 60)}min`
-).join('\n')}
+${recentRuns || 'No recent runs recorded yet.'}
 
-Be specific, reference their actual data. Keep responses concise, no bullet walls.`;
+Reference their actual data when relevant. Be concise — 2-4 short paragraphs max. No excessive bullet lists.`;
 }
 
 function appendMsg(role, text) {
@@ -149,29 +177,37 @@ function appendMsg(role, text) {
   container.scrollTop = container.scrollHeight;
 }
 
-function appendTyping() {
+function appendStreamingBubble() {
   const container = qs('#chat-msgs');
   if (!container) return null;
 
-  const id = 'ty-' + Date.now();
+  const now = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
   const div = document.createElement('div');
   div.className = 'msg';
-  div.id = id;
   div.innerHTML = `
     <div class="msg-av ai">AI</div>
-    <div><div class="msg-bubble">
-      <div class="typing">
-        <div class="typing-dot"></div>
-        <div class="typing-dot"></div>
-        <div class="typing-dot"></div>
+    <div>
+      <div class="msg-bubble streaming-content">
+        <div class="typing">
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        </div>
       </div>
-    </div></div>`;
+      <div class="msg-time">${now}</div>
+    </div>`;
 
   container.appendChild(div);
   container.scrollTop = container.scrollHeight;
-  return id;
+  return div;
 }
 
-function removeTyping(id) {
-  if (id) document.getElementById(id)?.remove();
+function updateStreamingBubble(div, text) {
+  if (!div) return;
+  const bubble = div.querySelector('.msg-bubble');
+  if (bubble) {
+    bubble.innerHTML = esc(text).replace(/\n/g, '<br>');
+  }
+  const container = qs('#chat-msgs');
+  if (container) container.scrollTop = container.scrollHeight;
 }
