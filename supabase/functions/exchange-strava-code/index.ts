@@ -17,7 +17,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     )
 
-    // Identify the calling user via their JWT
+    // Identify the calling user
     const jwt = req.headers.get('Authorization')?.replace('Bearer ', '')
     const { data: { user }, error: authErr } = await supabase.auth.getUser(jwt)
     if (authErr || !user) {
@@ -26,7 +26,7 @@ serve(async (req) => {
       })
     }
 
-    const { code, redirectUri } = await req.json()
+    const { code } = await req.json()
     if (!code) {
       return new Response(JSON.stringify({ error: 'Missing code' }), {
         status: 400, headers: { ...cors, 'Content-Type': 'application/json' }
@@ -34,52 +34,72 @@ serve(async (req) => {
     }
 
     // Exchange OAuth code for Strava tokens
-    const exchangeBody: Record<string, string | number> = {
-      client_id: parseInt(Deno.env.get('STRAVA_CLIENT_ID') ?? '0'),
-      client_secret: Deno.env.get('STRAVA_CLIENT_SECRET') ?? '',
-      code,
-      grant_type: 'authorization_code',
-    }
-    if (redirectUri) exchangeBody.redirect_uri = redirectUri
-
-    console.log('Exchanging code with Strava, client_id:', exchangeBody.client_id)
-
+    console.log('Exchanging code for user:', user.id)
     const tokenRes = await fetch('https://www.strava.com/oauth/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(exchangeBody),
+      body: JSON.stringify({
+        client_id: parseInt(Deno.env.get('STRAVA_CLIENT_ID') ?? '0'),
+        client_secret: Deno.env.get('STRAVA_CLIENT_SECRET') ?? '',
+        code,
+        grant_type: 'authorization_code',
+      }),
     })
 
     const tokenData = await tokenRes.json()
+    console.log('Strava response status:', tokenRes.status)
+
     if (!tokenRes.ok) {
-      console.error('Strava token error:', tokenData)
+      console.error('Strava token error:', JSON.stringify(tokenData))
       return new Response(JSON.stringify({ error: 'Strava rejected the code', details: tokenData }), {
         status: 400, headers: { ...cors, 'Content-Type': 'application/json' }
       })
     }
 
-    // Save connection to DB
-    const { error: dbErr } = await supabase
-      .from('strava_connections')
-      .upsert({
-        user_id: user.id,
-        athlete_id: String(tokenData.athlete.id),
-        athlete_firstname: tokenData.athlete.firstname,
-        athlete_lastname: tokenData.athlete.lastname,
-        athlete_profile: tokenData.athlete.profile_medium || tokenData.athlete.profile,
-        access_token: tokenData.access_token,
-        refresh_token: tokenData.refresh_token,
-        expires_at: tokenData.expires_at,
-        updated_at: new Date().toISOString(),
-      }, { onConflict: 'user_id' })
+    const athlete = tokenData.athlete ?? {}
 
-    if (dbErr) {
-      console.error('DB error:', dbErr)
-      return new Response(JSON.stringify({ error: 'DB error', details: dbErr }), {
-        status: 500, headers: { ...cors, 'Content-Type': 'application/json' }
-      })
+    // Save connection — use upsert with only guaranteed columns first,
+    // then try to add extra columns if they exist
+    const record: Record<string, unknown> = {
+      user_id: user.id,
+      athlete_firstname: athlete.firstname ?? '',
+      athlete_lastname: athlete.lastname ?? '',
+      athlete_profile: athlete.profile_medium ?? athlete.profile ?? '',
+      access_token: tokenData.access_token,
     }
 
+    // Add optional columns if they exist in the response
+    if (tokenData.refresh_token) record.refresh_token = tokenData.refresh_token
+    if (tokenData.expires_at)    record.expires_at    = tokenData.expires_at
+    if (athlete.id)              record.athlete_id    = String(athlete.id)
+    record.updated_at = new Date().toISOString()
+
+    const { error: dbErr } = await supabase
+      .from('strava_connections')
+      .upsert(record, { onConflict: 'user_id' })
+
+    if (dbErr) {
+      // Retry with only the core columns (in case some columns don't exist yet)
+      console.error('Full upsert failed, retrying with core columns:', dbErr.message)
+      const { error: retryErr } = await supabase
+        .from('strava_connections')
+        .upsert({
+          user_id: user.id,
+          athlete_firstname: athlete.firstname ?? '',
+          athlete_lastname: athlete.lastname ?? '',
+          athlete_profile: athlete.profile_medium ?? athlete.profile ?? '',
+          access_token: tokenData.access_token,
+        }, { onConflict: 'user_id' })
+
+      if (retryErr) {
+        console.error('Core upsert also failed:', retryErr.message)
+        return new Response(JSON.stringify({ error: 'DB error', details: retryErr }), {
+          status: 500, headers: { ...cors, 'Content-Type': 'application/json' }
+        })
+      }
+    }
+
+    console.log('Strava connected for user:', user.id)
     return new Response(JSON.stringify({ ok: true }), {
       headers: { ...cors, 'Content-Type': 'application/json' }
     })
