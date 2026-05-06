@@ -261,7 +261,169 @@ a:hover { text-decoration: underline; }
   text-align: left;
 }
 
+/* ══════════════════════════════════════
+   AUTH SCREEN
+══════════════════════════════════════ */
+.auth-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  position: relative;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+/* Animated grid background */
+.auth-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,229,160,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,229,160,0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 20%, transparent 100%);
+  pointer-events: none;
+}
+
+/* Glowing orb */
+.auth-orb {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #00E5A018 0%, #00E5A008 40%, transparent 70%);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  animation: orbPulse 6s ease-in-out infinite;
+}
+
+/* Card */
+.auth-card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 400px;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  padding: 36px 32px;
+  box-shadow:
+    0 0 0 1px #00E5A008,
+    0 32px 64px #00000060,
+    0 0 80px #00E5A006;
+  animation: fadeUp 0.5s ease both;
+}
+
+@media (max-width: 440px) {
+  .auth-card { padding: 28px 20px; border-radius: 16px; }
+}
+
+/* Logo */
+.auth-logo {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 32px;
+}
+.auth-wordmark {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 1.3rem;
+  letter-spacing: -0.03em;
+  color: var(--text);
+}
+.auth-wordmark span { color: var(--green); }
+
+/* View container */
+.auth-view { animation: fadeUp 0.3s ease both; }
+
+/* Headings */
+.auth-h {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 1.55rem;
+  letter-spacing: -0.03em;
+  margin-bottom: 6px;
+  line-height: 1.2;
+}
+.auth-sub {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+/* Divider */
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 4px 0 14px;
+}
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border2);
+}
+.auth-divider span {
+  font-size: 0.7rem;
+  color: var(--muted2);
+  font-family: 'DM Mono', monospace;
+  letter-spacing: 0.05em;
+}
+
+/* Footer */
+.auth-foot {
+  text-align: center;
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-top: 16px;
+}
+.auth-link {
+  color: var(--green);
+  cursor: pointer;
+  text-decoration: none;
+}
+.auth-link:hover { text-decoration: underline; }
+.auth-tip {
+  text-align: center;
+  font-size: 0.72rem;
+  color: var(--muted2);
+  margin-top: 10px;
+  margin-bottom: 4px;
+}
+
+/* Progress dots (Strava onboarding) */
+.auth-progress {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 24px;
+}
+.auth-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--surface3);
+  border: 1px solid var(--border2);
+  transition: all 0.3s;
+}
+.auth-dot.done {
+  background: var(--green);
+  border-color: var(--green);
+  box-shadow: 0 0 6px #00E5A060;
+}
+
 /* ── ANIMATIONS ── */
+@keyframes orbPulse {
+  0%, 100% { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+  50%       { opacity: 0.6; transform: translate(-50%,-50%) scale(1.12); }
+}
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(16px); }
   to   { opacity: 1; transform: translateY(0); }
