@@ -22,7 +22,14 @@
   </div>
 
   <script type="module">
-    import { supabase } from './js/supabase-client.js';
+    // Use a dedicated client with detectSessionInUrl:false so the Supabase SDK
+    // doesn't mistake Strava's ?code= param for a Supabase PKCE code, which
+    // would cause it to clear the stored session before we can read it.
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+    import { CONFIG } from './js/config.js';
+    const supabase = createClient(CONFIG.supabaseUrl, CONFIG.supabaseAnonKey, {
+      auth: { detectSessionInUrl: false }
+    });
 
     async function run() {
       const status = document.getElementById('callback-status');
