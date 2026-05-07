@@ -65,51 +65,44 @@ serve(async (req) => {
 
     const athlete = tokenData.athlete ?? {}
 
-    // Save connection — use upsert with only guaranteed columns first,
-    // then try to add extra columns if they exist
+    // Save connection — use select then insert/update to avoid needing a
+    // UNIQUE constraint on user_id (upsert with onConflict requires one)
     const record: Record<string, unknown> = {
-      user_id: user.id,
       athlete_firstname: athlete.firstname ?? '',
       athlete_lastname: athlete.lastname ?? '',
       athlete_profile: athlete.profile_medium ?? athlete.profile ?? '',
       access_token: tokenData.access_token,
+      updated_at: new Date().toISOString(),
     }
-
-    // Add optional columns if they exist in the response
     if (tokenData.refresh_token) record.refresh_token = tokenData.refresh_token
     if (tokenData.expires_at)    record.expires_at    = tokenData.expires_at
     if (athlete.id)              record.athlete_id    = String(athlete.id)
-    record.updated_at = new Date().toISOString()
 
-    const { error: dbErr } = await supabase
+    const { data: existing } = await supabase
       .from('strava_connections')
-      .upsert(record, { onConflict: 'user_id' })
+      .select('user_id')
+      .eq('user_id', user.id)
+      .maybeSingle()
+
+    let dbErr
+    if (existing) {
+      const { error } = await supabase
+        .from('strava_connections')
+        .update(record)
+        .eq('user_id', user.id)
+      dbErr = error
+    } else {
+      const { error } = await supabase
+        .from('strava_connections')
+        .insert({ ...record, user_id: user.id })
+      dbErr = error
+    }
 
     if (dbErr) {
-      // Retry preserving token refresh fields (critical for sync to work after token expiry)
-      console.error('Full upsert failed, retrying without optional fields:', dbErr.message)
-      const retryRecord: Record<string, unknown> = {
-        user_id: user.id,
-        athlete_firstname: athlete.firstname ?? '',
-        athlete_lastname: athlete.lastname ?? '',
-        athlete_profile: athlete.profile_medium ?? athlete.profile ?? '',
-        access_token: tokenData.access_token,
-        updated_at: new Date().toISOString(),
-      }
-      // Always include token refresh fields so sync can refresh expired tokens
-      if (tokenData.refresh_token) retryRecord.refresh_token = tokenData.refresh_token
-      if (tokenData.expires_at) retryRecord.expires_at = tokenData.expires_at
-
-      const { error: retryErr } = await supabase
-        .from('strava_connections')
-        .upsert(retryRecord, { onConflict: 'user_id' })
-
-      if (retryErr) {
-        console.error('Core upsert also failed:', retryErr.message)
-        return new Response(JSON.stringify({ error: 'DB error', details: retryErr }), {
-          status: 500, headers: { ...cors, 'Content-Type': 'application/json' }
-        })
-      }
+      console.error('DB write failed:', dbErr.message)
+      return new Response(JSON.stringify({ error: 'DB error', details: dbErr }), {
+        status: 500, headers: { ...cors, 'Content-Type': 'application/json' }
+      })
     }
 
     console.log('Strava connected for user:', user.id)
