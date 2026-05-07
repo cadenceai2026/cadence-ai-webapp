@@ -12,25 +12,24 @@ serve(async (req) => {
   }
 
   try {
-    const supabase = createClient(
+    // Verify the calling user via their own JWT
+    const userClient = createClient(
       Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+      Deno.env.get('SUPABASE_ANON_KEY')!,
+      { global: { headers: { Authorization: req.headers.get('Authorization') ?? '' } } }
     )
-
-    const jwt = req.headers.get('Authorization')?.replace('Bearer ', '') ?? ''
-    if (!jwt) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401, headers: { ...cors, 'Content-Type': 'application/json' }
-      })
-    }
-    const authResult = await supabase.auth.getUser(jwt)
-    const user = authResult.data?.user
-    const authErr = authResult.error
+    const { data: { user }, error: authErr } = await userClient.auth.getUser()
     if (authErr || !user) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401, headers: { ...cors, 'Content-Type': 'application/json' }
       })
     }
+
+    // Admin client for DB operations (bypasses RLS)
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    )
 
     // Delete all user data in order (respecting FK constraints)
     await supabase.from('activities').delete().eq('user_id', user.id)
