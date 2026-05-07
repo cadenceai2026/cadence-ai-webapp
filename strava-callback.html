@@ -13,11 +13,13 @@
     <div class="auth-card" style="text-align:center;max-width:400px">
       <div class="brand">Ca<span>den</span>ce</div>
       <div style="font-size:2.5rem;margin-bottom:16px">🔗</div>
-      <h2 style="margin-bottom:8px">Connecting Strava…</h2>
+      <h2 id="callback-title" style="margin-bottom:8px">Connecting Strava…</h2>
       <p id="callback-status" style="color:var(--muted);font-size:0.88rem">Processing authorization…</p>
-      <div style="margin-top:20px">
+      <pre id="callback-error" style="display:none;margin-top:16px;padding:12px;background:rgba(255,60,60,.08);border:1px solid rgba(255,60,60,.3);border-radius:8px;font-size:0.78rem;color:#ff6b6b;text-align:left;white-space:pre-wrap;word-break:break-all"></pre>
+      <div id="callback-spinner" style="margin-top:20px">
         <div class="spinner"></div>
       </div>
+      <a id="callback-back" href="./app.html" style="display:none;margin-top:20px;font-size:0.85rem;color:var(--muted)">← Volver a la app</a>
     </div>
   </div>
 
@@ -31,28 +33,36 @@
       auth: { detectSessionInUrl: false }
     });
 
+    function showError(title, detail) {
+      document.getElementById('callback-title').textContent = title;
+      document.getElementById('callback-status').textContent = '';
+      document.getElementById('callback-spinner').style.display = 'none';
+      document.getElementById('callback-back').style.display = 'inline-block';
+      const pre = document.getElementById('callback-error');
+      pre.style.display = 'block';
+      pre.textContent = detail || '(sin detalle)';
+      console.error('[strava-callback]', title, detail);
+    }
+
     async function run() {
       const status = document.getElementById('callback-status');
       const params = new URLSearchParams(window.location.search);
       const code = params.get('code');
-      const error = params.get('error');
+      const urlError = params.get('error');
 
-      if (error) {
-        status.textContent = 'Authorization denied. Redirecting…';
-        setTimeout(() => window.location.href = './app.html', 1500);
+      if (urlError) {
+        showError('Autorización denegada', `Strava devolvió: ${urlError}`);
         return;
       }
 
       if (!code) {
-        status.textContent = 'No authorization code found.';
-        setTimeout(() => window.location.href = './app.html', 1500);
+        showError('Sin código de autorización', 'No se encontró el parámetro ?code= en la URL.');
         return;
       }
 
       const { data: sessionData } = await supabase.auth.getSession();
       if (!sessionData?.session) {
-        status.textContent = 'You must be logged in first.';
-        setTimeout(() => window.location.href = './app.html', 1500);
+        showError('No estás autenticado', 'No hay sesión activa. Inicia sesión en la app y vuelve a intentarlo.');
         return;
       }
 
@@ -64,22 +74,23 @@
       });
 
       if (fnError || !data?.ok) {
-        let detail = data?.error ?? data?.details ?? null;
+        let detail = data?.error ?? null;
+        if (data?.details) {
+          try { detail += '\n' + JSON.stringify(data.details, null, 2); } catch {}
+        }
         try {
           if (!detail && fnError?.context) {
             const body = await fnError.context.json();
-            detail = body?.error ?? body?.message ?? JSON.stringify(body);
+            detail = body?.error ?? body?.message ?? JSON.stringify(body, null, 2);
           }
         } catch {}
-        console.error('exchange-strava-code failed:', detail ?? fnError);
-        status.textContent = detail
-          ? `Strava error: ${detail}`
-          : 'Failed to connect Strava. Please try again.';
-        setTimeout(() => window.location.href = './app.html', 4000);
+        if (!detail && fnError) detail = String(fnError);
+        showError('Error al conectar Strava', detail ?? 'Error desconocido');
         return;
       }
 
       status.textContent = 'Strava connected! Redirecting…';
+      document.getElementById('callback-spinner').style.display = 'none';
       setTimeout(() => window.location.href = './app.html?strava=connected', 1000);
     }
 
