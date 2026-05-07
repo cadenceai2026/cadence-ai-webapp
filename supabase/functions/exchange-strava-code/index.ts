@@ -73,7 +73,7 @@ serve(async (req) => {
       updated_at: new Date().toISOString(),
     }
     if (tokenData.refresh_token) record.refresh_token = tokenData.refresh_token
-    if (tokenData.expires_at)    record.expires_at    = tokenData.expires_at
+    if (tokenData.expires_at)    record.expires_at    = new Date(tokenData.expires_at * 1000).toISOString()
     if (athlete.id)              record.athlete_id    = String(athlete.id)
 
     const { data: existing } = await supabase

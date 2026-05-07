@@ -46,8 +46,7 @@ serve(async (req) => {
 
     // Refresh access token if expired or expiry unknown
     let accessToken = conn.access_token
-    const nowSec = Math.floor(Date.now() / 1000)
-    const tokenExpired = !conn.expires_at || nowSec >= conn.expires_at
+    const tokenExpired = !conn.expires_at || Date.now() >= new Date(conn.expires_at).getTime()
     if (tokenExpired && conn.refresh_token) {
       const refreshRes = await fetch('https://www.strava.com/oauth/token', {
         method: 'POST',
@@ -67,7 +66,7 @@ serve(async (req) => {
           .update({
             access_token: refreshData.access_token,
             refresh_token: refreshData.refresh_token,
-            expires_at: refreshData.expires_at,
+            expires_at: new Date(refreshData.expires_at * 1000).toISOString(),
             updated_at: new Date().toISOString(),
           })
           .eq('user_id', user.id)
@@ -103,7 +102,7 @@ serve(async (req) => {
         await supabase.from('strava_connections').update({
           access_token: rd.access_token,
           refresh_token: rd.refresh_token,
-          expires_at: rd.expires_at,
+          expires_at: new Date(rd.expires_at * 1000).toISOString(),
           updated_at: new Date().toISOString(),
         }).eq('user_id', user.id)
         actRes = await fetch(stravaUrl, { headers: { Authorization: `Bearer ${accessToken}` } })
