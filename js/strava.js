@@ -96,6 +96,12 @@ export async function syncActivities() {
     const status = error.context?.status ?? 0;
     if (status === 401) {
       toast('Strava token expired — please reconnect Strava', 'error');
+    } else if (status === 400) {
+      // No connection in DB — clear local state and show connect screen
+      state.stravaConnection = null;
+      const { showAuthScreen, showAuthView } = await import('./ui.js');
+      showAuthScreen();
+      showAuthView('strava');
     } else {
       toast('Failed to sync — check your Strava connection', 'error');
     }
