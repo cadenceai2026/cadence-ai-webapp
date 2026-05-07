@@ -76,15 +76,42 @@ serve(async (req) => {
 
     // Fetch last 60 days of activities from Strava
     const after = Math.floor((Date.now() - 60 * 86400 * 1000) / 1000)
-    const actRes = await fetch(
-      `https://www.strava.com/api/v3/athlete/activities?after=${after}&per_page=60`,
-      { headers: { Authorization: `Bearer ${accessToken}` } }
-    )
+    const stravaUrl = `https://www.strava.com/api/v3/athlete/activities?after=${after}&per_page=60`
+
+    let actRes = await fetch(stravaUrl, { headers: { Authorization: `Bearer ${accessToken}` } })
+
+    // If Strava rejects the token even though we thought it was valid, try refreshing and retry once
+    if (actRes.status === 401 && conn.refresh_token) {
+      const rr = await fetch('https://www.strava.com/oauth/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          client_id: Deno.env.get('STRAVA_CLIENT_ID'),
+          client_secret: Deno.env.get('STRAVA_CLIENT_SECRET'),
+          refresh_token: conn.refresh_token,
+          grant_type: 'refresh_token',
+        }),
+      })
+      if (rr.ok) {
+        const rd = await rr.json()
+        accessToken = rd.access_token
+        await supabase.from('strava_connections').update({
+          access_token: rd.access_token,
+          refresh_token: rd.refresh_token,
+          expires_at: rd.expires_at,
+          updated_at: new Date().toISOString(),
+        }).eq('user_id', user.id)
+        actRes = await fetch(stravaUrl, { headers: { Authorization: `Bearer ${accessToken}` } })
+      }
+    }
+
     const activities = await actRes.json()
 
     if (!actRes.ok) {
+      console.error('Strava activities error:', actRes.status, JSON.stringify(activities))
       return new Response(JSON.stringify({ error: 'Strava API error', details: activities }), {
-        status: 400, headers: { ...cors, 'Content-Type': 'application/json' }
+        status: actRes.status === 401 ? 401 : 400,
+        headers: { ...cors, 'Content-Type': 'application/json' }
       })
     }
 
