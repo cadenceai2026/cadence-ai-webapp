@@ -18,8 +18,15 @@ serve(async (req) => {
     )
 
     // Identify user
-    const jwt = req.headers.get('Authorization')?.replace('Bearer ', '')
-    const { data: { user }, error: authErr } = await supabase.auth.getUser(jwt)
+    const jwt = req.headers.get('Authorization')?.replace('Bearer ', '') ?? ''
+    if (!jwt) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401, headers: { ...cors, 'Content-Type': 'application/json' }
+      })
+    }
+    const authResult = await supabase.auth.getUser(jwt)
+    const user = authResult.data?.user
+    const authErr = authResult.error
     if (authErr || !user) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401, headers: { ...cors, 'Content-Type': 'application/json' }
