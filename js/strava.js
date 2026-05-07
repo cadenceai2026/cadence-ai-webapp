@@ -92,7 +92,12 @@ export async function syncActivities() {
 
   if (error) {
     console.error('syncActivities:', error);
-    toast('Failed to sync — check your Strava connection', 'error');
+    const status = error.context?.status ?? 0;
+    if (status === 401) {
+      toast('Strava token expired — please reconnect Strava', 'error');
+    } else {
+      toast('Failed to sync — check your Strava connection', 'error');
+    }
     return;
   }
 
