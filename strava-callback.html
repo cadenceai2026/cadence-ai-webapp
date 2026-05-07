@@ -44,14 +44,7 @@
   </div>
 
   <script type="module">
-    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
     import { CONFIG } from './js/config.js';
-
-    // Dedicated client with detectSessionInUrl:false so Supabase doesn't
-    // mistake Strava's ?code= for a PKCE code and wipe the session.
-    const supabase = createClient(CONFIG.supabaseUrl, CONFIG.supabaseAnonKey, {
-      auth: { detectSessionInUrl: false }
-    });
 
     function setState(name) {
       ['loading', 'success', 'error'].forEach(s =>
@@ -64,6 +57,17 @@
       document.getElementById('error-title').textContent = title;
       document.getElementById('error-detail').textContent = detail || '(sin detalle)';
       console.error('[strava-callback]', title, detail);
+    }
+
+    // Read the access token directly from localStorage so we never create a
+    // Supabase client on this page — a background auto-refresh on a second
+    // client can fail and wipe the session before the user clicks the CTA.
+    function getStoredAccessToken() {
+      try {
+        const projectRef = new URL(CONFIG.supabaseUrl).hostname.split('.')[0];
+        const raw = localStorage.getItem(`sb-${projectRef}-auth-token`);
+        return raw ? JSON.parse(raw)?.access_token ?? null : null;
+      } catch { return null; }
     }
 
     async function run() {
@@ -80,31 +84,33 @@
         return;
       }
 
-      const { data: sessionData } = await supabase.auth.getSession();
-      if (!sessionData?.session) {
+      const accessToken = getStoredAccessToken();
+      if (!accessToken) {
         showError('No estás autenticado', 'No hay sesión activa. Inicia sesión en la app y vuelve a intentarlo.');
         return;
       }
 
       document.getElementById('loading-status').textContent = 'Exchanging authorization code…';
 
-      const { data, error: fnError } = await supabase.functions.invoke('exchange-strava-code', {
-        body: { code, redirectUri: `${window.location.origin}/strava-callback.html` },
-        headers: { Authorization: `Bearer ${sessionData.session.access_token}` }
-      });
+      let resp, data;
+      try {
+        resp = await fetch(`${CONFIG.supabaseUrl}/functions/v1/exchange-strava-code`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`,
+            'apikey': CONFIG.supabaseAnonKey,
+          },
+          body: JSON.stringify({ code, redirectUri: `${window.location.origin}/strava-callback.html` }),
+        });
+        data = await resp.json();
+      } catch (e) {
+        showError('Error de red', String(e));
+        return;
+      }
 
-      if (fnError || !data?.ok) {
-        let detail = data?.error ?? null;
-        if (!detail && fnError?.context) {
-          try {
-            const body = await fnError.context.clone().json();
-            detail = body?.error ?? body?.message ?? JSON.stringify(body);
-          } catch {
-            try { detail = await fnError.context.clone().text(); } catch {}
-          }
-        }
-        if (!detail) detail = fnError?.message ?? String(fnError ?? 'Error desconocido');
-        showError('Error al conectar Strava', detail);
+      if (!resp.ok || !data?.ok) {
+        showError('Error al conectar Strava', data?.error ?? `HTTP ${resp.status}`);
         return;
       }
 
