@@ -64,8 +64,18 @@
       });
 
       if (fnError || !data?.ok) {
-        status.textContent = 'Failed to connect Strava. Please try again.';
-        setTimeout(() => window.location.href = './app.html', 2000);
+        let detail = data?.error ?? data?.details ?? null;
+        try {
+          if (!detail && fnError?.context) {
+            const body = await fnError.context.json();
+            detail = body?.error ?? body?.message ?? JSON.stringify(body);
+          }
+        } catch {}
+        console.error('exchange-strava-code failed:', detail ?? fnError);
+        status.textContent = detail
+          ? `Strava error: ${detail}`
+          : 'Failed to connect Strava. Please try again.';
+        setTimeout(() => window.location.href = './app.html', 4000);
         return;
       }
 
