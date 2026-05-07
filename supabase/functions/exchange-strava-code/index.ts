@@ -99,8 +99,9 @@ serve(async (req) => {
     }
 
     if (dbErr) {
-      console.error('DB write failed:', dbErr.message)
-      return new Response(JSON.stringify({ error: 'DB error', details: dbErr }), {
+      const errDetail = `code=${dbErr.code} msg=${dbErr.message} hint=${dbErr.hint ?? ''} detail=${dbErr.details ?? ''}`
+      console.error('DB write failed:', errDetail)
+      return new Response(JSON.stringify({ error: `DB error: ${errDetail}` }), {
         status: 500, headers: { ...cors, 'Content-Type': 'application/json' }
       })
     }
