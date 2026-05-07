@@ -16,7 +16,8 @@ async function startCheckout() {
   const btn = qs('#btn-checkout');
   if (btn) { btn.disabled = true; btn.textContent = 'Loading…'; }
 
-  const token = state.session?.access_token;
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token;
   if (!token) { toast('Session expired — please sign in again', 'error'); return; }
 
   const { data, error } = await supabase.functions.invoke('create-checkout-session', {
