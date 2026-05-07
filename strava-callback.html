@@ -3,49 +3,70 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Connecting Strava… — Cadence</title>
+  <title>Strava Connected — Cadence</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@800&family=Space+Grotesk:wght@400;500&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./css/styles.css">
 </head>
 <body>
   <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px">
-    <div class="auth-card" style="text-align:center;max-width:400px">
+    <div class="auth-card" style="text-align:center;max-width:420px">
       <div class="brand">Ca<span>den</span>ce</div>
-      <div style="font-size:2.5rem;margin-bottom:16px">🔗</div>
-      <h2 id="callback-title" style="margin-bottom:8px">Connecting Strava…</h2>
-      <p id="callback-status" style="color:var(--muted);font-size:0.88rem">Processing authorization…</p>
-      <pre id="callback-error" style="display:none;margin-top:16px;padding:12px;background:rgba(255,60,60,.08);border:1px solid rgba(255,60,60,.3);border-radius:8px;font-size:0.78rem;color:#ff6b6b;text-align:left;white-space:pre-wrap;word-break:break-all"></pre>
-      <div id="callback-spinner" style="margin-top:20px">
-        <div class="spinner"></div>
+
+      <!-- Loading state -->
+      <div id="state-loading">
+        <div style="font-size:2.5rem;margin-bottom:16px">🔗</div>
+        <h2 style="margin-bottom:8px">Connecting Strava…</h2>
+        <p style="color:var(--muted);font-size:0.88rem" id="loading-status">Processing authorization…</p>
+        <div style="margin-top:20px"><div class="spinner"></div></div>
       </div>
-      <a id="callback-back" href="./app.html" style="display:none;margin-top:20px;font-size:0.85rem;color:var(--muted)">← Volver a la app</a>
+
+      <!-- Success state -->
+      <div id="state-success" style="display:none">
+        <div style="font-size:3rem;margin-bottom:16px">🎉</div>
+        <h2 style="margin-bottom:10px">Your Strava is now connected!</h2>
+        <p style="color:var(--muted);font-size:0.9rem;margin-bottom:28px;line-height:1.5">
+          Your activities are being synced.<br>Check your dashboard to see your data.
+        </p>
+        <a href="./app.html" class="btn btn-primary" style="display:inline-block;text-decoration:none;padding:12px 28px;border-radius:8px">
+          Go to your data →
+        </a>
+      </div>
+
+      <!-- Error state -->
+      <div id="state-error" style="display:none">
+        <div style="font-size:2.5rem;margin-bottom:16px">⚠️</div>
+        <h2 id="error-title" style="margin-bottom:8px">Error</h2>
+        <pre id="error-detail" style="margin-top:12px;padding:12px;background:rgba(255,60,60,.08);border:1px solid rgba(255,60,60,.3);border-radius:8px;font-size:0.78rem;color:#ff6b6b;text-align:left;white-space:pre-wrap;word-break:break-all"></pre>
+        <a href="./app.html" style="display:inline-block;margin-top:20px;font-size:0.85rem;color:var(--muted)">← Volver a la app</a>
+      </div>
     </div>
   </div>
 
   <script type="module">
-    // Use a dedicated client with detectSessionInUrl:false so the Supabase SDK
-    // doesn't mistake Strava's ?code= param for a Supabase PKCE code, which
-    // would cause it to clear the stored session before we can read it.
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
     import { CONFIG } from './js/config.js';
+
+    // Dedicated client with detectSessionInUrl:false so Supabase doesn't
+    // mistake Strava's ?code= for a PKCE code and wipe the session.
     const supabase = createClient(CONFIG.supabaseUrl, CONFIG.supabaseAnonKey, {
       auth: { detectSessionInUrl: false }
     });
 
+    function setState(name) {
+      ['loading', 'success', 'error'].forEach(s =>
+        document.getElementById(`state-${s}`).style.display = s === name ? 'block' : 'none'
+      );
+    }
+
     function showError(title, detail) {
-      document.getElementById('callback-title').textContent = title;
-      document.getElementById('callback-status').textContent = '';
-      document.getElementById('callback-spinner').style.display = 'none';
-      document.getElementById('callback-back').style.display = 'inline-block';
-      const pre = document.getElementById('callback-error');
-      pre.style.display = 'block';
-      pre.textContent = detail || '(sin detalle)';
+      setState('error');
+      document.getElementById('error-title').textContent = title;
+      document.getElementById('error-detail').textContent = detail || '(sin detalle)';
       console.error('[strava-callback]', title, detail);
     }
 
     async function run() {
-      const status = document.getElementById('callback-status');
       const params = new URLSearchParams(window.location.search);
       const code = params.get('code');
       const urlError = params.get('error');
@@ -54,7 +75,6 @@
         showError('Autorización denegada', `Strava devolvió: ${urlError}`);
         return;
       }
-
       if (!code) {
         showError('Sin código de autorización', 'No se encontró el parámetro ?code= en la URL.');
         return;
@@ -66,7 +86,7 @@
         return;
       }
 
-      status.textContent = 'Exchanging authorization code…';
+      document.getElementById('loading-status').textContent = 'Exchanging authorization code…';
 
       const { data, error: fnError } = await supabase.functions.invoke('exchange-strava-code', {
         body: { code, redirectUri: `${window.location.origin}/strava-callback.html` },
@@ -74,10 +94,7 @@
       });
 
       if (fnError || !data?.ok) {
-        let detail = null;
-        // 1. data contains parsed body when SDK returns it alongside the error
-        if (data?.error) detail = String(data.error);
-        // 2. try reading the raw Response body (works when SDK hasn't consumed it)
+        let detail = data?.error ?? null;
         if (!detail && fnError?.context) {
           try {
             const body = await fnError.context.clone().json();
@@ -86,15 +103,12 @@
             try { detail = await fnError.context.clone().text(); } catch {}
           }
         }
-        // 3. fallback to the error object itself
         if (!detail) detail = fnError?.message ?? String(fnError ?? 'Error desconocido');
         showError('Error al conectar Strava', detail);
         return;
       }
 
-      status.textContent = 'Strava connected! Redirecting…';
-      document.getElementById('callback-spinner').style.display = 'none';
-      setTimeout(() => window.location.href = './app.html?strava=connected', 1000);
+      setState('success');
     }
 
     run();
