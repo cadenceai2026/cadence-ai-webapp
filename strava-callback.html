@@ -74,18 +74,21 @@
       });
 
       if (fnError || !data?.ok) {
-        let detail = data?.error ?? null;
-        if (data?.details) {
-          try { detail += '\n' + JSON.stringify(data.details, null, 2); } catch {}
-        }
-        try {
-          if (!detail && fnError?.context) {
-            const body = await fnError.context.json();
-            detail = body?.error ?? body?.message ?? JSON.stringify(body, null, 2);
+        let detail = null;
+        // 1. data contains parsed body when SDK returns it alongside the error
+        if (data?.error) detail = String(data.error);
+        // 2. try reading the raw Response body (works when SDK hasn't consumed it)
+        if (!detail && fnError?.context) {
+          try {
+            const body = await fnError.context.clone().json();
+            detail = body?.error ?? body?.message ?? JSON.stringify(body);
+          } catch {
+            try { detail = await fnError.context.clone().text(); } catch {}
           }
-        } catch {}
-        if (!detail && fnError) detail = String(fnError);
-        showError('Error al conectar Strava', detail ?? 'Error desconocido');
+        }
+        // 3. fallback to the error object itself
+        if (!detail) detail = fnError?.message ?? String(fnError ?? 'Error desconocido');
+        showError('Error al conectar Strava', detail);
         return;
       }
 
