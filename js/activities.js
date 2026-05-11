@@ -21,7 +21,11 @@ export function renderActivities() {
 
   const filtered = currentFilter === 'all'
     ? state.activities
-    : state.activities.filter(a => (a.sport_type || '') === currentFilter);
+    : state.activities.filter(a => {
+        const t = a.sport_type || '';
+        if (currentFilter === 'Run') return t === 'Run' || t === 'TrailRun';
+        return t === currentFilter;
+      });
 
   container.innerHTML = filtered.length
     ? filtered.map(actCard).join('')

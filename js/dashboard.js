@@ -4,7 +4,7 @@ import { qs, fmtTime, fmtPace, fmtDist, typeIcon, esc } from './utils.js';
 
 export function renderDashboard() {
   const acts = state.activities || [];
-  const runs = acts.filter(a => a.sport_type === 'Run');
+  const runs = acts.filter(a => a.sport_type === 'Run' || a.sport_type === 'TrailRun');
 
   const totalDist = acts.reduce((s, a) => s + (a.distance || 0), 0);
   const totalTime = acts.reduce((s, a) => s + (a.moving_time || 0), 0);
