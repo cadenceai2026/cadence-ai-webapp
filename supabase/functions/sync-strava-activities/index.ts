@@ -118,7 +118,7 @@ serve(async (req) => {
       })
     }
 
-    if (activities.length === 0) {
+    if (!Array.isArray(activities) || activities.length === 0) {
       return new Response(JSON.stringify({ ok: true, count: 0 }), {
         headers: { ...cors, 'Content-Type': 'application/json' }
       })
@@ -141,50 +141,58 @@ serve(async (req) => {
       max_heartrate: a.max_heartrate ?? null,
     }))
 
-    // Try bulk upsert with composite unique key (user_id, strava_id)
-    const { error: upsertErr } = await supabase
+    // Attempt 1: bulk upsert with composite unique key (user_id, strava_id)
+    const { error: e1 } = await supabase
       .from('activities')
       .upsert(rows, { onConflict: 'user_id,strava_id' })
 
-    if (!upsertErr) {
-      return new Response(JSON.stringify({ ok: true, count: activities.length }), {
+    if (!e1) {
+      return new Response(JSON.stringify({ ok: true, count: activities.length, method: 'upsert-composite' }), {
         headers: { ...cors, 'Content-Type': 'application/json' }
       })
     }
+    console.log('upsert composite failed:', e1.message)
 
-    // Fallback: no composite unique constraint — upsert each row individually so
-    // conflicts on any other constraint are silently skipped instead of 500-ing.
-    console.log('Upsert fallback (no unique constraint):', upsertErr.message)
+    // Attempt 2: bulk upsert on strava_id alone (globally unique per Strava)
+    const { error: e2 } = await supabase
+      .from('activities')
+      .upsert(rows, { onConflict: 'strava_id' })
 
-    let saved = 0
-    for (const row of rows) {
-      const { data: existing } = await supabase
-        .from('activities')
-        .select('strava_id')
-        .eq('user_id', user.id)
-        .eq('strava_id', row.strava_id)
-        .maybeSingle()
+    if (!e2) {
+      return new Response(JSON.stringify({ ok: true, count: activities.length, method: 'upsert-strava_id' }), {
+        headers: { ...cors, 'Content-Type': 'application/json' }
+      })
+    }
+    console.log('upsert strava_id failed:', e2.message)
 
-      if (existing) {
-        await supabase
-          .from('activities')
-          .update(row)
-          .eq('user_id', user.id)
-          .eq('strava_id', row.strava_id)
-        saved++
-      } else {
-        const { error: insertErr } = await supabase
-          .from('activities')
-          .insert(row)
-        if (insertErr) {
-          console.error('Row insert error for strava_id', row.strava_id, ':', insertErr.message)
-        } else {
-          saved++
-        }
-      }
+    // Attempt 3: delete this user's existing activities then reinsert.
+    // Strava is the source of truth for the last 60 days, so this is safe.
+    const { error: delErr } = await supabase
+      .from('activities')
+      .delete()
+      .eq('user_id', user.id)
+
+    if (delErr) {
+      console.error('delete failed:', delErr.message)
+      return new Response(JSON.stringify({
+        error: 'Could not write activities to DB',
+        e1: e1.message, e2: e2.message, del: delErr.message,
+      }), { status: 500, headers: { ...cors, 'Content-Type': 'application/json' } })
     }
 
-    return new Response(JSON.stringify({ ok: true, count: activities.length, saved }), {
+    const { error: e3 } = await supabase
+      .from('activities')
+      .insert(rows)
+
+    if (e3) {
+      console.error('insert after delete failed:', e3.message)
+      return new Response(JSON.stringify({
+        error: 'Insert failed after delete',
+        e1: e1.message, e2: e2.message, e3: e3.message,
+      }), { status: 500, headers: { ...cors, 'Content-Type': 'application/json' } })
+    }
+
+    return new Response(JSON.stringify({ ok: true, count: activities.length, method: 'delete-reinsert' }), {
       headers: { ...cors, 'Content-Type': 'application/json' }
     })
 

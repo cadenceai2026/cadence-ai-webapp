@@ -88,7 +88,7 @@ export async function syncActivities() {
   const token = session?.access_token;
   if (!token) { toast('Session expired — please sign in again', 'error'); return; }
 
-  const { error } = await supabase.functions.invoke('sync-strava-activities', {
+  const { data: syncResult, error } = await supabase.functions.invoke('sync-strava-activities', {
     body: {},
     headers: { Authorization: `Bearer ${token}` }
   });
@@ -99,13 +99,14 @@ export async function syncActivities() {
     if (status === 401) {
       toast('Strava token expired — please reconnect Strava', 'error');
     } else {
-      toast('Failed to sync — check your Strava connection', 'error');
+      toast(`Sync failed — ${error.message || 'check your Strava connection'}`, 'error');
     }
     return;
   }
 
   await loadActivitiesFromDb();
-  toast('Synced ✓');
+  const count = syncResult?.count ?? 0;
+  toast(count > 0 ? `Synced ${count} activities ✓` : 'Synced ✓');
 }
 
 async function loadActivitiesFromDb() {
