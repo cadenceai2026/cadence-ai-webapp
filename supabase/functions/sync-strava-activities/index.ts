@@ -125,6 +125,7 @@ serve(async (req) => {
     }
 
     const rows = activities.map((a: any) => ({
+      id: crypto.randomUUID(),
       user_id: user.id,
       strava_id: String(a.id),
       name: a.name,
