@@ -1,6 +1,7 @@
--- Give activities.id a proper default so inserts never fail with null id.
+-- Give activities.id an auto-incrementing default (it's bigint, not uuid).
+CREATE SEQUENCE IF NOT EXISTS activities_id_seq;
 ALTER TABLE activities
-  ALTER COLUMN id SET DEFAULT gen_random_uuid();
+  ALTER COLUMN id SET DEFAULT nextval('activities_id_seq');
 
 -- Let upsert work on (user_id, strava_id) — skip if constraint already exists.
 DO $$
