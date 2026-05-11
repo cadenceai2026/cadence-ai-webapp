@@ -152,41 +152,39 @@ serve(async (req) => {
       })
     }
 
-    // Fallback: fetch existing strava_ids for this user, insert only new ones
+    // Fallback: no composite unique constraint — upsert each row individually so
+    // conflicts on any other constraint are silently skipped instead of 500-ing.
     console.log('Upsert fallback (no unique constraint):', upsertErr.message)
 
-    const { data: existing } = await supabase
-      .from('activities')
-      .select('strava_id')
-      .eq('user_id', user.id)
-
-    const existingIds = new Set((existing || []).map((r: any) => String(r.strava_id)))
-    const newRows = rows.filter(r => !existingIds.has(r.strava_id))
-
-    if (newRows.length > 0) {
-      const { error: insertErr } = await supabase
+    let saved = 0
+    for (const row of rows) {
+      const { data: existing } = await supabase
         .from('activities')
-        .insert(newRows)
+        .select('strava_id')
+        .eq('user_id', user.id)
+        .eq('strava_id', row.strava_id)
+        .maybeSingle()
 
-      if (insertErr) {
-        console.error('Insert error:', insertErr)
-        return new Response(JSON.stringify({ error: 'DB insert error', details: insertErr }), {
-          status: 500, headers: { ...cors, 'Content-Type': 'application/json' }
-        })
+      if (existing) {
+        await supabase
+          .from('activities')
+          .update(row)
+          .eq('user_id', user.id)
+          .eq('strava_id', row.strava_id)
+        saved++
+      } else {
+        const { error: insertErr } = await supabase
+          .from('activities')
+          .insert(row)
+        if (insertErr) {
+          console.error('Row insert error for strava_id', row.strava_id, ':', insertErr.message)
+        } else {
+          saved++
+        }
       }
     }
 
-    // Update existing activities in bulk via upsert on user_id+strava_id
-    const updateRows = rows.filter(r => existingIds.has(r.strava_id))
-    for (const row of updateRows) {
-      await supabase
-        .from('activities')
-        .update(row)
-        .eq('user_id', user.id)
-        .eq('strava_id', row.strava_id)
-    }
-
-    return new Response(JSON.stringify({ ok: true, count: activities.length, inserted: newRows.length }), {
+    return new Response(JSON.stringify({ ok: true, count: activities.length, saved }), {
       headers: { ...cors, 'Content-Type': 'application/json' }
     })
 
