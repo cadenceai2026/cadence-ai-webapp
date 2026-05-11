@@ -154,11 +154,11 @@ export async function syncActivities() {
   }
 
   if (!resp.ok) {
-    console.error('syncActivities error:', body);
+    console.error('syncActivities error body:', JSON.stringify(body));
     if (resp.status === 401) {
       toast('Strava token expired — please reconnect Strava', 'error');
     } else {
-      const detail = body?.error || body?.e3 || body?.e1 || `HTTP ${resp.status}`;
+      const detail = body?.error || `HTTP ${resp.status}`;
       toast(`Sync failed — ${detail}`, 'error');
     }
     return;

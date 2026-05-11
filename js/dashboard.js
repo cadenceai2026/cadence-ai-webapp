@@ -1,4 +1,5 @@
 import { state } from './state.js';
+import { navigate } from './router.js';
 import { qs, fmtTime, fmtPace, fmtDist, typeIcon, esc } from './utils.js';
 
 export function renderDashboard() {
@@ -28,9 +29,20 @@ export function renderDashboard() {
   if (!container) return;
 
   const recent = acts.slice(0, 6);
-  container.innerHTML = recent.length
-    ? recent.map(actCard).join('')
-    : '<div class="empty">No activities yet. Connect Strava and sync!</div>';
+  if (recent.length) {
+    container.innerHTML = recent.map(actCard).join('');
+  } else if (!state.stravaConnection) {
+    container.innerHTML = `
+      <div class="empty" style="padding:32px 16px">
+        <div style="font-size:2rem;margin-bottom:12px">🟠</div>
+        <div style="font-weight:600;margin-bottom:6px">Connect Strava to see your activities</div>
+        <div style="font-size:0.85rem;color:var(--muted);margin-bottom:20px">Link your account to sync runs, rides and workouts.</div>
+        <button id="dash-connect-strava" style="background:#FC4C02;color:#fff;border:none;font-weight:600;font-size:0.9rem;padding:11px 24px;border-radius:8px;cursor:pointer">Connect Strava →</button>
+      </div>`;
+    document.getElementById('dash-connect-strava')?.addEventListener('click', () => navigate('settings'));
+  } else {
+    container.innerHTML = '<div class="empty">No activities yet — click ↻ Sync to load them.</div>';
+  }
 }
 
 export function actCard(a) {

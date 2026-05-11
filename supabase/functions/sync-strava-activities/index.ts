@@ -184,17 +184,35 @@ serve(async (req) => {
       .from('activities')
       .insert(rows)
 
-    if (e3) {
-      console.error('insert after delete failed:', e3.message)
-      return new Response(JSON.stringify({
-        error: 'Insert failed after delete',
-        e1: e1.message, e2: e2.message, e3: e3.message,
-      }), { status: 500, headers: { ...cors, 'Content-Type': 'application/json' } })
+    if (!e3) {
+      return new Response(JSON.stringify({ ok: true, count: activities.length, method: 'delete-reinsert' }), {
+        headers: { ...cors, 'Content-Type': 'application/json' }
+      })
     }
+    console.error('full insert failed:', e3.message)
 
-    return new Response(JSON.stringify({ ok: true, count: activities.length, method: 'delete-reinsert' }), {
-      headers: { ...cors, 'Content-Type': 'application/json' }
-    })
+    // Attempt 4: minimal columns only — in case the full schema has extras
+    // that don't exist in this table.
+    const minRows = rows.map((r: any) => ({
+      user_id: r.user_id,
+      strava_id: r.strava_id,
+      name: r.name,
+      sport_type: r.sport_type,
+      distance: r.distance,
+      moving_time: r.moving_time,
+      start_date: r.start_date,
+    }))
+    const { error: e4 } = await supabase.from('activities').insert(minRows)
+    if (!e4) {
+      return new Response(JSON.stringify({ ok: true, count: activities.length, method: 'minimal-insert' }), {
+        headers: { ...cors, 'Content-Type': 'application/json' }
+      })
+    }
+    console.error('minimal insert failed:', e4.message)
+
+    return new Response(JSON.stringify({
+      error: `All write attempts failed. e1=${e1.message} | e2=${e2.message} | e3=${e3.message} | e4=${e4.message}`,
+    }), { status: 500, headers: { ...cors, 'Content-Type': 'application/json' } })
 
   } catch (e) {
     console.error('Unexpected error:', e)
