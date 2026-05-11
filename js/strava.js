@@ -21,18 +21,10 @@ export async function initStrava() {
 export async function checkStravaConnection() {
   if (!state.user) return;
 
-  // If returning from a successful Strava OAuth, always go to dashboard.
-  // This prevents the Strava-connect prompt from appearing if the DB write
-  // just happened and the query hasn't caught up yet.
+  // Strip the ?strava=connected param added by the OAuth callback page.
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get('strava') === 'connected') {
     window.history.replaceState({}, '', window.location.pathname);
-    showAppScreen();
-    navigate('dashboard');
-    loadActivitiesFromDb()
-      .then(() => { if (state.activities.length === 0) syncActivities(); })
-      .catch(e => console.error('loadActivities error:', e));
-    return;
   }
 
   try {
@@ -53,8 +45,14 @@ export async function checkStravaConnection() {
 
     if (state.stravaConnection) {
       updateAthleteUI(state.stravaConnection);
-      showAppScreen();
-      navigate('dashboard');
+    }
+
+    // Always go to the dashboard — never redirect back to the auth screen.
+    // If Strava isn't connected the user can do so from settings.
+    showAppScreen();
+    navigate('dashboard');
+
+    if (state.stravaConnection) {
       loadActivitiesFromDb()
         .then(() => {
           if (state.activities.length === 0) {
@@ -62,16 +60,6 @@ export async function checkStravaConnection() {
           }
         })
         .catch(e => console.error('loadActivities error:', e));
-    } else {
-      const justCreated = state.profile?.created_at &&
-        (Date.now() - new Date(state.profile.created_at).getTime()) < 3600000;
-      if (justCreated) {
-        showAuthScreen();
-        showAuthView('strava');
-      } else {
-        showAppScreen();
-        navigate('dashboard');
-      }
     }
   } catch (e) {
     console.error('checkStravaConnection unexpected error:', e);
