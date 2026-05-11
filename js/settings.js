@@ -189,8 +189,10 @@ async function updateStravaToken() {
   if (error) return toast(error.message, 'error');
 
   if (state.stravaConnection) state.stravaConnection.access_token = token;
-  qs('#new-token-input').value = '';
-  qs('#strava-refresh-wrap').style.display = 'none';
+  const inp = qs('#new-token-input');
+  if (inp) inp.value = '';
+  const wrap = qs('#strava-refresh-wrap');
+  if (wrap) wrap.style.display = 'none';
   toast('Token updated ✓');
 }
 

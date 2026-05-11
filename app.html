@@ -453,6 +453,10 @@
               <div><div style="font-size:0.88rem;font-weight:500">Inactivity reminder</div><div style="font-size:0.7rem;color:var(--muted)">If you haven't run in 5+ days</div></div>
               <label class="toggle"><input type="checkbox" id="notif-inactive" checked><span class="toggle-track"></span></label>
             </div>
+            <div class="settings-row">
+              <div><div style="font-size:0.88rem;font-weight:500">Monthly winner</div><div style="font-size:0.7rem;color:var(--muted)">Notify me if I win the monthly ranking</div></div>
+              <label class="toggle"><input type="checkbox" id="notif-winner"><span class="toggle-track"></span></label>
+            </div>
             <button class="settings-save" id="btn-save-notifs">Save notifications</button>
           </div>
 
@@ -489,12 +493,13 @@
                   <tr>
                     <th>Email</th>
                     <th>Plan</th>
+                    <th>Trial ends</th>
                     <th>Joined</th>
                     <th>City</th>
                   </tr>
                 </thead>
                 <tbody id="admin-tbody">
-                  <tr><td colspan="4" class="empty">Loading…</td></tr>
+                  <tr><td colspan="5" class="empty">Loading…</td></tr>
                 </tbody>
               </table>
             </div>
