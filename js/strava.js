@@ -11,6 +11,7 @@ export async function initStrava() {
   qs('#btn-connect-strava')?.addEventListener('click', connectStrava);
   qs('#btn-reconnect-strava')?.addEventListener('click', connectStrava);
   qs('#btn-sync')?.addEventListener('click', syncActivities);
+  qs('#btn-disconnect-strava')?.addEventListener('click', disconnectStrava);
 
   qs('#btn-skip-strava')?.addEventListener('click', () => {
     showAppScreen();
@@ -47,8 +48,9 @@ export async function checkStravaConnection() {
       updateAthleteUI(state.stravaConnection);
     }
 
+    updateStravaSettingsUI();
+
     // Always go to the dashboard — never redirect back to the auth screen.
-    // If Strava isn't connected the user can do so from settings.
     showAppScreen();
     navigate('dashboard');
 
@@ -68,6 +70,26 @@ export async function checkStravaConnection() {
   }
 }
 
+function updateStravaSettingsUI() {
+  const dot = qs('#strava-conn-dot');
+  const status = qs('#strava-conn-status');
+  const reconnectBtn = qs('#btn-reconnect-strava');
+  const disconnectBtn = qs('#btn-disconnect-strava');
+
+  if (state.stravaConnection) {
+    const name = `${state.stravaConnection.athlete_firstname || ''} ${state.stravaConnection.athlete_lastname || ''}`.trim();
+    if (dot) dot.style.background = '#00E5A0';
+    if (status) status.textContent = name ? `Connected as ${name}` : 'Connected';
+    if (reconnectBtn) reconnectBtn.style.display = 'none';
+    if (disconnectBtn) disconnectBtn.style.display = '';
+  } else {
+    if (dot) dot.style.background = 'var(--muted)';
+    if (status) status.textContent = 'Not connected';
+    if (reconnectBtn) reconnectBtn.style.display = '';
+    if (disconnectBtn) disconnectBtn.style.display = 'none';
+  }
+}
+
 function connectStrava() {
   const url =
     `https://www.strava.com/oauth/authorize` +
@@ -80,6 +102,31 @@ function connectStrava() {
   window.location.href = url;
 }
 
+async function disconnectStrava() {
+  if (!state.user) return;
+  if (!confirm('Disconnect Strava? Your synced activities will be removed.')) return;
+
+  const { error } = await supabase
+    .from('strava_connections')
+    .delete()
+    .eq('user_id', state.user.id);
+
+  if (error) {
+    toast('Failed to disconnect Strava', 'error');
+    return;
+  }
+
+  await supabase.from('activities').delete().eq('user_id', state.user.id);
+
+  state.stravaConnection = null;
+  state.activities = [];
+  updateAthleteUI({ athlete_firstname: '', athlete_lastname: '', athlete_profile: '' });
+  updateStravaSettingsUI();
+  renderDashboard();
+  renderActivities();
+  toast('Strava disconnected');
+}
+
 export async function syncActivities() {
   if (!state.user) return;
   toast('Syncing with Strava…');
@@ -88,28 +135,41 @@ export async function syncActivities() {
   const token = session?.access_token;
   if (!token) { toast('Session expired — please sign in again', 'error'); return; }
 
-  const { data: syncResult, error } = await supabase.functions.invoke('sync-strava-activities', {
-    body: {},
-    headers: { Authorization: `Bearer ${token}` }
-  });
+  // Use plain fetch so we can always read the response body for debugging.
+  let resp, body;
+  try {
+    resp = await fetch(`${CONFIG.supabaseUrl}/functions/v1/sync-strava-activities`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        'apikey': CONFIG.supabaseAnonKey,
+      },
+      body: JSON.stringify({}),
+    });
+    body = await resp.json();
+  } catch (e) {
+    toast(`Sync failed — network error: ${e}`, 'error');
+    return;
+  }
 
-  if (error) {
-    console.error('syncActivities:', error);
-    const status = error.context?.status ?? 0;
-    if (status === 401) {
+  if (!resp.ok) {
+    console.error('syncActivities error:', body);
+    if (resp.status === 401) {
       toast('Strava token expired — please reconnect Strava', 'error');
     } else {
-      toast(`Sync failed — ${error.message || 'check your Strava connection'}`, 'error');
+      const detail = body?.error || body?.e3 || body?.e1 || `HTTP ${resp.status}`;
+      toast(`Sync failed — ${detail}`, 'error');
     }
     return;
   }
 
   await loadActivitiesFromDb();
-  const count = syncResult?.count ?? 0;
+  const count = body?.count ?? 0;
   toast(count > 0 ? `Synced ${count} activities ✓` : 'Synced ✓');
 }
 
-async function loadActivitiesFromDb() {
+export async function loadActivitiesFromDb() {
   if (!state.user) return;
 
   const { data, error } = await supabase
