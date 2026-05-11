@@ -21,6 +21,20 @@ export async function initStrava() {
 export async function checkStravaConnection() {
   if (!state.user) return;
 
+  // If returning from a successful Strava OAuth, always go to dashboard.
+  // This prevents the Strava-connect prompt from appearing if the DB write
+  // just happened and the query hasn't caught up yet.
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('strava') === 'connected') {
+    window.history.replaceState({}, '', window.location.pathname);
+    showAppScreen();
+    navigate('dashboard');
+    loadActivitiesFromDb()
+      .then(() => { if (state.activities.length === 0) syncActivities(); })
+      .catch(e => console.error('loadActivities error:', e));
+    return;
+  }
+
   try {
     const { data, error } = await supabase
       .from('strava_connections')
