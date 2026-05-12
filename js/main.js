@@ -40,3 +40,16 @@ boot().catch(err => {
   const auth = document.querySelector('#screen-auth');
   if (auth) auth.style.display = 'flex';
 });
+
+setTimeout(() => {
+  const loading = document.querySelector('#screen-loading');
+  if (loading && loading.style.display !== 'none') {
+    console.warn('Boot timeout - forcing auth screen');
+    loading.style.display = 'none';
+    const app = document.querySelector('#screen-app');
+    const auth = document.querySelector('#screen-auth');
+    if (auth && app && window.getComputedStyle(app).display === 'none') {
+      auth.style.display = 'flex';
+    }
+  }
+}, 4000);

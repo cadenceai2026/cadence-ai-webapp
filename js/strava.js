@@ -62,11 +62,16 @@ export async function checkStravaConnection() {
           }
         })
         .catch(e => console.error('loadActivities error:', e));
+    } else {
+      renderDashboard();
+      renderActivities();
     }
   } catch (e) {
     console.error('checkStravaConnection unexpected error:', e);
     showAppScreen();
     navigate('dashboard');
+    renderDashboard();
+    renderActivities();
   }
 }
 
