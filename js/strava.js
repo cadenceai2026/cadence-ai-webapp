@@ -26,11 +26,10 @@ export async function checkStravaConnection() {
   if (stravaCheckRunning) return;
   stravaCheckRunning = true;
 
-  // Strip the ?strava=connected param added by the OAuth callback page.
-  const urlParams = new URLSearchParams(window.location.search);
-  const isNewConnection = urlParams.get('strava') === 'connected';
+  // Detect fresh Strava OAuth connection (set by strava-callback.html via sessionStorage)
+  const isNewConnection = sessionStorage.getItem('strava_just_connected') === '1';
   if (isNewConnection) {
-    window.history.replaceState({}, '', window.location.pathname);
+    sessionStorage.removeItem('strava_just_connected');
   }
 
   try {
@@ -67,13 +66,22 @@ export async function checkStravaConnection() {
     navigate('dashboard');
 
     if (state.stravaConnection) {
-      loadActivitiesFromDb()
-        .then(() => {
-          if (state.activities.length === 0 || isNewConnection) {
-            syncActivities();
-          }
-        })
-        .catch(e => console.error('loadActivities error:', e));
+      if (isNewConnection) {
+        // New connection: show the dashboard immediately then kick off autosync in background
+        renderDashboard();
+        renderActivities();
+        toast('Strava connected! Syncing your activities… 🔄');
+        syncActivities();
+      } else {
+        // Returning user: load from DB, sync only if no activities yet
+        loadActivitiesFromDb()
+          .then(() => {
+            if (state.activities.length === 0) {
+              syncActivities();
+            }
+          })
+          .catch(e => console.error('loadActivities error:', e));
+      }
     } else {
       renderDashboard();
       renderActivities();
