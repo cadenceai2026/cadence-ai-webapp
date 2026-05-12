@@ -157,12 +157,15 @@ function appendMsg(role, text) {
   const isUser = role === 'user';
   const now = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
   const sc = state.stravaConnection;
+  const profile = state.profile;
 
+  // Prefer custom avatar > Strava photo > initials
+  const userPhotoSrc = profile?.avatar_url || sc?.athlete_profile || null;
   const avHtml = isUser
-    ? (sc?.athlete_profile
-        ? `<img src="${sc.athlete_profile}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`
-        : (sc?.athlete_firstname || 'U')[0])
-    : 'AI';
+    ? (userPhotoSrc
+        ? `<img src="${userPhotoSrc}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`
+        : (sc?.athlete_firstname || profile?.display_name || 'U')[0].toUpperCase())
+    : '🤖';
 
   const div = document.createElement('div');
   div.className = `msg ${isUser ? 'user' : ''}`;

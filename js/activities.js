@@ -1,6 +1,7 @@
 import { state } from './state.js';
 import { qs } from './utils.js';
 import { actCard } from './dashboard.js';
+import { navigate } from './router.js';
 
 let currentFilter = 'all';
 
@@ -27,7 +28,18 @@ export function renderActivities() {
         return t === currentFilter;
       });
 
-  container.innerHTML = filtered.length
-    ? filtered.map(actCard).join('')
-    : '<div class="empty">No activities found.</div>';
+  if (filtered.length) {
+    container.innerHTML = filtered.map(actCard).join('');
+  } else if (!state.stravaConnection) {
+    container.innerHTML = `
+      <div class="empty" style="padding:40px 16px">
+        <div style="font-size:2rem;margin-bottom:12px">🟠</div>
+        <div style="font-weight:600;margin-bottom:6px">Connect Strava to see your activities</div>
+        <div style="font-size:0.85rem;color:var(--muted);margin-bottom:20px">Link your account to sync runs, rides and workouts automatically.</div>
+        <button id="act-connect-strava-btn" style="background:#FC4C02;color:#fff;border:none;font-weight:600;font-size:0.9rem;padding:11px 24px;border-radius:8px;cursor:pointer">Connect Strava →</button>
+      </div>`;
+    qs('#act-connect-strava-btn')?.addEventListener('click', () => navigate('settings'));
+  } else {
+    container.innerHTML = '<div class="empty">No activities found. Click ↻ Sync to load them.</div>';
+  }
 }

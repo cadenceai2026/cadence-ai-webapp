@@ -90,21 +90,22 @@ export async function checkStravaConnection() {
 }
 
 function updateStravaSettingsUI() {
-  const dot = qs('#strava-conn-dot');
-  const status = qs('#strava-conn-status');
-  const reconnectBtn = qs('#btn-reconnect-strava');
+  const dot           = qs('#strava-conn-dot');
+  const statusTxt     = qs('#strava-conn-status');
+  const reconnectBtn  = qs('#btn-reconnect-strava');
   const disconnectBtn = qs('#btn-disconnect-strava');
+  const sc = state.stravaConnection;
 
-  if (state.stravaConnection) {
-    const name = `${state.stravaConnection.athlete_firstname || ''} ${state.stravaConnection.athlete_lastname || ''}`.trim();
-    if (dot) dot.style.background = '#00E5A0';
-    if (status) status.textContent = name ? `Connected as ${name}` : 'Connected';
-    if (reconnectBtn) reconnectBtn.style.display = 'none';
+  if (sc) {
+    const name = [sc.athlete_firstname, sc.athlete_lastname].filter(Boolean).join(' ');
+    if (dot)           dot.style.background       = 'var(--green)';
+    if (statusTxt)     statusTxt.textContent       = name ? `Connected as ${name}` : 'Connected ✓';
+    if (reconnectBtn)  reconnectBtn.style.display  = 'none';
     if (disconnectBtn) disconnectBtn.style.display = '';
   } else {
-    if (dot) dot.style.background = 'var(--muted)';
-    if (status) status.textContent = 'Not connected';
-    if (reconnectBtn) reconnectBtn.style.display = '';
+    if (dot)           dot.style.background       = 'var(--muted)';
+    if (statusTxt)     statusTxt.textContent       = 'Not connected';
+    if (reconnectBtn)  reconnectBtn.style.display  = '';
     if (disconnectBtn) disconnectBtn.style.display = 'none';
   }
 }
@@ -139,7 +140,13 @@ async function disconnectStrava() {
 
   state.stravaConnection = null;
   state.activities = [];
-  updateAthleteUI({ athlete_firstname: '', athlete_lastname: '', athlete_profile: '' });
+
+  // Keep showing the user's name but clear the Strava photo (custom avatar stays)
+  updateAthleteUI({
+    athlete_firstname: state.profile?.display_name || '',
+    athlete_lastname:  '',
+    athlete_profile:   state.profile?.avatar_url || ''
+  });
   updateStravaSettingsUI();
   renderDashboard();
   renderActivities();

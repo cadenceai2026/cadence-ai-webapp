@@ -10,7 +10,13 @@ export function initSettings() {
   qs('#btn-change-pass')?.addEventListener('click', changePassword);
   qs('#btn-delete')?.addEventListener('click', deleteAccount);
 
-  // Avatar upload — clicking the button OR the avatar opens the file picker
+  // Sign out — unified here, auth.js also wires it but this is the canonical handler
+  qs('#btn-signout')?.addEventListener('click', async () => {
+    await supabase.auth.signOut();
+    // auth.js onAuthStateChange SIGNED_OUT will redirect to login.html
+  });
+
+  // Avatar upload
   qs('#btn-upload-avatar')?.addEventListener('click', () => qs('#avatar-file-input')?.click());
   qs('#avatar-file-input')?.addEventListener('change', handleAvatarChange);
 
@@ -20,7 +26,7 @@ export function initSettings() {
   });
   qs('#btn-update-token')?.addEventListener('click', updateStravaToken);
 
-  // Chip selection handlers
+  // Chip selection
   document.querySelectorAll('.chip[data-group]').forEach(chip => {
     chip.addEventListener('click', () => {
       const group = chip.dataset.group;
@@ -32,7 +38,7 @@ export function initSettings() {
 }
 
 export function loadSettingsUI() {
-  const p = state.profile;
+  const p  = state.profile;
   const sc = state.stravaConnection;
   if (!p) return;
 
@@ -46,12 +52,12 @@ export function loadSettingsUI() {
   if (cityEl) cityEl.value = p.city || '';
   if (bioEl)  bioEl.value  = p.bio  || '';
   if (dobEl)  dobEl.value  = p.date_of_birth || '';
-  if (wtEl)   wtEl.value   = p.weight_kg || '';
+  if (wtEl)   wtEl.value   = p.weight_kg != null ? p.weight_kg : '';
 
-  // Avatar — prefer custom upload, fallback to Strava photo, then initials
+  // Avatar — prefer custom upload > Strava photo > initials
   renderAvatarEl(qs('#settings-avatar'), p, sc);
 
-  // Display name & email
+  // Header info
   const dnEl = qs('#settings-display-name');
   if (dnEl) dnEl.textContent = p.display_name || p.email || '—';
   const emailEl = qs('#settings-email');
@@ -59,9 +65,9 @@ export function loadSettingsUI() {
 
   // Chips
   selectChipByVal('runner-type', p.runner_type);
-  selectChipByVal('goal', p.goal);
-  selectChipByVal('lang', p.coach_lang);
-  selectChipByVal('style', p.coach_style);
+  selectChipByVal('goal',        p.goal);
+  selectChipByVal('lang',        p.coach_lang);
+  selectChipByVal('style',       p.coach_style);
 
   // Toggles
   setToggle('notif-weekly',   p.notif_weekly);
@@ -69,19 +75,33 @@ export function loadSettingsUI() {
   setToggle('notif-inactive', p.notif_inactive);
   setToggle('notif-winner',   p.notif_winner);
 
-  // Strava status
-  const dot = qs('#strava-conn-dot');
-  const txt = qs('#strava-conn-status');
-  if (sc) {
-    if (dot) dot.style.background = 'var(--green)';
-    if (txt) txt.textContent = `Connected as ${sc.athlete_firstname} ${sc.athlete_lastname}`;
-  } else {
-    if (dot) dot.style.background = 'var(--muted)';
-    if (txt) txt.textContent = 'Not connected';
-  }
+  // Strava connection status
+  updateStravaConnUI(sc);
 
-  // Subscription
+  // Subscription section
   updateSubSection();
+}
+
+// ── Strava UI ─────────────────────────────────────────────────────────────
+
+function updateStravaConnUI(sc) {
+  const dot           = qs('#strava-conn-dot');
+  const statusTxt     = qs('#strava-conn-status');
+  const reconnectBtn  = qs('#btn-reconnect-strava');
+  const disconnectBtn = qs('#btn-disconnect-strava');
+
+  if (sc) {
+    const fullName = [sc.athlete_firstname, sc.athlete_lastname].filter(Boolean).join(' ');
+    if (dot)           dot.style.background       = 'var(--green)';
+    if (statusTxt)     statusTxt.textContent       = fullName ? `Connected as ${fullName}` : 'Connected ✓';
+    if (reconnectBtn)  reconnectBtn.style.display  = 'none';
+    if (disconnectBtn) disconnectBtn.style.display = '';
+  } else {
+    if (dot)           dot.style.background       = 'var(--muted)';
+    if (statusTxt)     statusTxt.textContent       = 'Not connected';
+    if (reconnectBtn)  reconnectBtn.style.display  = '';
+    if (disconnectBtn) disconnectBtn.style.display = 'none';
+  }
 }
 
 // ── Avatar helpers ─────────────────────────────────────────────────────────
@@ -92,7 +112,7 @@ function renderAvatarEl(el, profile, stravaConn) {
   if (src) {
     el.innerHTML = `<img src="${src}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
   } else {
-    el.innerHTML = '';
+    el.innerHTML  = '';
     el.textContent = (profile?.display_name || profile?.email || '?')[0].toUpperCase();
   }
 }
@@ -115,33 +135,29 @@ async function handleAvatarChange(e) {
     const ext  = file.name.split('.').pop();
     const path = `avatars/${state.user.id}.${ext}`;
 
-    // Upload to Supabase Storage (bucket: "profiles")
     const { error: upErr } = await supabase.storage
       .from('profiles')
       .upload(path, file, { upsert: true, contentType: file.type });
-
     if (upErr) throw upErr;
 
-    // Get public URL
     const { data: urlData } = supabase.storage.from('profiles').getPublicUrl(path);
-    // Bust browser cache by appending a timestamp
     const publicUrl = `${urlData.publicUrl}?t=${Date.now()}`;
 
-    // Persist to profile
     const { data: updated, error: dbErr } = await supabase
       .from('profiles')
       .update({ avatar_url: publicUrl, updated_at: new Date().toISOString() })
       .eq('id', state.user.id)
       .select()
       .single();
-
     if (dbErr) throw dbErr;
 
     state.profile = updated;
 
-    // Update every avatar in the UI
     renderAvatarEl(qs('#settings-avatar'), updated, state.stravaConnection);
-    updateAthleteUI({ ...state.stravaConnection, athlete_profile: publicUrl });
+    updateAthleteUI({
+      ...(state.stravaConnection || { athlete_firstname: '', athlete_lastname: '' }),
+      athlete_profile: publicUrl
+    });
     updatePlanUI(updated);
 
     if (statusEl) statusEl.textContent = 'Photo updated ✓';
@@ -152,7 +168,6 @@ async function handleAvatarChange(e) {
     if (statusEl) statusEl.textContent = '';
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = 'Upload photo'; }
-    // Reset input so the same file can be re-selected if needed
     e.target.value = '';
   }
 }
@@ -160,7 +175,7 @@ async function handleAvatarChange(e) {
 // ── Subscription section ───────────────────────────────────────────────────
 
 function updateSubSection() {
-  const plan = state.profile?.plan || 'trial';
+  const plan   = state.profile?.plan || 'trial';
   const tag    = qs('#sub-plan-tag');
   const detail = qs('#sub-plan-detail');
   const btn    = qs('#sub-action-btn');
@@ -200,8 +215,8 @@ async function saveProfile() {
   const payload = {
     display_name:  qs('#profile-name')?.value.trim() || null,
     city:          qs('#profile-city')?.value.trim() || null,
-    bio:           qs('#profile-bio')?.value.trim() || null,
-    date_of_birth: qs('#profile-dob')?.value || null,
+    bio:           qs('#profile-bio')?.value.trim()  || null,
+    date_of_birth: qs('#profile-dob')?.value  || null,
     weight_kg:     parseFloat(qs('#profile-weight')?.value) || null,
     runner_type:   getSelectedChip('runner-type'),
     goal:          getSelectedChip('goal'),
@@ -293,10 +308,6 @@ async function changePassword() {
   else toast('Password reset link sent to your email ✓');
 }
 
-async function signOut() {
-  await supabase.auth.signOut();
-}
-
 async function deleteAccount() {
   const ok = confirm('Are you sure? This cannot be undone.');
   if (!ok) return;
@@ -307,7 +318,7 @@ async function deleteAccount() {
   if (error) return toast(error.message, 'error');
 
   toast('Account deleted');
-  setTimeout(() => location.reload(), 1500);
+  setTimeout(() => window.location.replace('./login.html'), 1500);
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────

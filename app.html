@@ -348,17 +348,19 @@
 
           <div class="settings-section">
             <div class="settings-title">🔗 Connections</div>
-            <div class="settings-conn-row">
+            <div class="settings-conn-row" id="strava-conn-row">
               <div style="display:flex;align-items:center;gap:12px">
                 <div style="width:36px;height:36px;border-radius:8px;background:#FC4C0215;display:flex;align-items:center;justify-content:center;font-size:0.95rem">🟠</div>
                 <div>
                   <div style="font-size:0.88rem;font-weight:500">Strava</div>
-                  <div style="font-size:0.7rem;color:var(--muted)" id="strava-conn-status">Not connected</div>
+                  <div style="font-size:0.7rem;color:var(--muted);display:flex;align-items:center;gap:5px">
+                    <div id="strava-conn-dot" style="width:6px;height:6px;border-radius:50%;background:var(--muted);flex-shrink:0"></div>
+                    <span id="strava-conn-status">Not connected</span>
+                  </div>
                 </div>
               </div>
               <div style="display:flex;align-items:center;gap:8px">
-                <div id="strava-conn-dot" style="width:7px;height:7px;border-radius:50%;background:var(--muted)"></div>
-                <button class="btn-sm" id="btn-reconnect-strava">Reconnect</button>
+                <button class="btn-sm" id="btn-reconnect-strava">Connect Strava</button>
                 <button class="btn-sm" id="btn-disconnect-strava" style="display:none;color:#ff6b6b;border-color:#ff6b6b40">Disconnect</button>
               </div>
             </div>
@@ -370,6 +372,7 @@
               <span style="font-size:0.68rem;color:var(--muted2);font-family:'DM Mono',monospace">Soon</span>
             </div>
           </div>
+
 
           <div class="settings-section">
             <div class="settings-title">🤖 AI Coach preferences</div>
