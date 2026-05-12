@@ -7,25 +7,13 @@ import { CONFIG } from './config.js';
 import { checkStravaConnection } from './strava.js';
 
 export async function initAuth() {
-  // Buttons for app (sign out)
+  // Sign out button
   qs('#btn-signout')?.addEventListener('click', signOut);
 
-  // Listen for auth changes
+  // Listen ONLY for future auth events (sign out, token refresh).
+  // We deliberately do NOT handle SIGNED_IN here to avoid double-running
+  // checkStravaConnection alongside the getSession() call below.
   supabase.auth.onAuthStateChange(async (event, session) => {
-    state.session = session;
-    state.user = session?.user || null;
-
-    if (event === 'SIGNED_IN' && state.user) {
-      await loadProfile();
-      await checkStravaConnection();
-      // Check if coming from Stripe
-      const params = new URLSearchParams(window.location.search);
-      if (params.get('upgraded') === 'true') {
-        await markElite();
-        window.history.replaceState({}, '', window.location.pathname);
-      }
-    }
-
     if (event === 'SIGNED_OUT') {
       state.user = null;
       state.profile = null;
@@ -33,25 +21,40 @@ export async function initAuth() {
       state.activities = [];
       window.location.replace('./login.html');
     }
+
+    // TOKEN_REFRESHED: update state but don't re-run the full boot sequence
+    if (event === 'TOKEN_REFRESHED' && session) {
+      state.session = session;
+      state.user = session.user;
+    }
   });
 
-  // Check existing session on load
+  // --- Initial session check (runs once on load) ---
   const { data, error } = await supabase.auth.getSession();
+  if (error) {
+    console.error('getSession error:', error);
+    window.location.replace('./login.html');
+    return;
+  }
+
   const session = data?.session || null;
   state.session = session;
   state.user = session?.user || null;
 
-  if (state.user) {
-    await loadProfile();
-    await checkStravaConnection();
-    // Check Stripe redirect
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('upgraded') === 'true') {
-      await markElite();
-      window.history.replaceState({}, '', window.location.pathname);
-    }
-  } else {
+  if (!state.user) {
     window.location.replace('./login.html');
+    return;
+  }
+
+  // User is authenticated — boot the dashboard
+  await loadProfile();
+  await checkStravaConnection();
+
+  // Handle Stripe redirect
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('upgraded') === 'true') {
+    await markElite();
+    window.history.replaceState({}, '', window.location.pathname);
   }
 }
 

@@ -19,8 +19,12 @@ export async function initStrava() {
   });
 }
 
+let stravaCheckRunning = false;
+
 export async function checkStravaConnection() {
   if (!state.user) return;
+  if (stravaCheckRunning) return;
+  stravaCheckRunning = true;
 
   // Strip the ?strava=connected param added by the OAuth callback page.
   const urlParams = new URLSearchParams(window.location.search);
@@ -54,7 +58,7 @@ export async function checkStravaConnection() {
 
     updateStravaSettingsUI();
 
-    // Always go to the dashboard — never redirect back to the auth screen.
+    // Always show the dashboard
     showAppScreen();
     navigate('dashboard');
 
@@ -76,6 +80,8 @@ export async function checkStravaConnection() {
     navigate('dashboard');
     renderDashboard();
     renderActivities();
+  } finally {
+    stravaCheckRunning = false;
   }
 }
 
