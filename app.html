@@ -13,8 +13,13 @@
 </head>
 <body>
 
+<!-- ══════════ LOADING SCREEN ══════════ -->
+<div id="screen-loading" style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg)">
+  <div class="spinner" style="width:30px;height:30px;border-width:3px"></div>
+</div>
+
 <!-- ══════════ AUTH SCREEN ══════════ -->
-<div id="screen-auth" class="auth-screen">
+<div id="screen-auth" class="auth-screen" style="display:none">
   <div class="auth-grid"></div>
   <div class="auth-orb"></div>
   <div class="auth-card">

@@ -1,6 +1,8 @@
 import { qs, qsa, show, hide } from './utils.js';
 
 export function showAuthScreen() {
+  const loading = qs('#screen-loading');
+  if (loading) loading.style.display = 'none';
   qs('#screen-auth').style.display = 'block';
   qs('#screen-app').style.display = 'none';
 
@@ -11,6 +13,8 @@ export function showAuthScreen() {
 }
 
 export function showAppScreen() {
+  const loading = qs('#screen-loading');
+  if (loading) loading.style.display = 'none';
   qs('#screen-auth').style.display = 'none';
   qs('#screen-app').style.display = 'block';
 
