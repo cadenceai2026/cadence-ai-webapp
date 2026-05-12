@@ -10,8 +10,8 @@ export async function initAuth() {
   // Buttons
   qs('#btn-google-signin')?.addEventListener('click', signInWithGoogle);
   qs('#btn-google-signup')?.addEventListener('click', signInWithGoogle);
-  qs('#btn-signin')?.addEventListener('click', signInWithEmail);
-  qs('#btn-signup')?.addEventListener('click', signUpWithEmail);
+  qs('#form-signin')?.addEventListener('submit', signInWithEmail);
+  qs('#form-signup')?.addEventListener('submit', signUpWithEmail);
   qs('#btn-signout')?.addEventListener('click', signOut);
   qs('#link-to-signup')?.addEventListener('click', (e) => { e.preventDefault(); showAuthView('signup'); });
   qs('#link-to-signin')?.addEventListener('click', (e) => { e.preventDefault(); showAuthView('signin'); });
@@ -71,7 +71,8 @@ async function signInWithGoogle() {
   if (error) toast(error.message, 'error');
 }
 
-async function signInWithEmail() {
+async function signInWithEmail(e) {
+  if (e) e.preventDefault();
   const email = qs('#si-email')?.value.trim();
   const password = qs('#si-pass')?.value;
   if (!email || !password) return toast('Fill in email and password', 'error');
@@ -89,7 +90,8 @@ async function signInWithEmail() {
   }
 }
 
-async function signUpWithEmail() {
+async function signUpWithEmail(e) {
+  if (e) e.preventDefault();
   const email = qs('#su-email')?.value.trim();
   const password = qs('#su-pass')?.value;
   if (!email || !password) return toast('Fill in email and password', 'error');

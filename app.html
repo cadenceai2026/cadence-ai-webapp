@@ -6,8 +6,8 @@
 <title>Cadence — AI Running Coach</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Space+Grotesk:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://js.stripe.com/v3/"></script>
+<link rel="icon" type="image/svg+xml" href="./favicon.svg">
 <link rel="stylesheet" href="./css/styles.css">
 <link rel="stylesheet" href="./css/app.css">
 </head>
@@ -40,9 +40,11 @@
         Continue with Google
       </button>
       <div class="auth-divider"><span>or email</span></div>
-      <input class="inp" id="si-email" type="email" placeholder="Email address" autocapitalize="none" autocorrect="off">
-      <input class="inp" id="si-pass" type="password" placeholder="Password">
-      <button class="btn btn-green btn-full" id="btn-signin" style="margin-top:4px">Sign in →</button>
+      <form id="form-signin">
+        <input class="inp" id="si-email" type="email" placeholder="Email address" autocapitalize="none" autocorrect="off">
+        <input class="inp" id="si-pass" type="password" placeholder="Password">
+        <button type="submit" class="btn btn-green btn-full" id="btn-signin" style="margin-top:4px">Sign in →</button>
+      </form>
       <p class="auth-foot" style="margin-top:14px">No account? <a class="auth-link" id="link-to-signup">Create one free →</a></p>
       <p style="text-align:center;margin-top:10px">
         <a class="auth-link" id="link-forgot" style="font-size:0.76rem;color:var(--muted2)">Forgot password?</a>
@@ -58,10 +60,12 @@
         Sign up with Google
       </button>
       <div class="auth-divider"><span>or email</span></div>
-      <input class="inp" id="su-email" type="email" placeholder="Email address" autocapitalize="none" autocorrect="off">
-      <input class="inp" id="su-pass" type="password" placeholder="Password (min 6 chars)">
-      <button class="btn btn-green btn-full" id="btn-signup" style="margin-top:4px">Create account →</button>
-      <p class="auth-tip">By signing up you agree to our <a href="#" class="auth-link" style="color:var(--muted2)">terms</a></p>
+      <form id="form-signup">
+        <input class="inp" id="su-email" type="email" placeholder="Email address" autocapitalize="none" autocorrect="off">
+        <input class="inp" id="su-pass" type="password" placeholder="Password (min 6 chars)">
+        <button type="submit" class="btn btn-green btn-full" id="btn-signup" style="margin-top:4px">Create account →</button>
+      </form>
+      <p class="auth-tip">By signing up you agree to our <a href="/terms.html" class="auth-link" style="color:var(--muted2)">terms</a></p>
       <p class="auth-foot">Already have an account? <a class="auth-link" id="link-to-signin">Sign in →</a></p>
     </div>
 

@@ -9,7 +9,7 @@ export const CONFIG = {
   },
 
   stripe: {
-    publishableKey: 'pk_live_51TTVFaFiPJTB5pwwyDlB5XV4nk0PR3mnHhmrLMswXtAxzDtF1yTl9R0U8FNJbHLGxszhXUbJYsSrrNQyjajon2Cb00SekpnkoA',
+    publishableKey: 'pk_test_51TTVFaFiPJTB5pwwyDlB5XV4nk0PR3mnHhmrLMswXtAxzDtF1yTl9R0U8FNJbHLGxszhXUbJYsSrrNQyjajon2Cb00SekpnkoA',
     priceId: 'price_1TTiBpFiPJTB5pwwACXcfXhy'
   },
 
