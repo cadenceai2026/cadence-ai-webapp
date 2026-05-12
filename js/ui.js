@@ -3,7 +3,7 @@ import { qs, qsa, show, hide } from './utils.js';
 export function showAuthScreen() {
   const loading = qs('#screen-loading');
   if (loading) loading.style.display = 'none';
-  qs('#screen-auth').style.display = 'block';
+  qs('#screen-auth').style.display = 'flex';
   qs('#screen-app').style.display = 'none';
 
   const topbar = qs('#mob-topbar');
