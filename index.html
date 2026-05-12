@@ -10,14 +10,7 @@
 <link rel="icon" type="image/svg+xml" href="./favicon.svg">
 <link rel="stylesheet" href="./css/styles.css">
 <link rel="stylesheet" href="./css/landing.css">
-<script>
-  for (let i = 0; i < localStorage.length; i++) {
-    if (localStorage.key(i).endsWith('-auth-token')) {
-      window.location.replace('./app.html');
-      break;
-    }
-  }
-</script>
+
 </head>
 <body>
 
@@ -199,6 +192,49 @@
     { threshold: 0.1 }
   );
   document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  // Dynamic Auth Buttons
+  document.addEventListener('DOMContentLoaded', () => {
+    let isLoggedIn = false;
+    for (let i = 0; i < localStorage.length; i++) {
+      if (localStorage.key(i).endsWith('-auth-token')) {
+        isLoggedIn = true;
+        break;
+      }
+    }
+
+    const navBtn = document.querySelector('.land-nav-links .btn');
+    const heroBtn = document.querySelector('.hero-actions .btn-green');
+    const ctaBtn = document.querySelector('.cta-section .btn-green');
+
+    if (isLoggedIn) {
+      if (navBtn) {
+        navBtn.textContent = 'Go to dashboard →';
+        navBtn.href = './app.html';
+      }
+      if (heroBtn) {
+        heroBtn.innerHTML = 'Go to dashboard <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
+        heroBtn.href = './app.html';
+      }
+      if (ctaBtn) {
+        ctaBtn.textContent = 'Go to dashboard →';
+        ctaBtn.href = './app.html';
+      }
+    } else {
+      if (navBtn) {
+        navBtn.textContent = 'Sign in';
+        navBtn.href = './app.html?view=signin';
+      }
+      if (heroBtn) {
+        heroBtn.innerHTML = 'Start free trial <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
+        heroBtn.href = './app.html?view=signup';
+      }
+      if (ctaBtn) {
+        ctaBtn.textContent = 'Start free trial →';
+        ctaBtn.href = './app.html?view=signup';
+      }
+    }
+  });
 </script>
 </body>
 </html>

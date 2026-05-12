@@ -60,7 +60,9 @@ export async function initAuth() {
     }
   } else {
     showAuthScreen();
-    showAuthView('signin');
+    const params = new URLSearchParams(window.location.search);
+    const view = params.get('view') === 'signup' ? 'signup' : 'signin';
+    showAuthView(view);
   }
 }
 
