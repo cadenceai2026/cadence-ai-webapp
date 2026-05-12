@@ -33,4 +33,10 @@ async function boot() {
   await initAuth();
 }
 
-boot();
+boot().catch(err => {
+  console.error('Fatal boot error:', err);
+  const loading = document.querySelector('#screen-loading');
+  if (loading) loading.style.display = 'none';
+  const auth = document.querySelector('#screen-auth');
+  if (auth) auth.style.display = 'flex';
+});

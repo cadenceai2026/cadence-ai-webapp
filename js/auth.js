@@ -44,7 +44,8 @@ export async function initAuth() {
   });
 
   // Check existing session on load
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data, error } = await supabase.auth.getSession();
+  const session = data?.session || null;
   state.session = session;
   state.user = session?.user || null;
 
