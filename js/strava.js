@@ -53,7 +53,11 @@ export async function checkStravaConnection() {
     state.stravaConnection = data || null;
 
     if (state.stravaConnection) {
-      updateAthleteUI(state.stravaConnection);
+      // Prefer the user's custom uploaded avatar over Strava photo
+      const displayConn = state.profile?.avatar_url
+        ? { ...state.stravaConnection, athlete_profile: state.profile.avatar_url }
+        : state.stravaConnection;
+      updateAthleteUI(displayConn);
     }
 
     updateStravaSettingsUI();

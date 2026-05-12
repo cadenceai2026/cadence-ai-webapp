@@ -1,7 +1,7 @@
 import { supabase } from './supabase-client.js';
 import { state } from './state.js';
 import { qs, toast, daysUntil } from './utils.js';
-import { updatePlanUI } from './ui.js';
+import { updatePlanUI, updateAthleteUI } from './ui.js';
 
 export function initSettings() {
   qs('#btn-save-profile')?.addEventListener('click', saveProfile);
@@ -9,6 +9,11 @@ export function initSettings() {
   qs('#btn-save-notifs')?.addEventListener('click', saveNotifications);
   qs('#btn-change-pass')?.addEventListener('click', changePassword);
   qs('#btn-delete')?.addEventListener('click', deleteAccount);
+
+  // Avatar upload — clicking the button OR the avatar opens the file picker
+  qs('#btn-upload-avatar')?.addEventListener('click', () => qs('#avatar-file-input')?.click());
+  qs('#avatar-file-input')?.addEventListener('change', handleAvatarChange);
+
   qs('#btn-toggle-strava-refresh')?.addEventListener('click', () => {
     const wrap = qs('#strava-refresh-wrap');
     if (wrap) wrap.style.display = wrap.style.display === 'none' ? 'block' : 'none';
@@ -31,25 +36,24 @@ export function loadSettingsUI() {
   const sc = state.stravaConnection;
   if (!p) return;
 
-  // Profile
+  // Profile fields
   const nameEl = qs('#profile-name');
   const cityEl = qs('#profile-city');
+  const bioEl  = qs('#profile-bio');
+  const dobEl  = qs('#profile-dob');
+  const wtEl   = qs('#profile-weight');
   if (nameEl) nameEl.value = p.display_name || '';
   if (cityEl) cityEl.value = p.city || '';
+  if (bioEl)  bioEl.value  = p.bio  || '';
+  if (dobEl)  dobEl.value  = p.date_of_birth || '';
+  if (wtEl)   wtEl.value   = p.weight_kg || '';
 
-  // Avatar
-  const av = qs('#settings-avatar');
-  if (av && sc?.athlete_profile) {
-    av.innerHTML = `<img src="${sc.athlete_profile}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
-  } else if (av) {
-    av.textContent = (p.display_name || p.email || '?')[0].toUpperCase();
-  }
+  // Avatar — prefer custom upload, fallback to Strava photo, then initials
+  renderAvatarEl(qs('#settings-avatar'), p, sc);
 
-  // Display name
+  // Display name & email
   const dnEl = qs('#settings-display-name');
   if (dnEl) dnEl.textContent = p.display_name || p.email || '—';
-
-  // Email
   const emailEl = qs('#settings-email');
   if (emailEl) emailEl.textContent = state.user?.email || '—';
 
@@ -60,10 +64,10 @@ export function loadSettingsUI() {
   selectChipByVal('style', p.coach_style);
 
   // Toggles
-  setToggle('notif-weekly', p.notif_weekly);
-  setToggle('notif-ranking', p.notif_ranking);
+  setToggle('notif-weekly',   p.notif_weekly);
+  setToggle('notif-ranking',  p.notif_ranking);
   setToggle('notif-inactive', p.notif_inactive);
-  setToggle('notif-winner', p.notif_winner);
+  setToggle('notif-winner',   p.notif_winner);
 
   // Strava status
   const dot = qs('#strava-conn-dot');
@@ -80,11 +84,86 @@ export function loadSettingsUI() {
   updateSubSection();
 }
 
+// ── Avatar helpers ─────────────────────────────────────────────────────────
+
+function renderAvatarEl(el, profile, stravaConn) {
+  if (!el) return;
+  const src = profile?.avatar_url || stravaConn?.athlete_profile || null;
+  if (src) {
+    el.innerHTML = `<img src="${src}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+  } else {
+    el.innerHTML = '';
+    el.textContent = (profile?.display_name || profile?.email || '?')[0].toUpperCase();
+  }
+}
+
+async function handleAvatarChange(e) {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  const MAX_MB = 2;
+  if (file.size > MAX_MB * 1024 * 1024) {
+    return toast(`Image must be under ${MAX_MB} MB`, 'error');
+  }
+
+  const statusEl = qs('#avatar-upload-status');
+  const btn = qs('#btn-upload-avatar');
+  if (statusEl) statusEl.textContent = 'Uploading…';
+  if (btn) { btn.disabled = true; btn.textContent = 'Uploading…'; }
+
+  try {
+    const ext  = file.name.split('.').pop();
+    const path = `avatars/${state.user.id}.${ext}`;
+
+    // Upload to Supabase Storage (bucket: "profiles")
+    const { error: upErr } = await supabase.storage
+      .from('profiles')
+      .upload(path, file, { upsert: true, contentType: file.type });
+
+    if (upErr) throw upErr;
+
+    // Get public URL
+    const { data: urlData } = supabase.storage.from('profiles').getPublicUrl(path);
+    // Bust browser cache by appending a timestamp
+    const publicUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+
+    // Persist to profile
+    const { data: updated, error: dbErr } = await supabase
+      .from('profiles')
+      .update({ avatar_url: publicUrl, updated_at: new Date().toISOString() })
+      .eq('id', state.user.id)
+      .select()
+      .single();
+
+    if (dbErr) throw dbErr;
+
+    state.profile = updated;
+
+    // Update every avatar in the UI
+    renderAvatarEl(qs('#settings-avatar'), updated, state.stravaConnection);
+    updateAthleteUI({ ...state.stravaConnection, athlete_profile: publicUrl });
+    updatePlanUI(updated);
+
+    if (statusEl) statusEl.textContent = 'Photo updated ✓';
+    toast('Profile photo updated ✓');
+  } catch (err) {
+    console.error('Avatar upload error:', err);
+    toast(err.message || 'Upload failed', 'error');
+    if (statusEl) statusEl.textContent = '';
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Upload photo'; }
+    // Reset input so the same file can be re-selected if needed
+    e.target.value = '';
+  }
+}
+
+// ── Subscription section ───────────────────────────────────────────────────
+
 function updateSubSection() {
   const plan = state.profile?.plan || 'trial';
-  const tag = qs('#sub-plan-tag');
+  const tag    = qs('#sub-plan-tag');
   const detail = qs('#sub-plan-detail');
-  const btn = qs('#sub-action-btn');
+  const btn    = qs('#sub-action-btn');
 
   if (tag) { tag.textContent = plan.toUpperCase(); tag.className = `plan-tag ${plan}`; }
 
@@ -110,15 +189,23 @@ function updateSubSection() {
   }
 }
 
+// ── Save handlers ─────────────────────────────────────────────────────────
+
 async function saveProfile() {
   if (!state.user) return;
 
+  const btn = qs('#btn-save-profile');
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+
   const payload = {
-    display_name: qs('#profile-name')?.value.trim(),
-    city: qs('#profile-city')?.value.trim(),
-    runner_type: getSelectedChip('runner-type'),
-    goal: getSelectedChip('goal'),
-    updated_at: new Date().toISOString()
+    display_name:  qs('#profile-name')?.value.trim() || null,
+    city:          qs('#profile-city')?.value.trim() || null,
+    bio:           qs('#profile-bio')?.value.trim() || null,
+    date_of_birth: qs('#profile-dob')?.value || null,
+    weight_kg:     parseFloat(qs('#profile-weight')?.value) || null,
+    runner_type:   getSelectedChip('runner-type'),
+    goal:          getSelectedChip('goal'),
+    updated_at:    new Date().toISOString()
   };
 
   const { data, error } = await supabase
@@ -128,6 +215,7 @@ async function saveProfile() {
     .select()
     .single();
 
+  if (btn) { btn.disabled = false; btn.textContent = 'Save profile'; }
   if (error) return toast(error.message, 'error');
 
   state.profile = data;
@@ -141,9 +229,9 @@ async function saveCoachPrefs() {
   if (!state.user) return;
 
   const payload = {
-    coach_lang: getSelectedChip('lang') || 'en',
+    coach_lang:  getSelectedChip('lang')  || 'en',
     coach_style: getSelectedChip('style') || 'friendly',
-    updated_at: new Date().toISOString()
+    updated_at:  new Date().toISOString()
   };
 
   const { error } = await supabase
@@ -160,11 +248,11 @@ async function saveNotifications() {
   if (!state.user) return;
 
   const payload = {
-    notif_weekly: getToggle('notif-weekly'),
-    notif_ranking: getToggle('notif-ranking'),
+    notif_weekly:   getToggle('notif-weekly'),
+    notif_ranking:  getToggle('notif-ranking'),
     notif_inactive: getToggle('notif-inactive'),
-    notif_winner: getToggle('notif-winner'),
-    updated_at: new Date().toISOString()
+    notif_winner:   getToggle('notif-winner'),
+    updated_at:     new Date().toISOString()
   };
 
   const { error } = await supabase
@@ -222,7 +310,8 @@ async function deleteAccount() {
   setTimeout(() => location.reload(), 1500);
 }
 
-// ── Helpers ──
+// ── Helpers ───────────────────────────────────────────────────────────────
+
 function selectChipByVal(group, val) {
   if (!val) return;
   document.querySelectorAll(`.chip[data-group="${group}"]`)

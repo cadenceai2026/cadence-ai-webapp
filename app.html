@@ -284,13 +284,24 @@
 
           <div class="settings-section">
             <div class="settings-title">👤 Profile</div>
-            <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px">
-              <div id="settings-avatar" style="width:56px;height:56px;border-radius:50%;background:var(--green-dim);border:2px solid #00E5A030;display:flex;align-items:center;justify-content:center;font-size:1.3rem;font-weight:600;color:var(--green);overflow:hidden;flex-shrink:0">?</div>
+
+            <!-- Avatar upload area -->
+            <div style="display:flex;align-items:center;gap:20px;margin-bottom:24px">
+              <div style="position:relative;flex-shrink:0">
+                <div id="settings-avatar" style="width:80px;height:80px;border-radius:50%;background:var(--green-dim);border:2px solid #00E5A030;display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:600;color:var(--green);overflow:hidden;cursor:pointer" onclick="document.getElementById('avatar-file-input').click()" title="Click to change photo">?</div>
+                <div style="position:absolute;bottom:0;right:0;width:24px;height:24px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;cursor:pointer;border:2px solid var(--bg);pointer-events:none">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#080808" stroke-width="2.5"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                </div>
+                <input type="file" id="avatar-file-input" accept="image/*" style="display:none">
+              </div>
               <div>
-                <div style="font-size:0.9rem;font-weight:600;margin-bottom:2px" id="settings-display-name">—</div>
-                <div style="font-size:0.75rem;color:var(--muted)" id="settings-email">—</div>
+                <div style="font-size:0.95rem;font-weight:600;margin-bottom:3px" id="settings-display-name">—</div>
+                <div style="font-size:0.78rem;color:var(--muted);margin-bottom:8px" id="settings-email">—</div>
+                <button id="btn-upload-avatar" class="btn-sm" style="font-size:0.75rem">Upload photo</button>
+                <span id="avatar-upload-status" style="font-size:0.72rem;color:var(--muted);margin-left:8px"></span>
               </div>
             </div>
+
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
               <div>
                 <div class="settings-lbl">Display name</div>
@@ -301,6 +312,23 @@
                 <input class="inp" id="profile-city" type="text" placeholder="Madrid" style="margin-bottom:0">
               </div>
             </div>
+
+            <div style="margin-bottom:12px">
+              <div class="settings-lbl">Bio <span style="color:var(--muted2);font-size:0.7rem">(optional)</span></div>
+              <textarea class="inp" id="profile-bio" placeholder="Tell other runners about yourself…" style="margin-bottom:0;resize:vertical;min-height:72px;font-family:'Space Grotesk',sans-serif"></textarea>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+              <div>
+                <div class="settings-lbl">Date of birth</div>
+                <input class="inp" id="profile-dob" type="date" style="margin-bottom:0">
+              </div>
+              <div>
+                <div class="settings-lbl">Weight (kg)</div>
+                <input class="inp" id="profile-weight" type="number" min="30" max="200" step="0.5" placeholder="70" style="margin-bottom:0">
+              </div>
+            </div>
+
             <div class="settings-lbl">Runner type</div>
             <div class="chip-row">
               <button class="chip" data-group="runner-type" data-val="beginner">🌱 Beginner</button>
@@ -316,6 +344,7 @@
             </div>
             <button class="settings-save" id="btn-save-profile">Save profile</button>
           </div>
+
 
           <div class="settings-section">
             <div class="settings-title">🔗 Connections</div>

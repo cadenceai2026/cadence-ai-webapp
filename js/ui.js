@@ -84,17 +84,19 @@ export function updateAthleteUI(connection) {
   if (!connection) return;
   const name = `${connection.athlete_firstname || ''} ${connection.athlete_lastname || ''}`.trim();
   const nameEl = qs('#sb-name');
-  const mobAv = qs('#mob-avatar');
-  const sbAv = qs('#sb-avatar');
+  const mobAv  = qs('#mob-avatar');
+  const sbAv   = qs('#sb-avatar');
 
   if (nameEl) nameEl.textContent = name || 'Runner';
 
-  const imgHtml = connection.athlete_profile
-    ? `<img src="${connection.athlete_profile}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`
+  // Prefer custom uploaded avatar over Strava photo
+  const photoSrc = connection.athlete_profile || null;
+  const imgHtml = photoSrc
+    ? `<img src="${photoSrc}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`
     : (name[0] || 'R').toUpperCase();
 
   if (mobAv) mobAv.innerHTML = imgHtml;
-  if (sbAv) sbAv.innerHTML = imgHtml;
+  if (sbAv)  sbAv.innerHTML  = imgHtml;
 }
 
 export function showEliteWelcome() {
