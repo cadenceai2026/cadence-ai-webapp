@@ -24,7 +24,8 @@ export async function checkStravaConnection() {
 
   // Strip the ?strava=connected param added by the OAuth callback page.
   const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.get('strava') === 'connected') {
+  const isNewConnection = urlParams.get('strava') === 'connected';
+  if (isNewConnection) {
     window.history.replaceState({}, '', window.location.pathname);
   }
 
@@ -33,12 +34,15 @@ export async function checkStravaConnection() {
       .from('strava_connections')
       .select('*')
       .eq('user_id', state.user.id)
+      .limit(1)
       .maybeSingle();
 
     if (error) {
       console.error('checkStravaConnection:', error);
       showAppScreen();
       navigate('dashboard');
+      renderDashboard();
+      renderActivities();
       return;
     }
 
@@ -57,7 +61,7 @@ export async function checkStravaConnection() {
     if (state.stravaConnection) {
       loadActivitiesFromDb()
         .then(() => {
-          if (state.activities.length === 0) {
+          if (state.activities.length === 0 || isNewConnection) {
             syncActivities();
           }
         })
