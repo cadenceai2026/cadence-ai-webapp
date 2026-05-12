@@ -112,6 +112,8 @@
       }
 
       setState('success');
+      // Mark new connection so app.html can trigger auto-sync
+      sessionStorage.setItem('strava_just_connected', '1');
       setTimeout(() => {
         window.location.replace('./app.html');
       }, 1500);
