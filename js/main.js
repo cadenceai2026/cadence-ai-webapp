@@ -35,21 +35,13 @@ async function boot() {
 
 boot().catch(err => {
   console.error('Fatal boot error:', err);
-  const loading = document.querySelector('#screen-loading');
-  if (loading) loading.style.display = 'none';
-  const auth = document.querySelector('#screen-auth');
-  if (auth) auth.style.display = 'flex';
+  window.location.replace('./login.html');
 });
 
 setTimeout(() => {
   const loading = document.querySelector('#screen-loading');
   if (loading && loading.style.display !== 'none') {
-    console.warn('Boot timeout - forcing auth screen');
-    loading.style.display = 'none';
-    const app = document.querySelector('#screen-app');
-    const auth = document.querySelector('#screen-auth');
-    if (auth && app && window.getComputedStyle(app).display === 'none') {
-      auth.style.display = 'flex';
-    }
+    console.warn('Boot timeout - forcing login redirect');
+    window.location.replace('./login.html');
   }
 }, 4000);

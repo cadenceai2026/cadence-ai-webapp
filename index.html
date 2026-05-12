@@ -31,7 +31,7 @@
   <ul class="land-nav-links">
     <li><a href="#features">Features</a></li>
     <li><a href="#how">How it works</a></li>
-    <li><a href="./app.html" class="btn btn-green" style="padding:8px 18px;font-size:0.85rem">Get started →</a></li>
+    <li><a href="./login.html" class="btn btn-green" style="padding:8px 18px;font-size:0.85rem">Get started →</a></li>
   </ul>
 </nav>
 
@@ -56,7 +56,7 @@
   </p>
 
   <div class="hero-actions">
-    <a href="./app.html" class="btn btn-green" style="font-size:0.95rem;padding:14px 28px">
+    <a href="./login.html?view=signup" class="btn btn-green" style="font-size:0.95rem;padding:14px 28px">
       Start free trial
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
     </a>
@@ -169,7 +169,7 @@
 <section class="cta-section reveal">
   <h2>Ready to run<br><span style="color:var(--green)">like an elite?</span></h2>
   <p>14 days free. No credit card. Cancel anytime.</p>
-  <a href="./app.html" class="btn btn-green" style="font-size:0.95rem;padding:14px 32px">
+  <a href="./login.html?view=signup" class="btn btn-green" style="font-size:0.95rem;padding:14px 32px">
     Start free trial →
   </a>
 </section>
@@ -223,15 +223,15 @@
     } else {
       if (navBtn) {
         navBtn.textContent = 'Sign in';
-        navBtn.href = './app.html?view=signin';
+        navBtn.href = './login.html?view=signin';
       }
       if (heroBtn) {
         heroBtn.innerHTML = 'Start free trial <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
-        heroBtn.href = './app.html?view=signup';
+        heroBtn.href = './login.html?view=signup';
       }
       if (ctaBtn) {
         ctaBtn.textContent = 'Start free trial →';
-        ctaBtn.href = './app.html?view=signup';
+        ctaBtn.href = './login.html?view=signup';
       }
     }
   });

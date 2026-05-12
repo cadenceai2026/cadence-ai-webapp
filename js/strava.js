@@ -1,7 +1,7 @@
 import { supabase } from './supabase-client.js';
 import { state } from './state.js';
 import { qs, toast } from './utils.js';
-import { updateAthleteUI, showAuthView, showAuthScreen, showAppScreen } from './ui.js';
+import { updateAthleteUI, showAppScreen } from './ui.js';
 import { navigate } from './router.js';
 import { CONFIG } from './config.js';
 import { renderDashboard } from './dashboard.js';

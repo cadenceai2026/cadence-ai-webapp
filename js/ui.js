@@ -1,34 +1,16 @@
 import { qs, qsa, show, hide } from './utils.js';
 
-export function showAuthScreen() {
-  const loading = qs('#screen-loading');
-  if (loading) loading.style.display = 'none';
-  qs('#screen-auth').style.display = 'flex';
-  qs('#screen-app').style.display = 'none';
-
-  const topbar = qs('#mob-topbar');
-  const nav = qs('#mob-nav');
-  if (topbar) topbar.style.display = 'none';
-  if (nav) nav.style.display = 'none';
-}
-
 export function showAppScreen() {
   const loading = qs('#screen-loading');
   if (loading) loading.style.display = 'none';
-  qs('#screen-auth').style.display = 'none';
-  qs('#screen-app').style.display = 'block';
+  
+  const app = qs('#screen-app');
+  if (app) app.style.display = 'block';
 
   const topbar = qs('#mob-topbar');
   const nav = qs('#mob-nav');
   if (topbar) topbar.style.display = 'flex';
   if (nav) nav.style.display = 'block';
-}
-
-export function showAuthView(name) {
-  ['signin', 'signup', 'check-email', 'strava'].forEach(v => {
-    const el = qs(`#view-${v}`);
-    if (el) el.style.display = v === name ? 'block' : 'none';
-  });
 }
 
 export function showPage(name) {

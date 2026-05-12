@@ -1,22 +1,14 @@
 import { supabase } from './supabase-client.js';
 import { state } from './state.js';
 import { qs, toast } from './utils.js';
-import { showAuthScreen, showAppScreen, showAuthView, updatePlanUI } from './ui.js';
+import { showAppScreen, updatePlanUI } from './ui.js';
 import { navigate } from './router.js';
 import { CONFIG } from './config.js';
 import { checkStravaConnection } from './strava.js';
 
 export async function initAuth() {
-  // Buttons
-  qs('#btn-google-signin')?.addEventListener('click', signInWithGoogle);
-  qs('#btn-google-signup')?.addEventListener('click', signInWithGoogle);
-  qs('#form-signin')?.addEventListener('submit', signInWithEmail);
-  qs('#form-signup')?.addEventListener('submit', signUpWithEmail);
+  // Buttons for app (sign out)
   qs('#btn-signout')?.addEventListener('click', signOut);
-  qs('#link-to-signup')?.addEventListener('click', (e) => { e.preventDefault(); showAuthView('signup'); });
-  qs('#link-to-signin')?.addEventListener('click', (e) => { e.preventDefault(); showAuthView('signin'); });
-  qs('#link-forgot')?.addEventListener('click', (e) => { e.preventDefault(); forgotPassword(); });
-  qs('#btn-back-to-signin')?.addEventListener('click', () => showAuthView('signin'));
 
   // Listen for auth changes
   supabase.auth.onAuthStateChange(async (event, session) => {
@@ -39,7 +31,7 @@ export async function initAuth() {
       state.profile = null;
       state.stravaConnection = null;
       state.activities = [];
-      showAuthScreen();
+      window.location.replace('./login.html');
     }
   });
 
@@ -59,79 +51,13 @@ export async function initAuth() {
       window.history.replaceState({}, '', window.location.pathname);
     }
   } else {
-    showAuthScreen();
-    const params = new URLSearchParams(window.location.search);
-    const view = params.get('view') === 'signup' ? 'signup' : 'signin';
-    showAuthView(view);
-  }
-}
-
-async function signInWithGoogle() {
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: { redirectTo: window.location.href }
-  });
-  if (error) toast(error.message, 'error');
-}
-
-async function signInWithEmail(e) {
-  if (e) e.preventDefault();
-  const email = qs('#si-email')?.value.trim();
-  const password = qs('#si-pass')?.value;
-  if (!email || !password) return toast('Fill in email and password', 'error');
-
-  const btn = qs('#btn-signin');
-  btn.disabled = true;
-  btn.textContent = 'Signing in…';
-
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
-
-  if (error) {
-    toast(error.message, 'error');
-    btn.disabled = false;
-    btn.textContent = 'Sign in';
-  }
-}
-
-async function signUpWithEmail(e) {
-  if (e) e.preventDefault();
-  const email = qs('#su-email')?.value.trim();
-  const password = qs('#su-pass')?.value;
-  if (!email || !password) return toast('Fill in email and password', 'error');
-  if (password.length < 6) return toast('Password must be at least 6 characters', 'error');
-
-  const btn = qs('#btn-signup');
-  btn.disabled = true;
-  btn.textContent = 'Creating account…';
-
-  const { error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: { emailRedirectTo: window.location.href }
-  });
-
-  if (error) {
-    toast(error.message, 'error');
-    btn.disabled = false;
-    btn.textContent = 'Create account';
-  } else {
-    showAuthView('check-email');
+    window.location.replace('./login.html');
   }
 }
 
 async function signOut() {
   await supabase.auth.signOut();
   toast('Signed out');
-}
-
-async function forgotPassword() {
-  const email = prompt('Enter your email:');
-  if (!email) return;
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: window.location.href
-  });
-  if (error) toast(error.message, 'error');
-  else toast('Reset link sent! Check your email ✓');
 }
 
 export async function loadProfile() {
