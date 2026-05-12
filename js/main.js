@@ -38,10 +38,4 @@ boot().catch(err => {
   window.location.replace('./login.html');
 });
 
-setTimeout(() => {
-  const loading = document.querySelector('#screen-loading');
-  if (loading && loading.style.display !== 'none') {
-    console.warn('Boot timeout - forcing login redirect');
-    window.location.replace('./login.html');
-  }
-}, 4000);
+

@@ -4,7 +4,7 @@ import { qs, toast } from './utils.js';
 async function bootLogin() {
   // Check if already logged in
   const { data, error } = await supabase.auth.getSession();
-  if (data?.session) {
+  if (data?.session?.user) {
     window.location.replace('./app.html');
     return;
   }
