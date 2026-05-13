@@ -26,6 +26,12 @@ export function initSettings() {
   });
   qs('#btn-update-token')?.addEventListener('click', updateStravaToken);
 
+  // Auto-sync toggle
+  qs('#autosync-toggle')?.addEventListener('change', async (e) => {
+    const { toggleAutoSync } = await import('./strava.js');
+    toggleAutoSync(e.target.checked);
+  });
+
   // Chip selection
   document.querySelectorAll('.chip[data-group]').forEach(chip => {
     chip.addEventListener('click', () => {
@@ -77,6 +83,12 @@ export function loadSettingsUI() {
 
   // Strava connection status
   updateStravaConnUI(sc);
+
+  // Auto-sync toggle
+  const autoSyncToggle = qs('#autosync-toggle');
+  const autoSyncRow = qs('#autosync-row');
+  if (autoSyncRow) autoSyncRow.style.display = sc ? '' : 'none';
+  if (autoSyncToggle) autoSyncToggle.checked = p.auto_sync !== false;
 
   // Subscription section
   updateSubSection();

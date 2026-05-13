@@ -1,9 +1,10 @@
 /**
- * battlepass.js — Season pass: 50-level reward track with free/premium tiers.
+ * battlepass.js — Season pass: 50-level reward track with real DB persistence.
  */
+import { supabase } from './supabase-client.js';
 import { state } from './state.js';
 import { qs, toast } from './utils.js';
-import { getMockBattlePass, xpProgressInLevel, xpNeededForNextLevel } from './game.js';
+import { xpProgressInLevel, xpNeededForNextLevel } from './game.js';
 
 // ── REWARD DEFINITIONS (levels with special rewards) ─────────────────────────
 const REWARDS = {
@@ -23,10 +24,93 @@ function getRewardForLevel(lvl) {
   return REWARDS[lvl] || null;
 }
 
-// ── LOAD BATTLE PASS ──────────────────────────────────────────────────────────
+// ── LOAD BATTLE PASS FROM DB ──────────────────────────────────────────────────
 async function loadBattlePassData() {
   if (state.battlePass) return;
-  state.battlePass = getMockBattlePass();
+
+  if (!state.user) {
+    state.battlePass = getDefaultBattlePass();
+    return;
+  }
+
+  try {
+    // Get active season
+    const { data: season, error: sErr } = await supabase
+      .from('battle_pass_seasons')
+      .select('*')
+      .eq('is_active', true)
+      .limit(1)
+      .maybeSingle();
+
+    if (sErr || !season) {
+      console.error('loadBattlePass season error:', sErr);
+      state.battlePass = getDefaultBattlePass();
+      return;
+    }
+
+    // Get user progress for this season
+    let { data: progress, error: pErr } = await supabase
+      .from('battle_pass_progress')
+      .select('*')
+      .eq('user_id', state.user.id)
+      .eq('season_id', season.id)
+      .maybeSingle();
+
+    if (pErr) {
+      console.error('loadBattlePass progress error:', pErr);
+    }
+
+    // Auto-create progress if missing
+    if (!progress) {
+      const { data: created, error: createErr } = await supabase
+        .from('battle_pass_progress')
+        .insert({
+          user_id: state.user.id,
+          season_id: season.id,
+        })
+        .select()
+        .single();
+
+      if (createErr) {
+        console.error('create battle_pass_progress error:', createErr);
+        progress = { current_level: 1, current_xp: 0, claimed_levels: [], is_premium: false };
+      } else {
+        progress = created;
+      }
+    }
+
+    // Sync current_level with game profile level
+    if (state.gameProfile) {
+      progress.current_level = state.gameProfile.level;
+      progress.current_xp = state.gameProfile.season_xp;
+
+      // Persist sync
+      await supabase
+        .from('battle_pass_progress')
+        .update({
+          current_level: progress.current_level,
+          current_xp: progress.current_xp,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', progress.id);
+    }
+
+    // Premium = elite plan
+    progress.is_premium = state.profile?.plan === 'elite';
+
+    state.battlePass = { season, progress };
+
+  } catch (err) {
+    console.error('loadBattlePassData unexpected:', err);
+    state.battlePass = getDefaultBattlePass();
+  }
+}
+
+function getDefaultBattlePass() {
+  return {
+    season: { season_number: 1, name: 'Season 1 — Rise', start_date: '2026-05-01', end_date: '2026-05-31', total_levels: 50 },
+    progress: { current_level: 1, current_xp: 0, is_premium: false, claimed_levels: [] },
+  };
 }
 
 // ── RENDER SEASON PASS ────────────────────────────────────────────────────────
@@ -121,8 +205,8 @@ export async function renderBattlePass() {
   }, 300);
 }
 
-// ── CLAIM REWARD ──────────────────────────────────────────────────────────────
-window.claimPassReward = function(level) {
+// ── CLAIM REWARD (persisted to DB) ────────────────────────────────────────────
+window.claimPassReward = async function(level) {
   const bp      = state.battlePass;
   if (!bp) return;
   const curLvl  = bp.progress.current_level;
@@ -139,6 +223,18 @@ window.claimPassReward = function(level) {
   }
 
   bp.progress.claimed_levels = [...bp.progress.claimed_levels, level];
+
+  // Persist to DB
+  if (state.user && bp.progress.id) {
+    await supabase
+      .from('battle_pass_progress')
+      .update({
+        claimed_levels: bp.progress.claimed_levels,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', bp.progress.id);
+  }
+
   toast(`${reward.emoji} Claimed: ${reward.title}!`);
   showRewardModal(reward);
   renderBattlePass();

@@ -1,20 +1,22 @@
 /**
- * battles.js — 1v1 km battle screen: rendering, progress bars, history.
+ * battles.js — 1v1 km battle screen with real DB persistence.
  */
 import { supabase } from './supabase-client.js';
 import { state } from './state.js';
 import { qs, toast } from './utils.js';
-import { getMockBattle, getMockRival } from './game.js';
+import { getWeeklyKmFromActivities } from './game.js';
 
-// ── LOAD DATA ─────────────────────────────────────────────────────────────────
+// ── LOAD DATA FROM DB ─────────────────────────────────────────────────────────
 async function loadBattleData() {
   if (!state.user) {
-    state.activeBattle = getMockBattle();
-    state.rival        = getMockRival();
+    state.activeBattle = null;
+    state.rival = null;
     return;
   }
+
   try {
-    const { data: battles } = await supabase
+    // Fetch active battle
+    const { data: battle, error } = await supabase
       .from('battles')
       .select('*')
       .or(`challenger_id.eq.${state.user.id},opponent_id.eq.${state.user.id}`)
@@ -22,14 +24,145 @@ async function loadBattleData() {
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle();
-    state.activeBattle = battles || getMockBattle();
-  } catch {
-    state.activeBattle = getMockBattle();
+
+    if (error) {
+      console.error('loadBattleData error:', error);
+      state.activeBattle = null;
+      state.rival = null;
+      return;
+    }
+
+    if (battle) {
+      // Update challenger_km with real weekly km if user is challenger
+      const weeklyKm = getWeeklyKmFromActivities();
+      if (battle.challenger_id === state.user.id) {
+        battle.challenger_km = weeklyKm.toFixed(2);
+      } else {
+        battle.opponent_km = weeklyKm.toFixed(2);
+      }
+
+      // Persist updated km
+      const updateField = battle.challenger_id === state.user.id
+        ? { challenger_km: weeklyKm.toFixed(2) }
+        : { opponent_km: weeklyKm.toFixed(2) };
+      await supabase.from('battles').update(updateField).eq('id', battle.id);
+
+      // Normalize so "you" is always challenger side in UI
+      if (battle.opponent_id === state.user.id) {
+        // Swap sides for UI
+        state.activeBattle = {
+          ...battle,
+          challenger_km: battle.opponent_km,
+          opponent_km: battle.challenger_km,
+          challenger_name: state.profile?.display_name || 'You',
+          opponent_name: battle._opponent_name || 'Rival',
+        };
+      } else {
+        state.activeBattle = {
+          ...battle,
+          challenger_name: state.profile?.display_name || 'You',
+        };
+      }
+
+      // Load rival profile
+      const rivalId = battle.challenger_id === state.user.id
+        ? battle.opponent_id
+        : battle.challenger_id;
+
+      const { data: rivalProfile } = await supabase
+        .from('profiles')
+        .select('id, display_name')
+        .eq('id', rivalId)
+        .maybeSingle();
+
+      const { data: rivalGame } = await supabase
+        .from('game_profiles')
+        .select('level, league, weekly_km, battles_won, battles_lost')
+        .eq('user_id', rivalId)
+        .maybeSingle();
+
+      state.rival = {
+        id: rivalId,
+        display_name: rivalProfile?.display_name || 'Rival',
+        level: rivalGame?.level || 1,
+        league: rivalGame?.league || 'bronze',
+        weekly_km: parseFloat(rivalGame?.weekly_km) || 0,
+        avatar_initial: (rivalProfile?.display_name || 'R')[0].toUpperCase(),
+        battles_won: rivalGame?.battles_won || 0,
+        battles_lost: rivalGame?.battles_lost || 0,
+      };
+
+      // Update opponent name in active battle
+      state.activeBattle.opponent_name = state.rival.display_name;
+
+    } else {
+      state.activeBattle = null;
+      state.rival = null;
+    }
+
+  } catch (err) {
+    console.error('loadBattleData unexpected:', err);
+    state.activeBattle = null;
+    state.rival = null;
+  }
+}
+
+// ── FIND RIVAL & CREATE BATTLE ────────────────────────────────────────────────
+async function findRivalAndCreateBattle() {
+  if (!state.user) return;
+
+  toast('Finding your rival… ⚔️');
+
+  const myLeague = state.gameProfile?.league || 'bronze';
+
+  // Find another user in the same league (not self)
+  const { data: candidates } = await supabase
+    .from('game_profiles')
+    .select('user_id')
+    .eq('league', myLeague)
+    .neq('user_id', state.user.id)
+    .limit(10);
+
+  let opponentId;
+
+  if (candidates && candidates.length > 0) {
+    // Pick a random real opponent
+    const pick = candidates[Math.floor(Math.random() * candidates.length)];
+    opponentId = pick.user_id;
+  } else {
+    // No other users — create a bot-style battle against self (user sees "Rival")
+    toast('No other runners in your league yet — practice battle created! 🤖');
+    opponentId = state.user.id; // Self-battle for now
   }
 
-  if (!state.rival) {
-    state.rival = getMockRival();
+  const now = new Date();
+  const weekNumber = Math.ceil((now - new Date(now.getFullYear(), 0, 1)) / (7 * 86400000));
+  const endDate = new Date(now.getTime() + 7 * 86400000);
+
+  const { data: battle, error } = await supabase
+    .from('battles')
+    .insert({
+      challenger_id: state.user.id,
+      opponent_id: opponentId,
+      challenger_km: getWeeklyKmFromActivities().toFixed(2),
+      opponent_km: 0,
+      status: 'active',
+      battle_type: 'weekly_km',
+      title: 'Weekly Battle',
+      week_number: weekNumber,
+      end_date: endDate.toISOString(),
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('createBattle error:', error);
+    toast('Failed to create battle', 'error');
+    return;
   }
+
+  toast('Battle started! Let the km war begin ⚔️🔥');
+  await renderBattleScreen();
 }
 
 // ── TIME REMAINING ────────────────────────────────────────────────────────────
@@ -66,7 +199,7 @@ export async function renderBattleScreen() {
   if (!battle) {
     if (hero)  hero.style.display  = 'none';
     if (empty) empty.style.display = 'flex';
-    renderBattleHistory([]);
+    renderBattleHistory();
     return;
   }
 
@@ -131,36 +264,74 @@ export async function renderBattleScreen() {
     msgEl.className = `battle-message ${winning ? 'winning' : tied ? 'tied' : 'losing'}`;
   }
 
-  // Render history (mock past battles)
-  renderBattleHistory(getMockBattleHistory());
+  // Render history
+  await renderBattleHistory();
 }
 
-function getMockBattleHistory() {
-  return [
-    { week: 19, opponent: 'Alex M.', you: 18.4, rival: 15.2, won: true  },
-    { week: 18, opponent: 'Sam T.',  you: 12.1, rival: 16.8, won: false },
-    { week: 17, opponent: 'Alex M.', you: 21.0, rival: 19.5, won: true  },
-  ];
-}
-
-function renderBattleHistory(history) {
+// ── BATTLE HISTORY FROM DB ────────────────────────────────────────────────────
+async function renderBattleHistory() {
   const el = qs('#battle-history');
   if (!el) return;
-  if (!history.length) {
+
+  if (!state.user) {
     el.innerHTML = '<div class="empty" style="padding:24px 0">No past battles yet — keep competing!</div>';
     return;
   }
-  el.innerHTML = history.map(b => `
-    <div class="battle-hist-row ${b.won ? 'won' : 'lost'}">
-      <div class="battle-hist-badge">${b.won ? '🏆 WIN' : '💀 LOSS'}</div>
-      <div class="battle-hist-opp">vs ${b.opponent}</div>
-      <div class="battle-hist-score">
-        <span class="${b.won ? 'score-win' : 'score-loss'}">${b.you} km</span>
-        <span class="score-sep">vs</span>
-        <span>${b.rival} km</span>
-      </div>
-      <div class="battle-hist-week">Wk ${b.week}</div>
-    </div>`).join('');
+
+  try {
+    const { data: pastBattles, error } = await supabase
+      .from('battles')
+      .select('*')
+      .or(`challenger_id.eq.${state.user.id},opponent_id.eq.${state.user.id}`)
+      .eq('status', 'completed')
+      .order('created_at', { ascending: false })
+      .limit(10);
+
+    if (error || !pastBattles || pastBattles.length === 0) {
+      el.innerHTML = '<div class="empty" style="padding:24px 0">No past battles yet — keep competing!</div>';
+      return;
+    }
+
+    // Fetch opponent names
+    const opponentIds = pastBattles.map(b =>
+      b.challenger_id === state.user.id ? b.opponent_id : b.challenger_id
+    );
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, display_name')
+      .in('id', [...new Set(opponentIds)]);
+
+    const nameMap = {};
+    (profiles || []).forEach(p => { nameMap[p.id] = p.display_name; });
+
+    const history = pastBattles.map(b => {
+      const isChallenger = b.challenger_id === state.user.id;
+      const oppId = isChallenger ? b.opponent_id : b.challenger_id;
+      return {
+        week: b.week_number,
+        opponent: nameMap[oppId] || 'Rival',
+        you: isChallenger ? parseFloat(b.challenger_km) : parseFloat(b.opponent_km),
+        rival: isChallenger ? parseFloat(b.opponent_km) : parseFloat(b.challenger_km),
+        won: b.winner_id === state.user.id,
+      };
+    });
+
+    el.innerHTML = history.map(b => `
+      <div class="battle-hist-row ${b.won ? 'won' : 'lost'}">
+        <div class="battle-hist-badge">${b.won ? '🏆 WIN' : '💀 LOSS'}</div>
+        <div class="battle-hist-opp">vs ${b.opponent}</div>
+        <div class="battle-hist-score">
+          <span class="${b.won ? 'score-win' : 'score-loss'}">${b.you.toFixed(1)} km</span>
+          <span class="score-sep">vs</span>
+          <span>${b.rival.toFixed(1)} km</span>
+        </div>
+        <div class="battle-hist-week">Wk ${b.week}</div>
+      </div>`).join('');
+
+  } catch (err) {
+    console.error('renderBattleHistory error:', err);
+    el.innerHTML = '<div class="empty" style="padding:24px 0">No past battles yet — keep competing!</div>';
+  }
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
@@ -170,12 +341,13 @@ export function initBattles() {
     import('./strava.js').then(({ syncActivities }) => syncActivities());
   });
   qs('#btn-find-battle')?.addEventListener('click', () => {
-    toast('Finding your rival… ⚔️');
-    state.activeBattle = getMockBattle();
-    state.rival        = getMockRival();
-    renderBattleScreen();
+    findRivalAndCreateBattle();
   });
-  qs('#btn-rematch')?.addEventListener('click', () => {
-    toast('Rematch request sent! 🔥');
+  qs('#btn-rematch')?.addEventListener('click', async () => {
+    // End current battle and start a new one
+    if (state.activeBattle?.id) {
+      await supabase.from('battles').update({ status: 'completed' }).eq('id', state.activeBattle.id);
+    }
+    findRivalAndCreateBattle();
   });
 }

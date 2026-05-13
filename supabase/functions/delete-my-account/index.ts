@@ -31,6 +31,13 @@ serve(async (req) => {
     const user = authData.user
 
     // Delete all user data in order (respecting FK constraints)
+    await supabase.from('notifications_log').delete().eq('user_id', user.id)
+    await supabase.from('challenges').delete().eq('user_id', user.id)
+    await supabase.from('battle_pass_progress').delete().eq('user_id', user.id)
+    await supabase.from('league_snapshots').delete().eq('user_id', user.id)
+    await supabase.from('rival_assignments').delete().eq('user_id', user.id)
+    await supabase.from('battles').delete().or(`challenger_id.eq.${user.id},opponent_id.eq.${user.id}`)
+    await supabase.from('game_profiles').delete().eq('user_id', user.id)
     await supabase.from('activities').delete().eq('user_id', user.id)
     await supabase.from('group_members').delete().eq('user_id', user.id)
     await supabase.from('strava_connections').delete().eq('user_id', user.id)

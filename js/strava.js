@@ -67,20 +67,33 @@ export async function checkStravaConnection() {
 
     if (state.stravaConnection) {
       if (isNewConnection) {
-        // New connection: show the dashboard immediately then kick off autosync in background
+        // New connection: enable auto-sync by default
+        if (state.profile && !state.profile.auto_sync) {
+          await supabase
+            .from('profiles')
+            .update({ auto_sync: true })
+            .eq('id', state.user.id);
+          state.profile.auto_sync = true;
+        }
+
+        // Show the dashboard immediately then kick off autosync in background
         renderDashboard();
         renderActivities();
         toast('Strava connected! Syncing your activities… 🔄');
         syncActivities();
       } else {
-        // Returning user: load from DB, sync only if no activities yet
-        loadActivitiesFromDb()
-          .then(() => {
-            if (state.activities.length === 0) {
-              syncActivities();
-            }
-          })
-          .catch(e => console.error('loadActivities error:', e));
+        // Returning user: load from DB first
+        await loadActivitiesFromDb();
+
+        // Auto-sync if enabled in profile
+        const autoSync = state.profile?.auto_sync !== false; // default true
+        if (autoSync) {
+          toast('Auto-syncing with Strava… 🔄');
+          syncActivities(); // non-blocking
+        } else if (state.activities.length === 0) {
+          // Even if auto-sync is off, sync if no activities exist
+          syncActivities();
+        }
       }
     } else {
       renderDashboard();
@@ -115,6 +128,16 @@ function updateStravaSettingsUI() {
     if (statusTxt)     statusTxt.textContent       = 'Not connected';
     if (reconnectBtn)  reconnectBtn.style.display  = '';
     if (disconnectBtn) disconnectBtn.style.display = 'none';
+  }
+
+  // Auto-sync toggle
+  const autoSyncToggle = qs('#autosync-toggle');
+  const autoSyncWrap = qs('#autosync-row');
+  if (autoSyncWrap) {
+    autoSyncWrap.style.display = sc ? '' : 'none';
+  }
+  if (autoSyncToggle) {
+    autoSyncToggle.checked = state.profile?.auto_sync !== false;
   }
 }
 
@@ -201,6 +224,18 @@ export async function syncActivities() {
   await loadActivitiesFromDb();
   const count = body?.count ?? 0;
   toast(count > 0 ? `Synced ${count} activities ✓` : 'Synced ✓');
+
+  // ── Post-sync game recalculation ──
+  try {
+    const { recalcAndPersistAfterSync, refreshGameUI } = await import('./game.js');
+    await recalcAndPersistAfterSync();
+    refreshGameUI();
+
+    const { updateChallengeProgress } = await import('./challenges.js');
+    await updateChallengeProgress();
+  } catch (err) {
+    console.error('Post-sync game recalc error:', err);
+  }
 }
 
 export async function loadActivitiesFromDb() {
@@ -221,4 +256,21 @@ export async function loadActivitiesFromDb() {
   state.activities = data || [];
   renderDashboard();
   renderActivities();
+}
+
+// ── AUTO-SYNC TOGGLE HANDLER ──────────────────────────────────────────────────
+export async function toggleAutoSync(enabled) {
+  if (!state.user) return;
+  const { error } = await supabase
+    .from('profiles')
+    .update({ auto_sync: enabled, updated_at: new Date().toISOString() })
+    .eq('id', state.user.id);
+
+  if (error) {
+    toast('Failed to update auto-sync setting', 'error');
+    return;
+  }
+
+  if (state.profile) state.profile.auto_sync = enabled;
+  toast(enabled ? 'Auto-sync enabled ✓' : 'Auto-sync disabled');
 }

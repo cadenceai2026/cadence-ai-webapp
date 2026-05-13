@@ -1,14 +1,175 @@
 /**
- * challenges.js — Daily & weekly auto-generated challenges with progress bars.
+ * challenges.js — Daily & weekly auto-generated challenges with real DB persistence.
  */
+import { supabase } from './supabase-client.js';
 import { state } from './state.js';
 import { qs, toast } from './utils.js';
-import { getMockChallenges, awardXP } from './game.js';
+import { awardXP, getWeeklyKmFromActivities } from './game.js';
 
-// ── LOAD CHALLENGES ───────────────────────────────────────────────────────────
+// ── CHALLENGE TEMPLATES (used to auto-generate) ──────────────────────────────
+const DAILY_TEMPLATES = [
+  { title: 'Run 3 km today',    target_km: 3,  xp_reward: 50  },
+  { title: 'Run 5 km today',    target_km: 5,  xp_reward: 80  },
+  { title: 'Run 2 km today',    target_km: 2,  xp_reward: 30  },
+];
+
+const WEEKLY_TEMPLATES = [
+  { title: 'Log 3 runs this week',   target_count: 3,  xp_reward: 100 },
+  { title: 'Cover 20 km this week',  target_km: 20,    xp_reward: 150 },
+  { title: 'Cover 10 km this week',  target_km: 10,    xp_reward: 80  },
+  { title: 'Log 5 runs this week',   target_count: 5,  xp_reward: 200 },
+];
+
+// ── LOAD CHALLENGES FROM DB ──────────────────────────────────────────────────
 async function loadChallengeData() {
-  if (state.challenges.length) return;
-  state.challenges = getMockChallenges();
+  if (!state.user) {
+    state.challenges = [];
+    return;
+  }
+
+  try {
+    const now = new Date().toISOString();
+
+    // Fetch active (non-expired) challenges
+    const { data, error } = await supabase
+      .from('challenges')
+      .select('*')
+      .eq('user_id', state.user.id)
+      .gte('expires_at', now)
+      .order('type', { ascending: true })
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      console.error('loadChallengeData error:', error);
+      state.challenges = [];
+      return;
+    }
+
+    state.challenges = data || [];
+
+    // If no challenges exist for today/this week, auto-generate them
+    const hasDaily = state.challenges.some(c => c.type === 'daily');
+    const hasWeekly = state.challenges.some(c => c.type === 'weekly');
+
+    const newChallenges = [];
+
+    if (!hasDaily) {
+      const endOfDay = new Date();
+      endOfDay.setHours(23, 59, 59, 0);
+      const template = DAILY_TEMPLATES[Math.floor(Math.random() * DAILY_TEMPLATES.length)];
+      newChallenges.push({
+        user_id: state.user.id,
+        type: 'daily',
+        title: template.title,
+        target_km: template.target_km || null,
+        target_count: template.target_count || null,
+        xp_reward: template.xp_reward,
+        current_value: 0,
+        expires_at: endOfDay.toISOString(),
+      });
+    }
+
+    if (!hasWeekly) {
+      const nextMonday = new Date();
+      const daysUntilMon = (8 - nextMonday.getDay()) % 7 || 7;
+      nextMonday.setDate(nextMonday.getDate() + daysUntilMon);
+      nextMonday.setHours(0, 0, 0, 0);
+
+      // Generate 2 weekly challenges
+      const shuffled = [...WEEKLY_TEMPLATES].sort(() => Math.random() - 0.5);
+      for (let i = 0; i < 2 && i < shuffled.length; i++) {
+        const t = shuffled[i];
+        newChallenges.push({
+          user_id: state.user.id,
+          type: 'weekly',
+          title: t.title,
+          target_km: t.target_km || null,
+          target_count: t.target_count || null,
+          xp_reward: t.xp_reward,
+          current_value: 0,
+          expires_at: nextMonday.toISOString(),
+        });
+      }
+    }
+
+    if (newChallenges.length > 0) {
+      const { data: inserted, error: insertErr } = await supabase
+        .from('challenges')
+        .insert(newChallenges)
+        .select();
+
+      if (insertErr) {
+        console.error('auto-generate challenges error:', insertErr);
+      } else if (inserted) {
+        state.challenges = [...state.challenges, ...inserted];
+      }
+    }
+
+    // Update current_value for km-based challenges from real activities
+    await updateChallengeProgressFromActivities();
+
+  } catch (err) {
+    console.error('loadChallengeData unexpected:', err);
+    state.challenges = [];
+  }
+}
+
+// ── UPDATE PROGRESS FROM REAL ACTIVITIES ──────────────────────────────────────
+async function updateChallengeProgressFromActivities() {
+  if (!state.user || !state.challenges.length) return;
+
+  const weeklyKm = getWeeklyKmFromActivities();
+  const now = Date.now();
+  const dayStart = new Date();
+  dayStart.setHours(0, 0, 0, 0);
+
+  // Daily km
+  const todayKm = (state.activities || [])
+    .filter(a => {
+      const d = new Date(a.start_date_local || a.start_date);
+      return d >= dayStart && (a.sport_type === 'Run' || a.sport_type === 'TrailRun');
+    })
+    .reduce((sum, a) => sum + (a.distance || 0) / 1000, 0);
+
+  // Weekly run count
+  const week = 7 * 24 * 3600 * 1000;
+  const weeklyRunCount = (state.activities || [])
+    .filter(a => {
+      const d = new Date(a.start_date_local || a.start_date);
+      return (now - d.getTime()) < week &&
+             (a.sport_type === 'Run' || a.sport_type === 'TrailRun');
+    })
+    .length;
+
+  const updates = [];
+
+  for (const ch of state.challenges) {
+    if (ch.completed) continue;
+
+    let newValue = ch.current_value;
+
+    if (ch.type === 'daily' && ch.target_km) {
+      newValue = Math.min(ch.target_km, parseFloat(todayKm.toFixed(1)));
+    } else if (ch.type === 'weekly' && ch.target_km) {
+      newValue = Math.min(ch.target_km, parseFloat(weeklyKm.toFixed(1)));
+    } else if (ch.type === 'weekly' && ch.target_count) {
+      newValue = Math.min(ch.target_count, weeklyRunCount);
+    }
+
+    if (newValue !== ch.current_value) {
+      ch.current_value = newValue;
+      updates.push(
+        supabase
+          .from('challenges')
+          .update({ current_value: newValue })
+          .eq('id', ch.id)
+      );
+    }
+  }
+
+  if (updates.length > 0) {
+    await Promise.all(updates);
+  }
 }
 
 // ── PROGRESS CALCULATION ──────────────────────────────────────────────────────
@@ -99,8 +260,8 @@ function renderChallengeSection(selector, list, label) {
   });
 }
 
-// ── CLAIM CHALLENGE ───────────────────────────────────────────────────────────
-window.claimChallenge = function(id) {
+// ── CLAIM CHALLENGE (persisted to DB) ─────────────────────────────────────────
+window.claimChallenge = async function(id) {
   const ch = state.challenges.find(c => c.id === id);
   if (!ch) return;
   const { pct } = getProgress(ch);
@@ -109,7 +270,16 @@ window.claimChallenge = function(id) {
 
   ch.completed    = true;
   ch.completed_at = new Date().toISOString();
-  awardXP(ch.xp_reward, ch.title);
+
+  // Persist to DB
+  if (state.user) {
+    await supabase
+      .from('challenges')
+      .update({ completed: true, completed_at: ch.completed_at })
+      .eq('id', ch.id);
+  }
+
+  await awardXP(ch.xp_reward, ch.title);
   toast(`🎉 Challenge complete! +${ch.xp_reward} XP`);
 
   // Refresh UI
@@ -122,17 +292,11 @@ window.claimChallenge = function(id) {
 };
 
 // ── UPDATE CHALLENGE PROGRESS (called after activity sync) ────────────────────
-export function updateChallengeProgress() {
-  const weeklyKm = import('./game.js').then(({ getWeeklyKmFromActivities }) => {
-    const km = getWeeklyKmFromActivities();
-    state.challenges.forEach(ch => {
-      if (ch.completed) return;
-      if (ch.target_km && ch.type === 'weekly') {
-        ch.current_value = Math.min(ch.target_km, km);
-      }
-    });
+export async function updateChallengeProgress() {
+  await updateChallengeProgressFromActivities();
+  if (state.currentPage === 'challenges') {
     renderChallenges();
-  });
+  }
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────────

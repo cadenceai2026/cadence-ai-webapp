@@ -1,6 +1,7 @@
 import { supabase } from './supabase-client.js';
 import { state } from './state.js';
 import { qs, toast } from './utils.js';
+import { CONFIG } from './config.js';
 
 export function initBilling() {
   qs('#btn-checkout')?.addEventListener('click', startCheckout);
@@ -20,13 +21,27 @@ async function startCheckout() {
   const token = session?.access_token;
   if (!token) { toast('Session expired — please sign in again', 'error'); return; }
 
-  const { data, error } = await supabase.functions.invoke('create-checkout-session', {
-    body: { email: state.user.email },
-    headers: { Authorization: `Bearer ${token}` }
-  });
+  let resp, data;
+  try {
+    resp = await fetch(`${CONFIG.supabaseUrl}/functions/v1/create-checkout-session`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        'apikey': CONFIG.supabaseAnonKey,
+      },
+      body: JSON.stringify({ email: state.user.email }),
+    });
+    data = await resp.json();
+  } catch (e) {
+    toast('Could not start checkout — network error', 'error');
+    if (btn) { btn.disabled = false; btn.textContent = 'Start free trial →'; }
+    return;
+  }
 
-  if (error || !data?.url) {
-    toast('Could not start checkout', 'error');
+  if (!resp.ok || !data?.url) {
+    const detail = data?.error || `HTTP ${resp.status}`;
+    toast(`Could not start checkout — ${detail}`, 'error');
     if (btn) { btn.disabled = false; btn.textContent = 'Start free trial →'; }
     return;
   }

@@ -1,5 +1,5 @@
 /**
- * game.js — Core XP engine, level system, mock data, and game boot.
+ * game.js — Core XP engine, level system, real DB operations, and game boot.
  */
 import { supabase } from './supabase-client.js';
 import { state } from './state.js';
@@ -67,120 +67,165 @@ export function getWeeklyKmFromActivities() {
     .reduce((sum, a) => sum + (a.distance || 0) / 1000, 0);
 }
 
-// ── MOCK DATA (shown when DB tables not yet populated) ────────────────────────
-export function getMockGameProfile(weeklyKm = 12.3) {
-  const totalXP = xpForLevel(7) + 850;
-  return {
-    user_id:      state.user?.id || 'demo',
-    level:        levelFromXP(totalXP),
-    total_xp:     totalXP,
-    season_xp:    850,
-    league:       'silver',
-    streak_days:  4,
-    last_run_date: new Date(Date.now() - 86400000).toISOString(),
-    weekly_km:    weeklyKm,
-    total_km:     142.8,
-    battles_won:  3,
-    battles_lost: 2,
-    _isMock:      true,
-  };
+// ── STREAK CALCULATION ────────────────────────────────────────────────────────
+export function calculateStreakFromActivities() {
+  const runs = (state.activities || [])
+    .filter(a => a.sport_type === 'Run' || a.sport_type === 'TrailRun')
+    .sort((a, b) => new Date(b.start_date) - new Date(a.start_date));
+
+  if (!runs.length) return { streak: 0, lastRunDate: null };
+
+  // Build set of unique run dates (local time)
+  const runDays = new Set();
+  runs.forEach(r => {
+    const d = new Date(r.start_date_local || r.start_date);
+    runDays.add(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`);
+  });
+
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayStr = `${yesterday.getFullYear()}-${String(yesterday.getMonth()+1).padStart(2,'0')}-${String(yesterday.getDate()).padStart(2,'0')}`;
+
+  // Streak starts from today or yesterday
+  let streak = 0;
+  let checkDate = new Date(today);
+
+  if (runDays.has(todayStr)) {
+    // Start counting from today
+  } else if (runDays.has(yesterdayStr)) {
+    checkDate = new Date(yesterday);
+  } else {
+    return { streak: 0, lastRunDate: runs[0] ? new Date(runs[0].start_date).toISOString().split('T')[0] : null };
+  }
+
+  while (true) {
+    const ds = `${checkDate.getFullYear()}-${String(checkDate.getMonth()+1).padStart(2,'0')}-${String(checkDate.getDate()).padStart(2,'0')}`;
+    if (runDays.has(ds)) {
+      streak++;
+      checkDate.setDate(checkDate.getDate() - 1);
+    } else {
+      break;
+    }
+  }
+
+  const lastRunDate = runs[0] ? new Date(runs[0].start_date).toISOString().split('T')[0] : null;
+  return { streak, lastRunDate };
 }
 
-export function getMockRival() {
-  return {
-    id:           'rival_demo',
-    display_name: 'Alex M.',
-    level:        8,
-    league:       'silver',
-    weekly_km:    14.1,
-    avatar_initial: 'A',
-    battles_won:  5,
-    battles_lost: 2,
-    win_streak:   2,
-    _isMock:      true,
-  };
+// ── TOTAL KM FROM ACTIVITIES ─────────────────────────────────────────────────
+export function getTotalKmFromActivities() {
+  return (state.activities || [])
+    .filter(a => a.sport_type === 'Run' || a.sport_type === 'TrailRun')
+    .reduce((sum, a) => sum + (a.distance || 0) / 1000, 0);
 }
 
-export function getMockBattle() {
-  const now  = Date.now();
-  return {
-    id:             'battle_demo',
-    status:         'active',
-    challenger_km:  12.3,
-    opponent_km:    14.1,
-    challenger_name: state.profile?.display_name || 'You',
-    opponent_name:  'Alex M.',
-    start_date:     new Date(now - 3 * 86400000).toISOString(),
-    end_date:       new Date(now + 4 * 86400000).toISOString(),
-    type:           'weekly_km',
-    title:          'Weekly Battle',
-    week_number:    20,
-    _isMock:        true,
-  };
-}
-
-export function getMockBattlePass() {
-  return {
-    season: { season_number: 1, name: 'Season 1 — Rise', start_date: '2026-05-01', end_date: '2026-05-31', total_levels: 50 },
-    progress: { current_level: 12, current_xp: 340, is_premium: false, claimed_levels: [1,2,3,4,5,6,7,8,9,10,11] },
-    _isMock: true,
-  };
-}
-
-export function getMockChallenges() {
-  const now = new Date();
-  const endOfDay = new Date(now); endOfDay.setHours(23,59,59,0);
-  const nextMonday = new Date(now);
-  const daysUntilMon = (8 - nextMonday.getDay()) % 7 || 7;
-  nextMonday.setDate(nextMonday.getDate() + daysUntilMon);
-  nextMonday.setHours(0,0,0,0);
-
-  return [
-    { id: 'ch1', type: 'daily',  title: 'Run 3 km today',          target_km:   3,  current_value: 1.2, xp_reward: 50,  completed: false, expires_at: endOfDay.toISOString()  },
-    { id: 'ch2', type: 'weekly', title: 'Log 3 runs this week',    target_count: 3, current_value: 2,   xp_reward: 100, completed: false, expires_at: nextMonday.toISOString()},
-    { id: 'ch3', type: 'weekly', title: 'Cover 20 km this week',   target_km:  20,  current_value: 12.3,xp_reward: 150, completed: false, expires_at: nextMonday.toISOString()},
-  ];
-}
-
-export function getMockLeaderboard() {
-  const displayName = state.profile?.display_name || 'You';
-  return [
-    { rank: 1, name: 'María G.',  km: 28.4, level: 12, isUser: false, avatar: 'M' },
-    { rank: 2, name: 'Carlos R.', km: 24.8, level: 10, isUser: false, avatar: 'C' },
-    { rank: 3, name: 'Anna K.',   km: 19.2, level:  9, isUser: false, avatar: 'A' },
-    { rank: 4, name: displayName, km: 12.3, level:  7, isUser: true,  avatar: displayName[0]?.toUpperCase() || 'Y' },
-    { rank: 5, name: 'Pedro L.',  km: 10.1, level:  6, isUser: false, avatar: 'P' },
-    { rank: 6, name: 'James W.',  km:  8.9, level:  5, isUser: false, avatar: 'J' },
-    { rank: 7, name: 'Sofia M.',  km:  7.2, level:  5, isUser: false, avatar: 'S' },
-    { rank: 8, name: 'David H.',  km:  5.8, level:  4, isUser: false, avatar: 'D' },
-  ];
-}
-
-// ── LOAD GAME PROFILE FROM DB (with mock fallback) ────────────────────────────
+// ── LOAD GAME PROFILE FROM DB (create if missing) ─────────────────────────────
 export async function loadGameProfile() {
   if (!state.user) {
-    state.gameProfile = getMockGameProfile();
+    state.gameProfile = getDefaultGameProfile();
     return;
   }
   try {
-    const weeklyKm = getWeeklyKmFromActivities();
     const { data, error } = await supabase
       .from('game_profiles')
       .select('*')
       .eq('user_id', state.user.id)
       .maybeSingle();
-    if (error || !data) {
-      state.gameProfile = getMockGameProfile(weeklyKm || 12.3);
-    } else {
-      state.gameProfile = { ...data, weekly_km: weeklyKm || data.weekly_km };
+
+    if (error) {
+      console.error('loadGameProfile error:', error);
+      state.gameProfile = getDefaultGameProfile();
+      return;
     }
-  } catch {
-    state.gameProfile = getMockGameProfile();
+
+    if (!data) {
+      // Auto-create game profile
+      const { data: created, error: createErr } = await supabase
+        .from('game_profiles')
+        .insert({ user_id: state.user.id })
+        .select()
+        .single();
+
+      if (createErr) {
+        console.error('create game_profile error:', createErr);
+        state.gameProfile = getDefaultGameProfile();
+      } else {
+        state.gameProfile = created;
+      }
+    } else {
+      state.gameProfile = data;
+    }
+
+    // Recalculate live fields from activities
+    recalcGameFromActivities();
+  } catch (err) {
+    console.error('loadGameProfile unexpected:', err);
+    state.gameProfile = getDefaultGameProfile();
   }
 }
 
-// ── AWARD XP + ANIMATE ────────────────────────────────────────────────────────
-export function awardXP(amount, reason = '') {
+function getDefaultGameProfile() {
+  return {
+    user_id: state.user?.id || 'unknown',
+    level: 1,
+    total_xp: 0,
+    season_xp: 0,
+    league: 'bronze',
+    streak_days: 0,
+    last_run_date: null,
+    weekly_km: 0,
+    total_km: 0,
+    battles_won: 0,
+    battles_lost: 0,
+  };
+}
+
+// ── RECALCULATE GAME STATE FROM REAL ACTIVITIES ───────────────────────────────
+export function recalcGameFromActivities() {
+  if (!state.gameProfile) return;
+
+  const weeklyKm = getWeeklyKmFromActivities();
+  const totalKm = getTotalKmFromActivities();
+  const { streak, lastRunDate } = calculateStreakFromActivities();
+  const league = leagueFromWeeklyKm(weeklyKm);
+
+  state.gameProfile.weekly_km = parseFloat(weeklyKm.toFixed(2));
+  state.gameProfile.total_km = parseFloat(totalKm.toFixed(2));
+  state.gameProfile.streak_days = streak;
+  state.gameProfile.last_run_date = lastRunDate;
+  state.gameProfile.league = league;
+  state.gameProfile.level = levelFromXP(state.gameProfile.total_xp);
+}
+
+// ── PERSIST GAME PROFILE TO DB ────────────────────────────────────────────────
+export async function saveGameProfile() {
+  if (!state.user || !state.gameProfile) return;
+
+  const gp = state.gameProfile;
+  const { error } = await supabase
+    .from('game_profiles')
+    .update({
+      level: gp.level,
+      total_xp: gp.total_xp,
+      season_xp: gp.season_xp,
+      league: gp.league,
+      streak_days: gp.streak_days,
+      last_run_date: gp.last_run_date,
+      weekly_km: gp.weekly_km,
+      total_km: gp.total_km,
+      battles_won: gp.battles_won,
+      battles_lost: gp.battles_lost,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('user_id', state.user.id);
+
+  if (error) console.error('saveGameProfile error:', error);
+}
+
+// ── AWARD XP + PERSIST + ANIMATE ──────────────────────────────────────────────
+export async function awardXP(amount, reason = '') {
   if (!state.gameProfile) return;
   const before = state.gameProfile.total_xp;
   state.gameProfile.total_xp    += amount;
@@ -190,12 +235,40 @@ export function awardXP(amount, reason = '') {
   if (reason) toast(`+${amount} XP — ${reason} 🎯`);
   checkLevelUp(levelFromXP(before), state.gameProfile.level);
   refreshGameUI();
+
+  // Persist to DB in background
+  await saveGameProfile();
 }
 
 function checkLevelUp(oldLevel, newLevel) {
   if (newLevel > oldLevel) {
     import('./notifications.js').then(({ showLevelUp }) => showLevelUp(newLevel));
   }
+}
+
+// ── FULL POST-SYNC RECALCULATION ──────────────────────────────────────────────
+export async function recalcAndPersistAfterSync() {
+  if (!state.gameProfile) return;
+
+  const oldXP = state.gameProfile.total_xp;
+  recalcGameFromActivities();
+
+  // Award XP for new km since last recalc
+  const weeklyKm = state.gameProfile.weekly_km;
+  const newXP = calculateXP({
+    km: weeklyKm,
+    streakDays: state.gameProfile.streak_days,
+  });
+
+  // Only award difference to avoid double-counting
+  if (newXP > oldXP && oldXP === 0) {
+    state.gameProfile.total_xp = newXP;
+    state.gameProfile.season_xp = newXP;
+    state.gameProfile.level = levelFromXP(newXP);
+  }
+
+  await saveGameProfile();
+  refreshGameUI();
 }
 
 // ── XP BAR RENDERER (used by dashboard + battlepass) ─────────────────────────

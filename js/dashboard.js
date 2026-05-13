@@ -85,7 +85,7 @@ function renderRivalCallout() {
       <div class="rival-callout-av">${(rivName[0] || 'R').toUpperCase()}</div>
       <div class="rival-callout-text">
         <div class="rival-callout-msg">${statusText}</div>
-        <div class="rival-callout-sub">Week 20 · ${Math.ceil((new Date(battle?.end_date || Date.now() + 4 * 86400000) - Date.now()) / 86400000)} days left</div>
+        <div class="rival-callout-sub">Week ${battle?.week_number || '?'} · ${Math.ceil((new Date(battle?.end_date || Date.now() + 4 * 86400000) - Date.now()) / 86400000)} days left</div>
       </div>
       <button class="rival-callout-btn" onclick="navigate('battles')">View battle →</button>
     </div>`;

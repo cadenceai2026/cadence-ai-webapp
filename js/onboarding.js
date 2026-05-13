@@ -3,7 +3,7 @@
  */
 import { state } from './state.js';
 import { qs } from './utils.js';
-import { getMockRival, getMockChallenges, LEAGUES } from './game.js';
+import { LEAGUES } from './game.js';
 
 const STORAGE_KEY = 'cadence_onboarding_done';
 
@@ -30,27 +30,25 @@ function runSteps() {
     qs('#ob-step-4'),
   ];
 
-  // Populate step 2 — rival
-  const rival = getMockRival();
+  // Populate step 2 — rival (inline data since it's just onboarding flavor)
   const rivalEl = qs('#ob-rival-card');
   if (rivalEl) {
     rivalEl.innerHTML = `
-      <div class="ob-rival-av">${rival.avatar_initial || 'A'}</div>
+      <div class="ob-rival-av">A</div>
       <div>
-        <div class="ob-rival-name">${rival.display_name}</div>
-        <div class="ob-rival-stats">Level ${rival.level} · Silver League · ${rival.weekly_km} km/wk avg</div>
+        <div class="ob-rival-name">Your first rival</div>
+        <div class="ob-rival-stats">Will be matched to your level & league</div>
       </div>`;
   }
 
   // Populate step 3 — challenge
-  const ch   = getMockChallenges()[2]; // weekly 20km challenge
   const chEl = qs('#ob-challenge-card');
-  if (chEl && ch) {
+  if (chEl) {
     chEl.innerHTML = `
       <div class="ob-ch-icon">⚡</div>
       <div>
-        <div class="ob-ch-title">${ch.title}</div>
-        <div class="ob-ch-xp">+${ch.xp_reward} XP reward</div>
+        <div class="ob-ch-title">Cover 20 km this week</div>
+        <div class="ob-ch-xp">+150 XP reward</div>
       </div>`;
   }
 
@@ -84,12 +82,6 @@ export function finishOnboarding() {
   overlay.classList.remove('ob-visible');
   overlay.classList.add('ob-exit');
   setTimeout(() => overlay.style.display = 'none', 500);
-
-  // Assign rival and first battle
-  state.rival = getMockRival();
-  import('./game.js').then(({ getMockBattle }) => {
-    state.activeBattle = getMockBattle();
-  });
 }
 
 window.finishOnboarding = finishOnboarding;
