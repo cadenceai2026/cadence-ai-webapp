@@ -54,7 +54,8 @@ ON CONFLICT (user_id, season_id) DO NOTHING;
 
 -- ── Allow battle_pass_seasons to be read by all authenticated users ────────
 ALTER TABLE battle_pass_seasons ENABLE ROW LEVEL SECURITY;
-CREATE POLICY IF NOT EXISTS "seasons_read_all" ON battle_pass_seasons
+DROP POLICY IF EXISTS "seasons_read_all" ON battle_pass_seasons;
+CREATE POLICY "seasons_read_all" ON battle_pass_seasons
   FOR SELECT USING (true);
 
 -- ── Allow game_profiles to be read by all (for leaderboard) ────────────────

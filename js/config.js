@@ -1,6 +1,6 @@
 export const CONFIG = {
   supabaseUrl: 'https://arjjukxsnffmhjlgmmoz.supabase.co',
-  supabaseAnonKey: 'sb_publishable_1mCLOBQJMpY-2-1R32OwdA_B2cT9qTK',
+  supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFyamp1a3hzbmZmbWhqbGdtbW96Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5Mzg2NDcsImV4cCI6MjA5MzUxNDY0N30.zFMAxEAAYVAgpUcmlI8VxjNlt0Xcbeb4iR4xDzPeFQU',
 
   strava: {
     clientId: '235355',
