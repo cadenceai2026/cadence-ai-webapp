@@ -4,6 +4,11 @@ import { loadSettingsUI } from './settings.js';
 import { loadGroups } from './groups.js';
 import { loadRanking } from './ranking.js';
 import { loadAdminData } from './admin.js';
+import { renderBattleScreen } from './battles.js';
+import { renderBattlePass } from './battlepass.js';
+import { renderChallenges } from './challenges.js';
+import { renderLeague } from './leagues.js';
+import { checkFirstRun } from './onboarding.js';
 
 export function initRouter() {
   // Desktop nav
@@ -22,11 +27,26 @@ export function initRouter() {
 }
 
 export function navigate(name) {
+  state_currentPage(name);
   showPage(name);
 
   // Side effects per page
-  if (name === 'settings') loadSettingsUI();
-  if (name === 'groups') loadGroups();
-  if (name === 'ranking') loadRanking();
-  if (name === 'admin') loadAdminData();
+  if (name === 'settings')   loadSettingsUI();
+  if (name === 'groups')     loadGroups();
+  if (name === 'ranking')    loadRanking();
+  if (name === 'admin')      loadAdminData();
+  if (name === 'battles')    renderBattleScreen();
+  if (name === 'battlepass') renderBattlePass();
+  if (name === 'challenges') renderChallenges();
+  if (name === 'leagues')    renderLeague();
+}
+
+function state_currentPage(name) {
+  // Keep state.currentPage in sync
+  import('./state.js').then(({ state }) => { state.currentPage = name; });
+}
+
+// Called from auth.js after boot is complete
+export function triggerFirstRun() {
+  checkFirstRun();
 }

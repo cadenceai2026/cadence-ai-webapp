@@ -25,14 +25,18 @@ export function showPage(name) {
   qs(`.mob-nav-btn[data-page="${name}"]`)?.classList.add('active');
 
   const titles = {
-    dashboard: 'Dashboard',
-    coach: 'AI Coach',
+    dashboard:  'Dashboard',
+    coach:      'AI Coach',
     activities: 'Activities',
-    groups: 'Groups',
-    ranking: 'Ranking 🏆',
-    pricing: 'Upgrade to Elite',
-    settings: 'Settings',
-    admin: 'Admin 🛡️'
+    groups:     'Groups',
+    ranking:    'Ranking 🏆',
+    pricing:    'Upgrade to Elite',
+    settings:   'Settings',
+    admin:      'Admin 🛡️',
+    battles:    '⚔️ Battles',
+    battlepass: '🎫 Battle Pass',
+    leagues:    '🏆 Leagues',
+    challenges: '⚡ Challenges',
   };
   const titleEl = qs('#page-title');
   if (titleEl) titleEl.textContent = titles[name] || name;

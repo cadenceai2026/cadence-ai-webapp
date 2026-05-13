@@ -10,6 +10,7 @@
 <link rel="icon" type="image/svg+xml" href="./favicon.svg">
 <link rel="stylesheet" href="./css/styles.css">
 <link rel="stylesheet" href="./css/app.css">
+<link rel="stylesheet" href="./css/game.css">
 </head>
 <body>
 
@@ -50,11 +51,16 @@
       </a>
       <nav class="sidebar-nav">
         <button class="nav-item active" data-page="dashboard"><span class="nav-icon">🏠</span>Dashboard</button>
+        <div class="nav-section-label">COMPETE</div>
+        <button class="nav-item" data-page="battles"><span class="nav-icon">⚔️</span>Battles</button>
+        <button class="nav-item" data-page="battlepass"><span class="nav-icon">🎫</span>Battle Pass</button>
+        <button class="nav-item" data-page="leagues"><span class="nav-icon">🏆</span>Leagues</button>
+        <button class="nav-item" data-page="challenges"><span class="nav-icon">⚡</span>Challenges</button>
+        <div class="nav-section-label">TRAIN</div>
         <button class="nav-item" data-page="coach"><span class="nav-icon">🤖</span>AI Coach</button>
         <button class="nav-item" data-page="activities"><span class="nav-icon">🏃</span>Activities</button>
         <button class="nav-item" data-page="groups"><span class="nav-icon">👥</span>Groups</button>
-        <button class="nav-item" data-page="ranking"><span class="nav-icon">🏆</span>Ranking</button>
-        <button class="nav-item" data-page="pricing"><span class="nav-icon">⚡</span>Upgrade</button>
+        <button class="nav-item" data-page="pricing"><span class="nav-icon">✨</span>Upgrade</button>
         <button class="nav-item" data-page="admin" id="admin-nav-item" style="display:none"><span class="nav-icon">🛡️</span>Admin</button>
         <button class="nav-item" data-page="settings"><span class="nav-icon">⚙️</span>Settings</button>
       </nav>
@@ -94,6 +100,15 @@
           <div class="welcome-sub" id="welcome-sub">Here's your training overview</div>
           <div class="welcome-plan" id="welcome-plan">FREE TRIAL</div>
         </div>
+
+        <!-- Game widget strip -->
+        <div class="game-strip">
+          <div id="dash-xp-bar" class="game-strip-xp"><!-- XP bar injected by game.js --></div>
+          <div id="dash-streak" class="game-strip-streak"><!-- Streak badge --></div>
+        </div>
+
+        <!-- Rival callout -->
+        <div id="dash-rival-callout" class="dash-rival-wrap"><!-- Rival status injected by dashboard.js --></div>
 
         <div class="quick-actions">
           <button class="quick-action" data-goto="coach">
@@ -459,20 +474,118 @@
             </div>
           </div>
 
+      <!-- ── BATTLES ── -->
+      <div class="page" id="page-battles">
+        <div class="battle-hero" id="battle-hero">
+          <div class="battle-hero-top">
+            <div class="battle-title" id="battle-title">⚔️ Weekly Battle · Week 20</div>
+            <div class="battle-timer" id="battle-timer">4d left</div>
+          </div>
+          <div class="battle-vs-card">
+            <div class="battle-side">
+              <div class="battle-avatar you" id="battle-you-av">Y</div>
+              <div class="battle-side-name">You</div>
+              <div class="battle-side-km" id="battle-you-km">— km</div>
+              <div class="battle-side-league silver">🥈 Silver</div>
+            </div>
+            <div class="battle-center">
+              <div class="battle-vs-text">VS</div>
+              <div class="battle-status-badge losing" id="battle-status-badge">BEHIND</div>
+            </div>
+            <div class="battle-side">
+              <div class="battle-avatar rival" id="battle-rival-av">A</div>
+              <div class="battle-side-name" id="battle-rival-name">Alex M.</div>
+              <div class="battle-side-km" id="battle-rival-km">— km</div>
+              <div class="battle-side-league silver">🥈 Silver</div>
+            </div>
+          </div>
+          <div class="battle-bar-wrap">
+            <div class="battle-bar-you" id="battle-bar-you" style="width:50%"></div>
+            <div class="battle-bar-rival" id="battle-bar-rival" style="width:50%"></div>
+          </div>
+          <div class="battle-message losing" id="battle-message">Loading…</div>
+          <div class="battle-actions">
+            <button class="btn btn-green" id="btn-battle-sync">↻ Sync Run</button>
+            <button class="btn btn-outline" id="btn-rematch">🔄 Rematch</button>
+          </div>
+        </div>
+        <div class="battle-empty" id="battle-empty" style="display:none">
+          <div style="font-size:3rem;margin-bottom:12px">⚔️</div>
+          <div style="font-size:1.1rem;font-weight:600;margin-bottom:6px">No active battle</div>
+          <div style="font-size:0.85rem;color:var(--muted);margin-bottom:20px">Get matched with a rival your level</div>
+          <button class="btn btn-green" id="btn-find-battle">Find a rival →</button>
+        </div>
+        <div class="sec-head" style="margin-top:28px">
+          <div class="sec-title">Battle History</div>
+        </div>
+        <div id="battle-history"></div>
+      </div>
+
+      <!-- ── BATTLE PASS ── -->
+      <div class="page" id="page-battlepass">
+        <div class="bp-header-row">
+          <div id="bp-header">
+            <div class="bp-season-name">Season 1 — Rise</div>
+            <div class="bp-season-meta">17 days remaining · 50 levels</div>
+          </div>
+          <button class="btn btn-outline btn-sm" id="btn-upgrade-pass">👑 Go Premium</button>
+        </div>
+        <div id="bp-xp-bar" class="bp-xp-section"></div>
+        <div class="bp-upsell" id="bp-upsell">
+          <span>🔒 Unlock premium rewards with Elite</span>
+          <button class="bp-upsell-btn" onclick="navigate('pricing')">Upgrade →</button>
+        </div>
+        <div class="bp-track-label">
+          <span>FREE TRACK</span><span>🔒 PREMIUM</span>
+        </div>
+        <div class="bp-track-scroll">
+          <div class="bp-track" id="bp-track"></div>
+        </div>
+      </div>
+
+      <!-- ── LEAGUES ── -->
+      <div class="page" id="page-leagues">
+        <div class="league-tier-tabs">
+          <button class="league-tab" data-league="bronze">🥉 Bronze</button>
+          <button class="league-tab active" data-league="silver">🥈 Silver</button>
+          <button class="league-tab" data-league="gold">🥇 Gold</button>
+          <button class="league-tab" data-league="elite">👑 Elite</button>
+        </div>
+        <div id="league-header" class="league-header"></div>
+        <div class="league-list-wrap">
+          <div id="league-list"><div class="empty"><span class="spinner"></span> Loading…</div></div>
+        </div>
+      </div>
+
+      <!-- ── CHALLENGES ── -->
+      <div class="page" id="page-challenges">
+        <div class="challenges-section">
+          <div class="sec-head">
+            <div class="sec-title">⚡ Daily</div>
+            <div class="challenge-reset-timer" id="daily-reset">Resets tonight</div>
+          </div>
+          <div id="challenges-daily"><div class="empty"><span class="spinner"></span> Loading…</div></div>
+        </div>
+        <div class="challenges-section" style="margin-top:24px">
+          <div class="sec-head">
+            <div class="sec-title">📅 Weekly</div>
+            <div class="challenge-reset-timer" id="weekly-reset">Resets Monday</div>
+          </div>
+          <div id="challenges-weekly"><div class="empty"><span class="spinner"></span> Loading…</div></div>
         </div>
       </div>
 
     </main>
   </div>
 
-  <!-- Mobile bottom nav -->
+  <!-- Mobile bottom nav (game-first) -->
   <nav class="mob-nav">
     <div class="mob-nav-items">
       <button class="mob-nav-btn active" data-page="dashboard"><span class="mob-nav-icon">🏠</span><span class="mob-nav-label">Home</span></button>
-      <button class="mob-nav-btn" data-page="coach"><span class="mob-nav-icon">🤖</span><span class="mob-nav-label">Coach</span></button>
-      <button class="mob-nav-btn" data-page="activities"><span class="mob-nav-icon">🏃</span><span class="mob-nav-label">Runs</span></button>
-      <button class="mob-nav-btn" data-page="groups"><span class="mob-nav-icon">👥</span><span class="mob-nav-label">Groups</span></button>
-      <button class="mob-nav-btn" data-page="settings"><span class="mob-nav-icon">⚙️</span><span class="mob-nav-label">Settings</span></button>
+      <button class="mob-nav-btn" data-page="battles"><span class="mob-nav-icon">⚔️</span><span class="mob-nav-label">Battles</span></button>
+      <button class="mob-nav-btn" data-page="battlepass"><span class="mob-nav-icon">🎫</span><span class="mob-nav-label">Pass</span></button>
+      <button class="mob-nav-btn" data-page="leagues"><span class="mob-nav-icon">🏆</span><span class="mob-nav-label">Leagues</span></button>
+      <button class="mob-nav-btn" data-page="challenges"><span class="mob-nav-icon">⚡</span><span class="mob-nav-label">Goals</span></button>
     </div>
   </nav>
 
@@ -507,6 +620,74 @@
 </div>
 
 <div id="toast-root"></div>
+
+<!-- ══ LEVEL-UP MODAL ══ -->
+<div id="levelup-modal" style="display:none" class="modal-overlay levelup-overlay">
+  <div class="levelup-box">
+    <div class="levelup-glow"></div>
+    <div class="levelup-emoji">⬆️</div>
+    <div class="levelup-label">LEVEL UP!</div>
+    <div class="levelup-num" id="levelup-num">8</div>
+    <div class="levelup-sub">You're getting stronger 🔥</div>
+    <button onclick="closeLevelUp()" class="btn btn-green" style="width:100%;margin-top:16px">Keep Running →</button>
+  </div>
+</div>
+
+<!-- ══ REWARD MODAL ══ -->
+<div id="reward-modal" style="display:none" class="modal-overlay reward-overlay">
+  <div class="reward-box">
+    <div id="reward-modal-body">
+      <div class="reward-modal-emoji">🎁</div>
+      <div class="reward-modal-title">Reward Unlocked!</div>
+      <div class="reward-modal-sub">Congrats 🎉</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ONBOARDING OVERLAY ══ -->
+<div id="onboarding-overlay" style="display:none" class="ob-overlay">
+  <div class="ob-card">
+    <!-- Step 1: Welcome -->
+    <div class="ob-step ob-step-active" id="ob-step-1">
+      <div class="ob-step-emoji">🎮</div>
+      <div class="ob-step-title">Welcome, <span id="ob-user-name">Runner</span>!</div>
+      <div class="ob-step-sub">You're now in the game.<br>Compete. Win. Level up.</div>
+      <div class="ob-progress-dots">
+        <span class="ob-dot active"></span><span class="ob-dot"></span><span class="ob-dot"></span><span class="ob-dot"></span>
+      </div>
+    </div>
+    <!-- Step 2: Rival -->
+    <div class="ob-step" id="ob-step-2">
+      <div class="ob-step-emoji">⚔️</div>
+      <div class="ob-step-title">We found your rival</div>
+      <div class="ob-step-sub">Someone just like you. Defeat them.</div>
+      <div id="ob-rival-card" class="ob-rival-card"><!-- injected --></div>
+      <div class="ob-progress-dots">
+        <span class="ob-dot"></span><span class="ob-dot active"></span><span class="ob-dot"></span><span class="ob-dot"></span>
+      </div>
+    </div>
+    <!-- Step 3: Challenge -->
+    <div class="ob-step" id="ob-step-3">
+      <div class="ob-step-emoji">⚡</div>
+      <div class="ob-step-title">Your first challenge</div>
+      <div class="ob-step-sub">Complete it to earn XP and climb the ranks.</div>
+      <div id="ob-challenge-card" class="ob-challenge-card"><!-- injected --></div>
+      <div class="ob-progress-dots">
+        <span class="ob-dot"></span><span class="ob-dot"></span><span class="ob-dot active"></span><span class="ob-dot"></span>
+      </div>
+    </div>
+    <!-- Step 4: CTA -->
+    <div class="ob-step" id="ob-step-4">
+      <div class="ob-step-emoji">🏆</div>
+      <div class="ob-step-title">You can win this</div>
+      <div class="ob-step-sub">Your rival hasn't run yet today.<br>Every km counts.</div>
+      <button class="btn btn-green" style="width:100%;margin-top:24px;font-size:1rem;padding:14px" onclick="finishOnboarding()">Let's go! 🏃</button>
+      <div class="ob-progress-dots">
+        <span class="ob-dot"></span><span class="ob-dot"></span><span class="ob-dot"></span><span class="ob-dot active"></span>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script type="module" src="./js/main.js"></script>
 </body>

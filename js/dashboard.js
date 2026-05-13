@@ -1,6 +1,7 @@
 import { state } from './state.js';
 import { navigate } from './router.js';
 import { qs, fmtTime, fmtPace, fmtDist, typeIcon, esc } from './utils.js';
+import { renderXPBar, renderStreakBadge, getWeeklyKmFromActivities, LEAGUES } from './game.js';
 
 export function renderDashboard() {
   const acts = state.activities || [];
@@ -14,16 +15,21 @@ export function renderDashboard() {
     : 0;
 
   const count = qs('#s-count');
-  const dist = qs('#s-dist');
-  const time = qs('#s-time');
-  const elev = qs('#s-elev');
-  const pace = qs('#s-pace');
+  const dist  = qs('#s-dist');
+  const time  = qs('#s-time');
+  const elev  = qs('#s-elev');
+  const pace  = qs('#s-pace');
 
   if (count) count.textContent = acts.length;
-  if (dist) dist.textContent = fmtDist(totalDist);
-  if (time) time.textContent = (totalTime / 3600).toFixed(1);
-  if (elev) elev.textContent = Math.round(totalElev).toLocaleString();
-  if (pace) pace.textContent = avgPace > 0 ? fmtPace(avgPace) : '—';
+  if (dist)  dist.textContent  = fmtDist(totalDist);
+  if (time)  time.textContent  = (totalTime / 3600).toFixed(1);
+  if (elev)  elev.textContent  = Math.round(totalElev).toLocaleString();
+  if (pace)  pace.textContent  = avgPace > 0 ? fmtPace(avgPace) : '—';
+
+  // ── Render game widgets ──
+  renderXPBar('dash-xp-bar');
+  renderStreakBadge('dash-streak');
+  renderRivalCallout();
 
   const container = qs('#dash-acts');
   if (!container) return;
@@ -45,16 +51,57 @@ export function renderDashboard() {
   }
 }
 
+// ── RIVAL CALLOUT (on dashboard) ─────────────────────────────────────────────
+function renderRivalCallout() {
+  const el = qs('#dash-rival-callout');
+  if (!el) return;
+
+  const battle = state.activeBattle;
+  const rival  = state.rival;
+
+  if (!battle && !rival) {
+    el.innerHTML = `
+      <div class="rival-callout no-rival">
+        <span>⚔️ No rival yet</span>
+        <button class="rival-callout-btn" onclick="navigate('battles')">Find rival →</button>
+      </div>`;
+    return;
+  }
+
+  const youKm   = parseFloat(battle?.challenger_km || 0);
+  const rivKm   = parseFloat(battle?.opponent_km   || 0);
+  const diff    = Math.abs(youKm - rivKm).toFixed(1);
+  const winning = youKm > rivKm;
+  const tied    = youKm === rivKm;
+  const rivName = rival?.display_name || battle?.opponent_name || 'Rival';
+
+  let statusText, statusClass;
+  if (winning)   { statusText = `🏆 You're ahead of ${rivName} by ${diff} km!`;   statusClass = 'winning'; }
+  else if (tied) { statusText = `🤝 Tied with ${rivName}! Every km matters.`;      statusClass = 'tied'; }
+  else           { statusText = `⚠️ ${rivName} is ahead by ${diff} km — run now!`; statusClass = 'losing'; }
+
+  el.innerHTML = `
+    <div class="rival-callout ${statusClass}">
+      <div class="rival-callout-av">${(rivName[0] || 'R').toUpperCase()}</div>
+      <div class="rival-callout-text">
+        <div class="rival-callout-msg">${statusText}</div>
+        <div class="rival-callout-sub">Week 20 · ${Math.ceil((new Date(battle?.end_date || Date.now() + 4 * 86400000) - Date.now()) / 86400000)} days left</div>
+      </div>
+      <button class="rival-callout-btn" onclick="navigate('battles')">View battle →</button>
+    </div>`;
+}
+
+// ── ACTIVITY CARD ─────────────────────────────────────────────────────────────
 export function actCard(a) {
-  const type = a.sport_type || 'Workout';
-  const dist = fmtDist(a.distance || 0);
-  const time = fmtTime(a.moving_time);
-  const isRun = type === 'Run' || type === 'TrailRun';
-  const third = isRun && a.distance > 0
+  const type       = a.sport_type || 'Workout';
+  const dist       = fmtDist(a.distance || 0);
+  const time       = fmtTime(a.moving_time);
+  const isRun      = type === 'Run' || type === 'TrailRun';
+  const third      = isRun && a.distance > 0
     ? fmtPace(a.moving_time / (a.distance / 1000))
     : `${Math.round(a.total_elevation_gain || 0)}m`;
   const thirdLabel = isRun ? 'Pace /km' : 'Elevation';
-  const date = new Date(a.start_date_local || a.start_date)
+  const date       = new Date(a.start_date_local || a.start_date)
     .toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
   return `

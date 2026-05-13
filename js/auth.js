@@ -50,6 +50,10 @@ export async function initAuth() {
   await loadProfile();
   await checkStravaConnection();
 
+  // Trigger first-run onboarding for new users
+  const { triggerFirstRun } = await import('./router.js');
+  triggerFirstRun();
+
   // Handle Stripe redirect
   const params = new URLSearchParams(window.location.search);
   if (params.get('upgraded') === 'true') {

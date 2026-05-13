@@ -1,0 +1,215 @@
+/* ── NAV SECTIONS ── */
+.nav-section-label{font-size:.58rem;color:var(--muted2);font-family:'DM Mono',monospace;letter-spacing:.12em;text-transform:uppercase;padding:14px 12px 4px;margin-top:4px}
+.nav-badge{position:absolute;top:6px;right:8px;background:#ff4444;color:#fff;border-radius:100px;font-size:.55rem;padding:1px 5px;font-family:'DM Mono',monospace}
+
+/* ── XP BAR ── */
+.xp-bar-wrap{display:flex;align-items:center;gap:12px;padding:14px 18px;background:var(--surface);border:1px solid var(--border);border-radius:14px;margin-bottom:12px}
+.xp-level-badge{width:48px;height:48px;border-radius:50%;border:2px solid var(--green);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;background:var(--green-dim)}
+.xp-level-num{font-family:'Syne',sans-serif;font-weight:800;font-size:1.2rem;line-height:1;color:var(--green)}
+.xp-level-lbl{font-size:.5rem;font-family:'DM Mono',monospace;color:var(--green);letter-spacing:.1em}
+.xp-bar-col{flex:1;min-width:0}
+.xp-bar-labels{display:flex;justify-content:space-between;margin-bottom:6px}
+.xp-label{font-family:'DM Mono',monospace;font-size:.72rem;color:var(--green)}
+.xp-label-next{font-size:.65rem;color:var(--muted)}
+.xp-track{height:8px;background:var(--surface3);border-radius:4px;overflow:hidden}
+.xp-fill{height:100%;background:linear-gradient(90deg,#00E5A0,#00ffb3);border-radius:4px;transition:width .8s cubic-bezier(.4,0,.2,1)}
+.xp-league-badge{padding:5px 10px;border-radius:8px;border:1px solid;font-size:.7rem;font-family:'DM Mono',monospace;flex-shrink:0;white-space:nowrap}
+
+/* ── STREAK ── */
+.streak-badge{display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 14px;white-space:nowrap}
+.streak-badge.streak-hot{border-color:#FF6B3544;background:#FF6B3508}
+.streak-flame{font-size:1.3rem}
+.streak-count{font-family:'Syne',sans-serif;font-weight:800;font-size:1.4rem;color:var(--green)}
+.streak-badge.streak-hot .streak-count{color:#FF6B35}
+.streak-lbl{font-size:.68rem;color:var(--muted);font-family:'DM Mono',monospace}
+
+/* ── GAME STRIP (dashboard) ── */
+.game-strip{display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+.game-strip-xp{flex:1;min-width:240px}
+.game-strip-streak{flex-shrink:0}
+.dash-rival-wrap{margin-bottom:20px}
+
+/* ── RIVAL CALLOUT ── */
+.rival-callout{display:flex;align-items:center;gap:12px;padding:14px 18px;border-radius:14px;border:1px solid;background:var(--surface);transition:all .2s}
+.rival-callout.winning{border-color:#00E5A044;background:#00E5A008}
+.rival-callout.losing{border-color:#ff444444;background:#ff44440a}
+.rival-callout.tied{border-color:#FFD70044;background:#FFD70008}
+.rival-callout-av{width:38px;height:38px;border-radius:50%;background:var(--surface3);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.95rem;flex-shrink:0}
+.rival-callout-text{flex:1;min-width:0}
+.rival-callout-msg{font-size:.88rem;font-weight:600;margin-bottom:2px}
+.rival-callout-sub{font-size:.7rem;color:var(--muted)}
+.rival-callout-btn{background:var(--surface2);border:1px solid var(--border2);color:var(--text);border-radius:8px;padding:7px 14px;font-family:'Space Grotesk',sans-serif;font-size:.78rem;cursor:pointer;white-space:nowrap;transition:all .2s}
+.rival-callout-btn:hover{border-color:var(--green);color:var(--green)}
+
+/* ── BATTLES PAGE ── */
+.battle-hero{background:linear-gradient(135deg,#ff444408,var(--surface));border:1px solid #ff444420;border-radius:18px;padding:24px;margin-bottom:8px}
+.battle-hero-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.battle-title{font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem;letter-spacing:-.02em}
+.battle-timer{font-family:'DM Mono',monospace;font-size:.75rem;color:var(--muted);background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:4px 10px}
+.battle-vs-card{display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:center;margin-bottom:20px}
+.battle-side{display:flex;flex-direction:column;align-items:center;gap:4px}
+.battle-avatar{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;margin-bottom:4px}
+.battle-avatar.you{background:var(--green-dim);border:2px solid var(--green);color:var(--green)}
+.battle-avatar.rival{background:#ff444415;border:2px solid #ff444444;color:#ff6b6b}
+.battle-side-name{font-size:.82rem;font-weight:600}
+.battle-side-km{font-family:'DM Mono',monospace;font-size:1.3rem;font-weight:500;color:var(--text)}
+.battle-side-league{font-size:.65rem;padding:2px 8px;border-radius:6px;font-family:'DM Mono',monospace}
+.battle-side-league.silver{background:#A8A8A822;color:#A8A8A8}
+.battle-side-league.gold{background:#FFD70022;color:#FFD700}
+.battle-center{display:flex;flex-direction:column;align-items:center;gap:8px}
+.battle-vs-text{font-family:'Syne',sans-serif;font-weight:800;font-size:1.5rem;letter-spacing:-.02em;color:var(--muted)}
+.battle-status-badge{font-family:'DM Mono',monospace;font-size:.62rem;letter-spacing:.1em;padding:4px 10px;border-radius:100px;border:1px solid}
+.battle-status-badge.winning{background:#00E5A015;border-color:#00E5A044;color:var(--green)}
+.battle-status-badge.losing{background:#ff444415;border-color:#ff444444;color:#ff6b6b}
+.battle-status-badge.tied{background:#FFD70015;border-color:#FFD70044;color:#FFD700}
+.battle-bar-wrap{display:flex;height:10px;border-radius:5px;overflow:hidden;margin-bottom:14px;gap:2px}
+.battle-bar-you{background:var(--green);height:100%;border-radius:5px 0 0 5px;transition:width .8s cubic-bezier(.4,0,.2,1)}
+.battle-bar-rival{background:#ff6b6b;height:100%;border-radius:0 5px 5px 0;transition:width .8s cubic-bezier(.4,0,.2,1)}
+.battle-message{text-align:center;font-size:.85rem;font-weight:500;padding:8px 14px;border-radius:8px;margin-bottom:16px}
+.battle-message.winning{color:var(--green);background:var(--green-dim)}
+.battle-message.losing{color:#ff6b6b;background:#ff44440d}
+.battle-message.tied{color:#FFD700;background:#FFD70010}
+.battle-actions{display:flex;gap:10px;justify-content:center}
+.battle-empty{display:flex;flex-direction:column;align-items:center;padding:48px 20px;text-align:center}
+.battle-hist-row{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:8px}
+.battle-hist-row.won{border-color:#00E5A022}
+.battle-hist-row.lost{border-color:#ff444422}
+.battle-hist-badge{font-family:'DM Mono',monospace;font-size:.62rem;padding:3px 8px;border-radius:6px;flex-shrink:0}
+.battle-hist-row.won .battle-hist-badge{background:var(--green-dim);color:var(--green)}
+.battle-hist-row.lost .battle-hist-badge{background:#ff44440d;color:#ff6b6b}
+.battle-hist-opp{flex:1;font-size:.85rem;font-weight:500}
+.battle-hist-score{font-family:'DM Mono',monospace;font-size:.82rem;display:flex;gap:6px;align-items:center}
+.score-win{color:var(--green)}
+.score-loss{color:#ff6b6b}
+.score-sep{color:var(--muted)}
+.battle-hist-week{font-size:.65rem;color:var(--muted);font-family:'DM Mono',monospace}
+
+/* ── BATTLE PASS ── */
+.bp-header-row{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;gap:12px}
+.bp-season-name{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;letter-spacing:-.02em;margin-bottom:3px}
+.bp-season-meta{font-size:.78rem;color:var(--muted)}
+.bp-xp-section{margin-bottom:14px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 18px}
+.bp-xp-labels{display:flex;justify-content:space-between;margin-bottom:8px;font-size:.78rem;color:var(--muted)}
+.bp-upsell{display:flex;align-items:center;justify-content:space-between;gap:12px;background:linear-gradient(90deg,#9B59B615,var(--surface));border:1px solid #9B59B630;border-radius:12px;padding:12px 16px;margin-bottom:14px;font-size:.82rem}
+.bp-upsell-btn{background:#9B59B6;color:#fff;border:none;border-radius:8px;padding:6px 14px;font-family:'Space Grotesk',sans-serif;font-size:.78rem;font-weight:600;cursor:pointer;white-space:nowrap}
+.bp-track-label{display:flex;justify-content:space-between;font-size:.62rem;font-family:'DM Mono',monospace;color:var(--muted);margin-bottom:8px;padding:0 4px}
+.bp-track-scroll{overflow-x:auto;padding-bottom:12px}
+.bp-track-scroll::-webkit-scrollbar{height:4px}
+.bp-track-scroll::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.bp-track{display:flex;gap:10px;padding:16px 4px;min-width:max-content;align-items:flex-end}
+.bp-node-wrap{display:flex;flex-direction:column;align-items:center;gap:4px;position:relative}
+.bp-node{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;border:2px solid;position:relative;flex-shrink:0}
+.bp-node-done{background:var(--green);border-color:var(--green);color:#080808}
+.bp-node-current{background:var(--green-dim);border-color:var(--green);color:var(--green);animation:blink 2s ease-in-out infinite;box-shadow:0 0 12px #00E5A040}
+.bp-node-locked{background:var(--surface2);border-color:var(--border2);color:var(--muted)}
+.bp-node-reward{width:52px;height:52px}
+.bp-node-check{font-size:.85rem}
+.bp-node-emoji{font-size:1.2rem}
+.bp-node-num{font-family:'DM Mono',monospace;font-size:.72rem}
+.bp-reward-tag{font-size:.58rem;color:var(--muted);font-family:'DM Mono',monospace;text-align:center;max-width:60px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bp-reward-premium{color:#9B59B6}
+.bp-you-marker{position:absolute;top:-22px;font-size:.55rem;font-family:'DM Mono',monospace;color:var(--green);background:var(--green-dim);border:1px solid #00E5A030;border-radius:4px;padding:1px 5px;white-space:nowrap}
+
+/* ── LEAGUES ── */
+.league-tier-tabs{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap}
+.league-tab{background:var(--surface2);border:1px solid var(--border2);color:var(--muted);border-radius:8px;padding:7px 14px;font-family:'Space Grotesk',sans-serif;font-size:.78rem;cursor:pointer;transition:all .2s;font-weight:500}
+.league-tab:hover{border-color:var(--green);color:var(--green)}
+.league-tab.active{background:var(--green-dim);border-color:var(--green);color:var(--green)}
+.league-header{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:14px;display:flex;flex-direction:column;gap:6px}
+.league-tier-badge{display:inline-flex;align-items:center;gap:6px;border-radius:8px;border:1px solid;padding:5px 12px;font-family:'DM Mono',monospace;font-size:.78rem;font-weight:600;width:fit-content}
+.league-reset-info{font-size:.78rem;color:var(--muted)}
+.league-promote-hint{font-size:.82rem;font-weight:500}
+.league-promote-hint.elite{color:var(--green)}
+.league-list-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.league-row{display:flex;align-items:center;gap:12px;padding:13px 18px;border-bottom:1px solid var(--border);transition:background .15s;position:relative}
+.league-row:last-child{border-bottom:none}
+.league-row:hover{background:var(--surface2)}
+.league-row-you{background:linear-gradient(90deg,#00E5A006,transparent)!important}
+.league-rank{font-family:'DM Mono',monospace;font-size:.88rem;width:28px;flex-shrink:0;text-align:center}
+.league-av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;flex-shrink:0}
+.league-name-col{flex:1;min-width:0}
+.league-name{font-size:.88rem;font-weight:500}
+.league-level{font-size:.65rem;color:var(--muted);font-family:'DM Mono',monospace}
+.league-km{font-family:'DM Mono',monospace;font-size:.95rem;font-weight:500}
+.league-km span{font-size:.65rem;color:var(--muted)}
+.zone-label{position:absolute;top:-10px;left:16px;font-size:.58rem;font-family:'DM Mono',monospace;letter-spacing:.05em;padding:1px 7px;border-radius:3px}
+.promo-label{background:#00E5A020;color:var(--green);border:1px solid #00E5A030}
+.demote-label{background:#ff444415;color:#ff6b6b;border:1px solid #ff444430}
+.zone-promo{background:#00E5A006!important;border-top:1px solid #00E5A020}
+.zone-demote{background:#ff44440a!important}
+
+/* ── CHALLENGES ── */
+.challenges-section{margin-bottom:4px}
+.challenge-reset-timer{font-size:.7rem;color:var(--muted);font-family:'DM Mono',monospace}
+.challenge-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:10px;transition:border-color .2s}
+.challenge-card:hover{border-color:var(--border2)}
+.challenge-card.challenge-done{opacity:.6}
+.challenge-top{margin-bottom:12px}
+.challenge-meta-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.challenge-type-badge{font-size:.58rem;font-family:'DM Mono',monospace;padding:2px 8px;border-radius:5px;letter-spacing:.08em}
+.challenge-type-badge.daily{background:#4A90D922;color:#4A90D9;border:1px solid #4A90D933}
+.challenge-type-badge.weekly{background:#9B59B622;color:#9B59B6;border:1px solid #9B59B633}
+.challenge-timer{font-size:.65rem;color:var(--muted);font-family:'DM Mono',monospace}
+.challenge-title{font-size:.95rem;font-weight:600}
+.challenge-progress-wrap{margin-bottom:10px}
+.challenge-bar-bg{height:7px;background:var(--surface3);border-radius:4px;overflow:hidden;margin-bottom:6px}
+.challenge-bar-fill{height:100%;border-radius:4px;transition:width .7s cubic-bezier(.4,0,.2,1)}
+.challenge-progress-labels{display:flex;justify-content:space-between}
+.challenge-value{font-family:'DM Mono',monospace;font-size:.72rem;color:var(--muted)}
+.challenge-xp{font-family:'DM Mono',monospace;font-size:.72rem;color:var(--green)}
+.challenge-claim-btn{width:100%;background:var(--surface2);border:1px solid var(--border2);color:var(--muted);border-radius:8px;padding:8px;font-family:'Space Grotesk',sans-serif;font-size:.78rem;cursor:pointer;transition:all .2s}
+.challenge-claim-btn:hover{border-color:var(--green);color:var(--green)}
+.challenge-claimed{text-align:center;font-size:.78rem;color:var(--green);padding:6px;font-family:'DM Mono',monospace}
+
+/* ── ONBOARDING ── */
+.ob-overlay{position:fixed;inset:0;z-index:1000;background:#080808ee;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);opacity:0;transition:opacity .4s}
+.ob-overlay.ob-visible{opacity:1}
+.ob-overlay.ob-exit{opacity:0}
+.ob-card{background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:40px 32px;max-width:400px;width:90%;text-align:center;position:relative}
+.ob-step{display:none;animation:fadeUp .35s ease both}
+.ob-step-active{display:block}
+.ob-step-emoji{font-size:3.5rem;margin-bottom:16px}
+.ob-step-title{font-family:'Syne',sans-serif;font-weight:800;font-size:1.5rem;letter-spacing:-.02em;margin-bottom:8px}
+.ob-step-sub{font-size:.88rem;color:var(--muted);line-height:1.6;margin-bottom:20px}
+.ob-rival-card{display:flex;align-items:center;gap:12px;background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:14px;text-align:left;margin-bottom:16px}
+.ob-rival-av{width:44px;height:44px;border-radius:50%;background:#ff444415;border:2px solid #ff444444;color:#ff6b6b;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.1rem;flex-shrink:0}
+.ob-rival-name{font-size:.92rem;font-weight:600;margin-bottom:3px}
+.ob-rival-stats{font-size:.72rem;color:var(--muted)}
+.ob-challenge-card{display:flex;align-items:center;gap:12px;background:var(--green-dim);border:1px solid #00E5A022;border-radius:12px;padding:14px;text-align:left;margin-bottom:16px}
+.ob-ch-icon{font-size:1.5rem;flex-shrink:0}
+.ob-ch-title{font-size:.88rem;font-weight:600;margin-bottom:3px}
+.ob-ch-xp{font-size:.72rem;color:var(--green);font-family:'DM Mono',monospace}
+.ob-progress-dots{display:flex;gap:6px;justify-content:center;margin-top:20px}
+.ob-dot{width:7px;height:7px;border-radius:50%;background:var(--border2);transition:background .3s}
+.ob-dot.active{background:var(--green)}
+
+/* ── LEVEL UP MODAL ── */
+.levelup-overlay{z-index:900;background:#080808cc;backdrop-filter:blur(6px)}
+.levelup-box{background:var(--surface);border:1px solid var(--green);border-radius:24px;padding:40px 32px;max-width:340px;width:90%;text-align:center;position:relative;overflow:hidden}
+.levelup-glow{position:absolute;inset:0;background:radial-gradient(circle at 50% 30%,#00E5A020,transparent 65%);pointer-events:none}
+.levelup-emoji{font-size:3rem;margin-bottom:8px}
+.levelup-label{font-family:'DM Mono',monospace;font-size:.7rem;color:var(--green);letter-spacing:.2em;margin-bottom:4px}
+.levelup-num{font-family:'Syne',sans-serif;font-weight:800;font-size:5rem;color:var(--green);line-height:1;margin-bottom:4px}
+.levelup-sub{font-size:.9rem;color:var(--muted);margin-bottom:8px}
+
+/* ── REWARD MODAL ── */
+.reward-overlay{z-index:900;background:#080808bb;backdrop-filter:blur(4px)}
+.reward-box{background:var(--surface);border:1px solid #FFD70044;border-radius:20px;padding:36px 28px;max-width:300px;width:90%;text-align:center}
+.reward-modal-emoji{font-size:3.5rem;margin-bottom:10px}
+.reward-modal-title{font-family:'Syne',sans-serif;font-weight:800;font-size:1.2rem;margin-bottom:6px}
+.reward-modal-sub{font-size:.82rem;color:var(--muted)}
+
+/* ── CONFETTI ── */
+.confetti-dot{position:fixed;top:-10px;border-radius:2px;animation:confetti-fall linear forwards;z-index:9999;pointer-events:none}
+@keyframes confetti-fall{0%{transform:translateY(0) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  .battle-vs-card{gap:10px}
+  .battle-avatar{width:46px;height:46px;font-size:1.1rem}
+  .bp-node{width:38px;height:38px}
+  .bp-node-reward{width:46px;height:46px}
+  .game-strip{flex-direction:column}
+  .game-strip-xp{min-width:0}
+  .xp-bar-wrap{padding:12px 14px}
+}
