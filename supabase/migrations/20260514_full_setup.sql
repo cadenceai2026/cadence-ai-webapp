@@ -4,6 +4,9 @@
 -- ═══════════════════════════════════════════════
 
 -- ── 1. MISSING PROFILE COLUMNS ───────────────────────────────────────────────
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS display_name text;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS email text;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS avatar_url text;
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS runner_type text;
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS goal text;
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS coach_lang text DEFAULT 'en';
@@ -15,6 +18,7 @@ ALTER TABLE profiles ADD COLUMN IF NOT EXISTS notif_winner boolean DEFAULT false
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS auto_sync boolean DEFAULT true;
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS stripe_customer_id text;
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS plan text DEFAULT 'free';
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS trial_ends_at timestamptz;
 
 -- ── 2. CREATE GAMIFICATION TABLES ────────────────────────────────────────────
 
