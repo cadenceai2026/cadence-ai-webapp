@@ -81,21 +81,36 @@ async function signUpWithEmail(e) {
   if (password.length < 6) return toast('Password must be at least 6 characters', 'error');
 
   const btn = qs('#btn-signup');
+  if (!btn) return;
+  
   btn.disabled = true;
   btn.textContent = 'Creating account…';
 
-  const { error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: { emailRedirectTo: window.location.origin + '/app.html' }
-  });
+  try {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { emailRedirectTo: window.location.origin + '/app.html' }
+    });
 
-  if (error) {
-    toast(error.message, 'error');
+    if (error) {
+      console.error('Signup error:', error);
+      toast(error.message, 'error');
+      btn.disabled = false;
+      btn.textContent = 'Create account →';
+    } else {
+      // If session is returned (auto-login), redirect manually as backup
+      if (data?.session) {
+        window.location.replace('./app.html');
+      } else {
+        showAuthView('check-email');
+      }
+    }
+  } catch (err) {
+    console.error('Unhandled signup exception:', err);
+    toast(err.message || 'An unexpected error occurred', 'error');
     btn.disabled = false;
     btn.textContent = 'Create account →';
-  } else {
-    showAuthView('check-email');
   }
 }
 
