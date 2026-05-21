@@ -7,10 +7,10 @@ import { toast } from './utils.js';
 
 // ── XP THRESHOLDS (non-linear — fast early wins, grind later) ────────────────
 export function xpForLevel(level) {
-  if (level <= 0)  return 0;
-  if (level <= 10) return level * 100;                        // 100 XP / level
-  if (level <= 30) return 1000 + (level - 10) * 250;         // 250 XP / level
-  return 6000 + (level - 30) * 600;                          // 600 XP / level
+  if (level <= 1)  return 0;
+  if (level <= 10) return (level - 1) * 100;                 // 100 XP / level
+  if (level <= 30) return 900 + (level - 10) * 250;          // 250 XP / level
+  return 5900 + (level - 30) * 600;                          // 600 XP / level
 }
 
 export function levelFromXP(totalXP) {

@@ -65,8 +65,7 @@ export async function ensureBotRival(userId) {
       battle_type: 'weekly_km',
       title: 'Weekly Battle',
       week_number: weekNumber,
-      end_date: endDate.toISOString(),
-      _opponent_name: botName // We save it directly on battle to avoid join complexity
+      end_date: endDate.toISOString()
     })
     .select()
     .single();
@@ -75,6 +74,9 @@ export async function ensureBotRival(userId) {
     console.error("Failed to create bot battle:", battleErr);
     return null;
   }
+
+  // Attach bot name to the returned object so frontend can display it
+  newBattle._opponent_name = botName;
 
   return newBattle;
 }
