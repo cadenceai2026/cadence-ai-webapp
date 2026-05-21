@@ -33,12 +33,15 @@ async function bootLogin() {
   // Listen for auth changes
   supabase.auth.onAuthStateChange((event, session) => {
     if (event === 'SIGNED_IN' && session) {
-      window.location.replace('./app.html');
+      if (!window.isSigningUp) {
+        window.location.replace('./app.html');
+      }
     }
   });
 }
 
 function showAuthView(name) {
+  if (name === 'signin') window.isSigningUp = false;
   ['signin', 'signup', 'check-email'].forEach(v => {
     const el = qs(`#view-${v}`);
     if (el) el.style.display = v === name ? 'block' : 'none';
@@ -85,6 +88,7 @@ async function signUpWithEmail(e) {
   
   btn.disabled = true;
   btn.textContent = 'Creating account…';
+  window.isSigningUp = true;
 
   try {
     const { data, error } = await supabase.auth.signUp({
@@ -98,19 +102,22 @@ async function signUpWithEmail(e) {
       toast(error.message, 'error');
       btn.disabled = false;
       btn.textContent = 'Create account →';
+      window.isSigningUp = false;
     } else {
-      // If session is returned (auto-login), redirect manually as backup
+      // Force user to log in manually as requested
       if (data?.session) {
-        window.location.replace('./app.html');
-      } else {
-        showAuthView('check-email');
+        await supabase.auth.signOut();
       }
+      showAuthView('check-email');
+      btn.disabled = false;
+      btn.textContent = 'Create account →';
     }
   } catch (err) {
     console.error('Unhandled signup exception:', err);
     toast(err.message || 'An unexpected error occurred', 'error');
     btn.disabled = false;
     btn.textContent = 'Create account →';
+    window.isSigningUp = false;
   }
 }
 
