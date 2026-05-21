@@ -7,7 +7,7 @@ import { qs } from './utils.js';
 import { LEAGUES } from './game.js';
 
 // ── LOAD REAL LEADERBOARD ─────────────────────────────────────────────────────
-async function loadLeagueData(forceLeague) {
+async function loadLeagueData(forceLeague, forceCity = false) {
   if (!state.user) {
     state.leaderboard = [];
     return;
@@ -16,59 +16,62 @@ async function loadLeagueData(forceLeague) {
   const league = forceLeague || state.gameProfile?.league || 'bronze';
 
   try {
-    // Fetch all game_profiles in this league (with display names from profiles)
     const { data, error } = await supabase
       .from('game_profiles')
       .select('user_id, level, weekly_km, total_xp')
       .eq('league', league)
       .order('weekly_km', { ascending: false })
-      .limit(20);
+      .limit(200); // Fetch more so we can filter by city
 
-    if (error) {
-      console.error('loadLeagueData error:', error);
+    if (error || !data || data.length === 0) {
       state.leaderboard = buildSoloLeaderboard(league);
       return;
     }
 
-    if (!data || data.length === 0) {
-      state.leaderboard = buildSoloLeaderboard(league);
-      return;
-    }
-
-    // Fetch display names for these users
     const userIds = data.map(d => d.user_id);
     const { data: profiles } = await supabase
       .from('profiles')
-      .select('id, display_name')
+      .select('id, display_name, city')
       .in('id', userIds);
 
-    const nameMap = {};
-    (profiles || []).forEach(p => { nameMap[p.id] = p.display_name; });
+    const profileMap = {};
+    (profiles || []).forEach(p => { profileMap[p.id] = p; });
 
-    state.leaderboard = data.map((row, idx) => ({
-      rank: idx + 1,
-      name: nameMap[row.user_id] || 'Runner',
+    let mapped = data.map((row) => ({
+      user_id: row.user_id,
+      name: profileMap[row.user_id]?.display_name || 'Runner',
+      city: profileMap[row.user_id]?.city || '',
       km: parseFloat(row.weekly_km) || 0,
       level: row.level || 1,
       isUser: row.user_id === state.user.id,
-      avatar: (nameMap[row.user_id] || 'R')[0]?.toUpperCase() || 'R',
+      avatar: (profileMap[row.user_id]?.display_name || 'R')[0]?.toUpperCase() || 'R',
     }));
 
-    // Make sure current user is in the leaderboard
-    if (!state.leaderboard.some(r => r.isUser)) {
+    if (forceCity) {
+      const myCity = state.profile?.city;
+      if (myCity) {
+        mapped = mapped.filter(r => r.city.toLowerCase() === myCity.toLowerCase() || r.isUser);
+      }
+    }
+
+    mapped = mapped.slice(0, 20); // Top 20
+
+    if (!mapped.some(r => r.isUser)) {
       const gp = state.gameProfile || {};
-      state.leaderboard.push({
-        rank: state.leaderboard.length + 1,
+      mapped.push({
+        user_id: state.user.id,
         name: state.profile?.display_name || 'You',
+        city: state.profile?.city || '',
         km: parseFloat(gp.weekly_km) || 0,
         level: gp.level || 1,
         isUser: true,
         avatar: (state.profile?.display_name || 'Y')[0]?.toUpperCase() || 'Y',
       });
-      // Re-sort and re-rank
-      state.leaderboard.sort((a, b) => b.km - a.km);
-      state.leaderboard.forEach((r, i) => r.rank = i + 1);
+      mapped.sort((a, b) => b.km - a.km);
     }
+    
+    mapped.forEach((r, i) => r.rank = i + 1);
+    state.leaderboard = mapped;
 
   } catch (err) {
     console.error('loadLeagueData unexpected:', err);
@@ -181,17 +184,53 @@ function nextTierName(league) {
 }
 
 // ── LEAGUE TAB SWITCHING ──────────────────────────────────────────────────────
+let isLocalCityMode = false;
+
 export function initLeagues() {
   document.querySelectorAll('.league-tab').forEach(tab => {
     tab.addEventListener('click', async () => {
       const targetLeague = tab.dataset.league;
-      // Load data for the selected league tab
-      await loadLeagueData(targetLeague);
-      // Temporarily override league for rendering
+      await loadLeagueData(targetLeague, isLocalCityMode);
+      
       const origLeague = state.gameProfile?.league;
       if (state.gameProfile) state.gameProfile.league = targetLeague;
       renderLeague();
       if (state.gameProfile && origLeague) state.gameProfile.league = origLeague;
     });
   });
+
+  const btnGlobal = qs('#league-filter-global');
+  const btnLocal = qs('#league-filter-local');
+  
+  if (btnGlobal && btnLocal) {
+    btnGlobal.addEventListener('click', async () => {
+      isLocalCityMode = false;
+      btnGlobal.style.background = 'var(--green)';
+      btnGlobal.style.color = '#000';
+      btnLocal.style.background = 'var(--surface3)';
+      btnLocal.style.color = 'var(--text)';
+      
+      const activeTab = document.querySelector('.league-tab.active');
+      const targetLeague = activeTab ? activeTab.dataset.league : 'bronze';
+      await loadLeagueData(targetLeague, isLocalCityMode);
+      renderLeague();
+    });
+
+    btnLocal.addEventListener('click', async () => {
+      if (!state.profile?.city) {
+        window.toast('Please set your city in Settings first', 'error');
+        return;
+      }
+      isLocalCityMode = true;
+      btnLocal.style.background = 'var(--green)';
+      btnLocal.style.color = '#000';
+      btnGlobal.style.background = 'var(--surface3)';
+      btnGlobal.style.color = 'var(--text)';
+      
+      const activeTab = document.querySelector('.league-tab.active');
+      const targetLeague = activeTab ? activeTab.dataset.league : 'bronze';
+      await loadLeagueData(targetLeague, isLocalCityMode);
+      renderLeague();
+    });
+  }
 }

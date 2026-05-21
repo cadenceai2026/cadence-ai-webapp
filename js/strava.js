@@ -214,13 +214,17 @@ export async function syncActivities() {
     console.error('syncActivities error body:', JSON.stringify(body));
     if (resp.status === 401) {
       toast('Strava token expired — please reconnect Strava', 'error');
+      state.syncError = 'Strava token expired. Please reconnect your account.';
     } else {
       const detail = body?.error || `HTTP ${resp.status}`;
       toast(`Sync failed — ${detail}`, 'error');
+      state.syncError = `Sync failed: ${detail}. Try again later.`;
     }
+    renderActivities();
     return;
   }
 
+  state.syncError = null;
   await loadActivitiesFromDb();
   const count = body?.count ?? 0;
   toast(count > 0 ? `Synced ${count} activities ✓` : 'Synced ✓');

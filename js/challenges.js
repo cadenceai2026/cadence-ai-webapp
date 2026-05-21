@@ -3,7 +3,7 @@
  */
 import { supabase } from './supabase-client.js';
 import { state } from './state.js';
-import { qs, toast } from './utils.js';
+import { qs, toast, fireConfetti } from './utils.js';
 import { awardXP, getWeeklyKmFromActivities } from './game.js';
 
 // ── CHALLENGE TEMPLATES (used to auto-generate) ──────────────────────────────
@@ -281,6 +281,7 @@ window.claimChallenge = async function(id) {
 
   await awardXP(ch.xp_reward, ch.title);
   toast(`🎉 Challenge complete! +${ch.xp_reward} XP`);
+  fireConfetti();
 
   // Refresh UI
   const card = qs(`#ch-card-${id}`);

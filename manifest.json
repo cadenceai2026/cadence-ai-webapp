@@ -1,0 +1,17 @@
+{
+  "name": "Cadence AI",
+  "short_name": "Cadence",
+  "description": "Gamified running tracker powered by AI",
+  "start_url": "/app.html",
+  "display": "standalone",
+  "background_color": "#080808",
+  "theme_color": "#39FF14",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}

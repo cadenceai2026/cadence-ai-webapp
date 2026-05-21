@@ -4,6 +4,9 @@ import { qs, fmtTime, fmtPace, fmtDist, typeIcon, esc } from './utils.js';
 import { renderXPBar, renderStreakBadge, getWeeklyKmFromActivities, LEAGUES } from './game.js';
 
 export function renderDashboard() {
+  renderHeatmap();
+  renderBadges();
+
   const acts = state.activities || [];
   const runs = acts.filter(a => a.sport_type === 'Run' || a.sport_type === 'TrailRun');
 
@@ -128,4 +131,86 @@ export function actCard(a) {
         </div>
       </div>
     </div>`;
+}
+
+// ── HEATMAP ──────────────────────────────────────────────────────────────────
+function renderHeatmap() {
+  const el = qs('#dash-heatmap');
+  if (!el) return;
+  if (!state.activities || state.activities.length === 0) {
+    el.innerHTML = '<div class="empty" style="padding:16px 0;font-size:0.8rem">No data for heatmap</div>';
+    return;
+  }
+
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const days = [];
+  const map = {};
+  
+  for (let i = 89; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const dateStr = d.toISOString().split('T')[0];
+    days.push(dateStr);
+    map[dateStr] = 0;
+  }
+
+  state.activities.forEach(a => {
+    const isRun = a.sport_type === 'Run' || a.sport_type === 'TrailRun';
+    if (!isRun) return;
+    const dateStr = (a.start_date_local || a.start_date).split('T')[0];
+    if (map[dateStr] !== undefined) {
+      map[dateStr] += (a.distance || 0) / 1000;
+    }
+  });
+
+  let html = `<div class="heatmap-flex">`;
+  days.forEach(d => {
+    const km = map[d];
+    let level = 0;
+    if (km > 0) level = 1;
+    if (km >= 5) level = 2;
+    if (km >= 10) level = 3;
+    if (km >= 20) level = 4;
+    
+    html += `<div class="heatmap-cell level-${level}" title="${d}: ${km.toFixed(1)} km"></div>`;
+  });
+  html += `</div>`;
+  el.innerHTML = html;
+}
+
+// ── BADGES ───────────────────────────────────────────────────────────────────
+function renderBadges() {
+  const el = qs('#dash-badges');
+  if (!el) return;
+  
+  const b = [];
+  const acts = state.activities || [];
+  const runs = acts.filter(a => a.sport_type === 'Run' || a.sport_type === 'TrailRun');
+  const level = state.gameProfile?.level || 1;
+  const streak = state.gameProfile?.streak_days || 0;
+  
+  if (runs.length > 0) b.push({ icon: '👟', name: 'First Steps', desc: 'Logged your first run' });
+  if (runs.some(r => r.distance >= 5000)) b.push({ icon: '🔥', name: '5K Finisher', desc: 'Ran 5 km in one session' });
+  if (runs.some(r => r.distance >= 10000)) b.push({ icon: '⚡', name: '10K Finisher', desc: 'Ran 10 km in one session' });
+  if (runs.some(r => r.distance >= 21000)) b.push({ icon: '🏅', name: 'Half Marathon', desc: 'Ran 21.1 km in one session' });
+  if (level >= 5) b.push({ icon: '🌟', name: 'Level 5', desc: 'Reached Level 5' });
+  if (level >= 10) b.push({ icon: '👑', name: 'Level 10', desc: 'Reached Level 10' });
+  if (streak >= 3) b.push({ icon: '🔥', name: '3-Day Streak', desc: 'Ran 3 days in a row' });
+  if (streak >= 7) b.push({ icon: '💥', name: '1-Week Streak', desc: 'Ran 7 days in a row' });
+
+  if (b.length === 0) {
+    el.innerHTML = '<div class="empty" style="padding:16px 0;font-size:0.8rem">Run more to earn badges!</div>';
+    return;
+  }
+  
+  const html = b.map(badge => `
+    <div class="badge-card">
+      <div class="badge-icon">${badge.icon}</div>
+      <div class="badge-name">${badge.name}</div>
+      <div class="badge-desc">${badge.desc}</div>
+    </div>
+  `).join('');
+  
+  el.innerHTML = html;
 }

@@ -28,6 +28,23 @@ export function renderActivities() {
         return t === currentFilter;
       });
 
+  if (state.syncError) {
+    container.innerHTML = `
+      <div class="empty" style="padding:40px 16px; border: 1px solid #ff4444; border-radius: 12px; background: rgba(255, 68, 68, 0.05);">
+        <div style="font-size:2rem;margin-bottom:12px">⚠️</div>
+        <div style="font-weight:600;margin-bottom:6px;color:#ff4444">Sync Error</div>
+        <div style="font-size:0.85rem;color:var(--muted);margin-bottom:20px">${state.syncError}</div>
+        <button id="act-retry-sync-btn" style="background:var(--surface3);color:var(--text);border:1px solid var(--border);font-weight:600;font-size:0.9rem;padding:8px 16px;border-radius:8px;cursor:pointer">Retry Sync ↻</button>
+      </div>`;
+    qs('#act-retry-sync-btn')?.addEventListener('click', async () => {
+      const { syncActivities } = await import('./strava.js');
+      state.syncError = null;
+      renderActivities();
+      syncActivities();
+    });
+    return;
+  }
+
   if (filtered.length) {
     container.innerHTML = filtered.map(actCard).join('');
   } else if (!state.stravaConnection) {

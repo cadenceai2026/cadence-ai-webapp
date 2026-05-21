@@ -31,7 +31,24 @@ function startChat() {
   chatHistory = [];
   const msgs = qs('#chat-msgs');
   if (msgs) msgs.innerHTML = '';
-  appendMsg('ai', "Hey! I'm your Cadence AI Coach 🏃 I have your Strava data loaded. Ask me anything about your training!");
+  
+  const systemPrompt = buildSystemPrompt();
+  chatHistory.push({ role: 'system', content: systemPrompt });
+  
+  // Ask the AI to generate a proactive greeting based on user data
+  const initialPrompt = "Review my recent activities and current streak. Give me a very short, personalized, proactive 1-sentence greeting, ending with an engaging question.";
+  
+  const aiBubble = appendStreamingBubble();
+  
+  // We don't push the initial prompt to chatHistory so the user doesn't see it as their own message
+  const context = [
+    { role: 'system', content: systemPrompt },
+    { role: 'user', content: initialPrompt }
+  ];
+  
+  streamAIResponse(context, aiBubble).then(reply => {
+    chatHistory.push({ role: 'assistant', content: reply });
+  });
 }
 
 function backToSelector() {
@@ -53,19 +70,25 @@ async function sendMsg() {
 
   chatHistory.push({ role: 'user', content: text });
 
-  const systemPrompt = buildSystemPrompt();
   const aiBubble = appendStreamingBubble();
 
+  try {
+    const reply = await streamAIResponse(chatHistory, aiBubble);
+    chatHistory.push({ role: 'assistant', content: reply });
+  } finally {
+    if (sendBtn) sendBtn.disabled = false;
+    input?.focus();
+  }
+}
+
+async function streamAIResponse(messages, aiBubble) {
   try {
     const res = await fetch('https://text.pollinations.ai/openai', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'openai',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          ...chatHistory
-        ],
+        messages: messages,
         max_tokens: 1200,
         stream: true
       })
@@ -100,14 +123,10 @@ async function sendMsg() {
         }
       }
     }
-
-    chatHistory.push({ role: 'assistant', content: reply });
-
+    return reply;
   } catch (e) {
     updateStreamingBubble(aiBubble, `⚠️ ${e.message}`);
-  } finally {
-    if (sendBtn) sendBtn.disabled = false;
-    input?.focus();
+    return `⚠️ ${e.message}`;
   }
 }
 
