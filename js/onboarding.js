@@ -8,6 +8,8 @@ import { supabase } from './supabase-client.js';
 
 const STORAGE_KEY = 'cadence_onboarding_done';
 
+import { supabase } from './supabase-client.js';
+
 export function checkFirstRun() {
   if (localStorage.getItem(STORAGE_KEY)) return;
   setTimeout(showOnboarding, 600);
@@ -73,7 +75,6 @@ function runSteps(battle) {
       </div>`;
   }
 
-  // Populate step 3 — challenge
   const chEl = qs('#ob-challenge-card');
   if (chEl) {
     chEl.innerHTML = `
