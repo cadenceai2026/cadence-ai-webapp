@@ -406,4 +406,16 @@ export function initBattles() {
     }
     findRivalAndCreateBattle();
   });
+  const inviteHandler = async () => {
+    if (!state.user) return;
+    const link = window.location.origin + window.location.pathname + '?invite=' + state.user.id;
+    try {
+      await navigator.clipboard.writeText(link);
+      toast('Invite link copied to clipboard! 📋 Send it to a friend.');
+    } catch (e) {
+      toast('Invite link: ' + link);
+    }
+  };
+  qs('#btn-invite-rival')?.addEventListener('click', inviteHandler);
+  qs('#btn-invite-rival-dash')?.addEventListener('click', inviteHandler);
 }

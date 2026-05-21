@@ -52,7 +52,7 @@ export async function loadGroups() {
       <div class="group-card">
         <div style="font-size:1.4rem;margin-bottom:10px">${g.flag || '🌍'}</div>
         <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.05rem;margin-bottom:4px">${esc(g.name)}</div>
-        <div style="font-size:0.78rem;color:var(--muted);margin-bottom:14px">${g.city || ''} · ${count} members</div>
+        <div style="font-size:0.78rem;color:var(--muted);margin-bottom:14px;cursor:pointer" onclick="viewGroupMembers('${g.id}', '${esc(g.name)}')">${g.city || ''} · ${count} members (Click to view)</div>
         <div class="group-bar-bg"><div class="group-bar-fg" style="width:${pct}%"></div></div>
         <button
           class="btn-join ${joined ? 'joined' : 'open'}"
@@ -103,8 +103,23 @@ window.toggleJoin = async function(btn, groupId) {
   } else {
     await supabase.from('group_members')
       .insert({ group_id: groupId, user_id: state.user.id });
-    btn.className = 'btn-join joined';
+    btn.classList.add('joined');
     btn.textContent = '✓ Joined';
-    toast('Joined! You\'re now competing 🔥');
+    toast('Joined group! 🎉');
   }
+};
+
+window.viewGroupMembers = async function(groupId, groupName) {
+  toast('Loading members...');
+  const { data: members, error } = await supabase
+    .from('group_members')
+    .select('profiles(display_name, city)')
+    .eq('group_id', groupId)
+    .limit(10);
+    
+  if (error || !members) return toast('Failed to load members', 'error');
+  if (members.length === 0) return toast('No members yet.');
+  
+  const names = members.map(m => m.profiles?.display_name || 'Runner').join(', ');
+  toast(`Members of ${groupName}: ${names}`);
 };

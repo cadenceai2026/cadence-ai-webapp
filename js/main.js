@@ -13,6 +13,28 @@ import { initChallenges } from './challenges.js';
 import { initLeagues } from './leagues.js';
 import { initNotifications } from './notifications.js';
 
+// ── GLOBAL UI HANDLERS ──
+window.toggleCollapse = function(targetId, headerEl) {
+  const content = document.getElementById(targetId);
+  if (content) {
+    content.classList.toggle('collapsed');
+    headerEl.classList.toggle('collapsed');
+    // Save state
+    localStorage.setItem('collapse_' + targetId, content.classList.contains('collapsed'));
+  }
+};
+
+// Restore collapse states
+document.addEventListener('DOMContentLoaded', () => {
+  ['wrap-heatmap', 'wrap-badges', 'wrap-acts'].forEach(id => {
+    if (localStorage.getItem('collapse_' + id) === 'true') {
+      document.getElementById(id)?.classList.add('collapsed');
+      const heads = document.querySelectorAll(`[onclick="toggleCollapse('${id}', this)"]`);
+      heads.forEach(h => h.classList.add('collapsed'));
+    }
+  });
+});
+
 // ── ERROR BOUNDARIES & OFFLINE ──
 window.addEventListener('online',  updateOnlineStatus);
 window.addEventListener('offline', updateOnlineStatus);

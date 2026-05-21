@@ -267,7 +267,7 @@ export async function toggleAutoSync(enabled) {
   if (!state.user) return;
   const { error } = await supabase
     .from('profiles')
-    .update({ auto_sync: enabled, updated_at: new Date().toISOString() })
+    .update({ auto_sync: enabled })
     .eq('id', state.user.id);
 
   if (error) {

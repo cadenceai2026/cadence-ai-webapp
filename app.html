@@ -3,15 +3,126 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Cadence AI - Gamified Running</title>
-<link rel="manifest" href="/manifest.json">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Space+Grotesk:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>Cadence - Command Center</title>
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Space+Grotesk:wght@400&family=Syne:wght@600;700;800&display=swap" rel="stylesheet"/>
+  
+  <!-- Material Symbols -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  
+  <!-- Tailwind & Config -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "inverse-surface": "#e5e2e1",
+            "surface-container": "#201f1f",
+            "primary-fixed-dim": "#00e29e",
+            "surface-tint": "#00e29e",
+            "background": "#131313",
+            "secondary-fixed-dim": "#cfbdff",
+            "surface-container-highest": "#353534",
+            "surface-card": "#1A1A1A",
+            "on-surface-variant": "#bacbbf",
+            "secondary-container": "#5e05e3",
+            "on-secondary": "#3a0093",
+            "neon-white": "#FFFFFF",
+            "on-primary-fixed-variant": "#005236",
+            "tertiary-fixed-dim": "#ffb3ac",
+            "surface-container-lowest": "#0e0e0e",
+            "tertiary-fixed": "#ffdad6",
+            "on-tertiary-fixed-variant": "#930010",
+            "error": "#ffb4ab",
+            "inverse-on-surface": "#313030",
+            "primary-fixed": "#47ffb8",
+            "on-background": "#e5e2e1",
+            "on-error-container": "#ffdad6",
+            "on-secondary-container": "#cbb8ff",
+            "outline-variant": "#3b4a41",
+            "outline": "#84958a",
+            "error-container": "#93000a",
+            "surface-bright": "#3a3939",
+            "on-error": "#690005",
+            "on-tertiary-fixed": "#410003",
+            "primary": "#6effc0",
+            "on-secondary-fixed-variant": "#5300cc",
+            "inverse-primary": "#006c49",
+            "on-surface": "#e5e2e1",
+            "on-primary": "#003824",
+            "secondary-fixed": "#e9ddff",
+            "primary-container": "#00e5a0",
+            "on-primary-fixed": "#002114",
+            "tertiary": "#ffdedb",
+            "on-tertiary": "#680008",
+            "secondary": "#cfbdff",
+            "surface-dim": "#131313",
+            "tertiary-container": "#ffb8b1",
+            "surface-container-high": "#2a2a2a",
+            "glow-green": "rgba(0, 229, 160, 0.3)",
+            "surface-container-low": "#1c1b1b",
+            "surface-deep": "#050505",
+            "glow-purple": "rgba(110, 44, 242, 0.3)",
+            "on-primary-container": "#006141",
+            "on-tertiary-container": "#ad0015",
+            "surface-variant": "#353534",
+            "surface": "#131313",
+            "on-secondary-fixed": "#22005d"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "margin-desktop": "64px",
+            "unit": "4px",
+            "margin-mobile": "20px",
+            "gutter": "16px",
+            "container-max": "1440px"
+          },
+          "fontFamily": {
+            "headline-md": ["Syne"],
+            "body-md": ["Space Grotesk"],
+            "body-lg": ["Space Grotesk"],
+            "headline-lg-mobile": ["Syne"],
+            "data-display": ["JetBrains Mono"],
+            "label-caps": ["JetBrains Mono"],
+            "display-hero": ["Syne"],
+            "headline-lg": ["Syne"]
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background-color: theme('colors.surface-deep'); color: theme('colors.on-surface'); }
+    .glass-panel {
+        background: rgba(26, 26, 26, 0.6);
+        backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+    }
+    .neon-glow-primary { box-shadow: 0 0 20px rgba(0, 229, 160, 0.3); }
+    .neon-text-primary { text-shadow: 0 0 10px rgba(0, 229, 160, 0.5); }
+    .progress-segment {
+        height: 100%; flex: 1; transform: skewX(-15deg);
+        background: theme('colors.surface-container-high');
+        border-right: 2px solid theme('colors.surface-deep');
+    }
+    .progress-segment.filled { background: theme('colors.primary'); box-shadow: 0 0 10px rgba(0, 229, 160, 0.4); }
+    .progress-segment.filled-purple { background: theme('colors.secondary-container'); box-shadow: 0 0 10px rgba(94, 5, 227, 0.4); }
+  </style>
+
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/game.css">
 <script src="https://js.stripe.com/v3/"></script>
 <link rel="icon" type="image/svg+xml" href="./favicon.svg">
-<link rel="stylesheet" href="./css/styles.css">
-<link rel="stylesheet" href="./css/app.css">
-<link rel="stylesheet" href="./css/game.css">
 </head>
 <body>
 
@@ -25,145 +136,224 @@
 <!-- ══════════ APP SCREEN ══════════ -->
 <div id="screen-app" style="display:none">
 
-  <!-- Mobile topbar -->
-  <div class="mob-topbar" id="mob-topbar">
-    <span class="mob-logo">Ca<span>den</span>ce</span>
-    <div class="mob-right">
-      <span class="mob-plan" id="mob-plan-badge">TRIAL</span>
-      <div class="mob-av" id="mob-avatar">?</div>
+    <!-- Mobile & Desktop Header -->
+  <header class="fixed top-0 w-full z-50 flex justify-between items-center px-margin-mobile md:px-margin-desktop py-4 bg-background/80 backdrop-blur-xl border-b border-white/10 shadow-[0_0_20px_rgba(0,229,160,0.2)]">
+    <div class="font-display-hero text-headline-md italic tracking-tighter text-primary-container">CADENCE</div>
+    <div class="flex items-center gap-6">
+      <button class="text-on-surface-variant hover:text-primary transition-colors scale-95 active:duration-100 flex items-center justify-center">
+        <span class="material-symbols-outlined">notifications</span>
+      </button>
+      <button id="btn-sync" class="text-on-surface-variant hover:text-primary transition-colors scale-95 active:duration-100 flex items-center justify-center" title="Sync">
+        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">sync</span>
+      </button>
+      <div class="h-8 w-8 rounded-full bg-surface-container-highest overflow-hidden border border-outline-variant">
+        <img id="header-avatar-img" alt="User Avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA8KetdSusRyxFqK9KN4VmDd58CL0HXV6Yj-XXrAKbXwGI59kNHlaW6oU0Wv3UdiynOaIStvAT8XxKPBEqxNHEnZas4M4c5C0_uG2cATSroWTf79XXqEAyHthGWK7P6K7dqnU2sZfRy0ABWnmANujrOJGphcTMxJDL-7rBlUaV8l5eJa0WAzdZ4czeRb-t34-M6QACyFsntO0F18G1vlJjXebekyg7ee2xFBnpr4Pk4HdQ2Fbv40B2uhrA-Haa1MTuQinvH26AWMTzb"/>
+      </div>
     </div>
-  </div>
+  </header>
 
-  <div class="app-layout">
-
-    <!-- Sidebar -->
-    <aside class="sidebar">
-      <a href="/" class="sidebar-logo">
-        <svg width="22" height="22" viewBox="0 0 52 52" fill="none">
-          <rect x="4" y="24" width="6" height="16" rx="3" fill="#00E5A0" opacity="0.4"/>
-          <rect x="13" y="16" width="6" height="24" rx="3" fill="#00E5A0" opacity="0.6"/>
-          <rect x="22" y="8" width="6" height="32" rx="3" fill="#00E5A0"/>
-          <rect x="31" y="14" width="6" height="26" rx="3" fill="#00E5A0" opacity="0.75"/>
-          <rect x="40" y="20" width="6" height="20" rx="3" fill="#00E5A0" opacity="0.5"/>
-          <circle cx="43" cy="14" r="5" fill="#00E5A0"/>
-          <circle cx="43" cy="14" r="2.5" fill="#080808"/>
-        </svg>
-        <span class="sidebar-wordmark">Ca<span>den</span>ce</span>
-      </a>
-      <nav class="sidebar-nav">
-        <button class="nav-item active" data-page="dashboard"><span class="nav-icon">🏠</span>Dashboard</button>
-        <div class="nav-section-label">COMPETE</div>
-        <button class="nav-item" data-page="battles"><span class="nav-icon">⚔️</span>Battles</button>
-        <button class="nav-item advanced-feature" data-page="battlepass"><span class="nav-icon">🎫</span>Battle Pass</button>
-        <button class="nav-item advanced-feature" data-page="leagues"><span class="nav-icon">🏆</span>Leagues</button>
-        <button class="nav-item" data-page="challenges"><span class="nav-icon">⚡</span>Challenges</button>
-        <div class="nav-section-label">TRAIN</div>
-        <button class="nav-item" data-page="coach"><span class="nav-icon">🤖</span>AI Coach</button>
-        <button class="nav-item" data-page="activities"><span class="nav-icon">🏃</span>Activities</button>
-        <button class="nav-item" data-page="groups"><span class="nav-icon">👥</span>Groups</button>
-        <button class="nav-item" data-page="pricing"><span class="nav-icon">✨</span>Upgrade</button>
-        <button class="nav-item" data-page="admin" id="admin-nav-item" style="display:none"><span class="nav-icon">🛡️</span>Admin</button>
-        <button class="nav-item" data-page="settings"><span class="nav-icon">⚙️</span>Settings</button>
-      </nav>
-      <div class="sidebar-bottom">
-        <div class="plan-pill trial" id="plan-pill">
-          <div class="plan-pill-label" id="plan-label">FREE TRIAL</div>
-          <div class="plan-pill-name" id="plan-name">14 days left</div>
-          <div class="plan-pill-sub" id="plan-sub">Upgrade to Elite</div>
-          <button class="upgrade-btn" id="upgrade-btn">Upgrade →</button>
-        </div>
-        <div class="user-row">
-          <div class="user-av" id="sb-avatar">?</div>
-          <div>
-            <div class="user-name" id="sb-name">Loading…</div>
-            <div class="user-plan-badge" id="sb-plan-tag">TRIAL</div>
-          </div>
-        </div>
+  <!-- Sidebar -->
+  <nav class="hidden md:flex flex-col fixed left-0 top-0 h-full z-40 w-64 bg-surface-deep/95 backdrop-blur-md border-r border-outline-variant pt-24">
+    <div class="px-6 mb-8">
+      <div id="sb-name" class="font-display-hero text-headline-lg text-primary tracking-widest uppercase truncate">Loading...</div>
+      <div id="sb-plan-tag" class="font-label-caps text-label-caps text-on-surface-variant mt-2">TRIAL</div>
+    </div>
+    <div class="flex-1 flex flex-col gap-2 w-full">
+      <button class="nav-item active flex items-center gap-4 text-on-surface-variant px-6 py-4 hover:bg-surface-container-highest hover:text-neon-white transition-all w-full text-left" data-page="dashboard">
+        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+        <span class="font-label-caps text-label-caps uppercase tracking-wider">Command Center</span>
+      </button>
+      <button class="nav-item flex items-center gap-4 text-on-surface-variant px-6 py-4 hover:bg-surface-container-highest hover:text-neon-white transition-all w-full text-left" data-page="battles">
+        <span class="material-symbols-outlined">swords</span>
+        <span class="font-label-caps text-label-caps uppercase tracking-wider">War Room</span>
+      </button>
+      <button class="nav-item advanced-feature flex items-center gap-4 text-on-surface-variant px-6 py-4 hover:bg-surface-container-highest hover:text-neon-white transition-all w-full text-left" data-page="battlepass">
+        <span class="material-symbols-outlined">confirmation_number</span>
+        <span class="font-label-caps text-label-caps uppercase tracking-wider">Battle Pass</span>
+      </button>
+      <button class="nav-item advanced-feature flex items-center gap-4 text-on-surface-variant px-6 py-4 hover:bg-surface-container-highest hover:text-neon-white transition-all w-full text-left" data-page="leagues">
+        <span class="material-symbols-outlined">workspace_premium</span>
+        <span class="font-label-caps text-label-caps uppercase tracking-wider">Elite Leagues</span>
+      </button>
+      <button class="nav-item flex items-center gap-4 text-on-surface-variant px-6 py-4 hover:bg-surface-container-highest hover:text-neon-white transition-all w-full text-left" data-page="challenges">
+        <span class="material-symbols-outlined">target</span>
+        <span class="font-label-caps text-label-caps uppercase tracking-wider">Daily Ops</span>
+      </button>
+      
+      <div class="px-6 py-2 mt-2"><span class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider opacity-50">Train</span></div>
+      <button class="nav-item flex items-center gap-4 text-on-surface-variant px-6 py-4 hover:bg-surface-container-highest hover:text-neon-white transition-all w-full text-left" data-page="coach">
+        <span class="material-symbols-outlined">robot_2</span>
+        <span class="font-label-caps text-label-caps uppercase tracking-wider">AI Coach</span>
+      </button>
+      <button class="nav-item flex items-center gap-4 text-on-surface-variant px-6 py-4 hover:bg-surface-container-highest hover:text-neon-white transition-all w-full text-left" data-page="activities">
+        <span class="material-symbols-outlined">directions_run</span>
+        <span class="font-label-caps text-label-caps uppercase tracking-wider">Activities</span>
+      </button>
+      <button class="nav-item flex items-center gap-4 text-on-surface-variant px-6 py-4 hover:bg-surface-container-highest hover:text-neon-white transition-all w-full text-left" data-page="groups">
+        <span class="material-symbols-outlined">group</span>
+        <span class="font-label-caps text-label-caps uppercase tracking-wider">Groups</span>
+      </button>
+    </div>
+    
+    <div class="p-6 w-full flex flex-col gap-4 border-t border-outline-variant/50">
+      <div class="trial" id="plan-pill" style="display:none"></div>
+      <button id="upgrade-btn" class="nav-item w-full bg-primary text-on-primary font-label-caps text-label-caps py-3 uppercase tracking-widest hover:bg-primary-fixed transition-colors shadow-[0_0_15px_rgba(0,229,160,0.4)]" data-page="pricing">
+          UPGRADE STATUS
+      </button>
+      <div class="flex justify-between mt-4">
+        <button class="text-on-surface-variant hover:text-primary transition-colors flex flex-col items-center gap-1 nav-item" data-page="settings">
+          <span class="material-symbols-outlined text-[20px]">settings</span>
+          <span class="font-label-caps text-[10px]">Settings</span>
+        </button>
+        <button class="text-on-surface-variant hover:text-primary transition-colors flex flex-col items-center gap-1 nav-item" data-page="admin" id="admin-nav-item" style="display:none">
+          <span class="material-symbols-outlined text-[20px]">shield</span>
+          <span class="font-label-caps text-[10px]">Admin</span>
+        </button>
       </div>
-    </aside>
+    </div>
+  </nav>
 
-    <!-- Main -->
-    <main class="app-main">
-
-      <!-- Desktop topbar -->
-      <div class="topbar">
-        <div class="topbar-title" id="page-title">Dashboard</div>
-        <div class="topbar-actions">
-          <button class="btn-sm" id="btn-sync">↻ Sync</button>
-          <button class="btn-sm on" id="btn-ask-coach">Ask AI Coach</button>
-        </div>
-      </div>
+  <!-- Main -->
+  <main class="pt-24 pb-28 md:pb-12 md:pl-[280px] px-margin-mobile md:pr-margin-desktop min-h-screen app-main">
 
       <!-- ── DASHBOARD ── -->
       <div class="page active" id="page-dashboard">
-        <div class="welcome-hero">
-          <div class="welcome-name" id="welcome-name">Welcome back 👋</div>
-          <div class="welcome-sub" id="welcome-sub">Here's your training overview</div>
-          <div class="welcome-plan" id="welcome-plan">FREE TRIAL</div>
-        </div>
+        <div class="max-w-container-max mx-auto grid grid-cols-4 md:grid-cols-12 gap-gutter md:gap-6">
+          <div class="col-span-4 md:col-span-12 glass-panel rounded-xl p-6 md:p-8 relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+            <div class="absolute inset-0 opacity-20 pointer-events-none" style="background-image: radial-gradient(circle at 100% 0%, theme('colors.primary-container'), transparent 50%);"></div>
+            <div class="relative z-10">
+              <h1 class="font-headline-md text-headline-md text-neon-white mb-2 tracking-tight uppercase" id="welcome-name">WELCOME BACK, OPERATOR</h1>
+              <div class="flex items-center gap-4 mt-4">
+                <div class="h-12 w-12 rounded-full border-2 border-primary flex items-center justify-center bg-surface-deep neon-glow-primary">
+                  <span class="font-data-display text-data-display text-primary">42</span>
+                </div>
+                <div class="flex-1 min-w-[200px]">
+                  <div class="flex justify-between mb-2">
+                    <span class="font-label-caps text-label-caps text-on-surface-variant uppercase">XP Progress</span>
+                    <span class="font-data-display text-[14px] text-primary" id="dash-xp-text">Loading...</span>
+                  </div>
+                  <div class="h-3 w-full bg-surface-container-lowest flex gap-[2px] p-[2px] rounded-sm overflow-hidden border border-outline-variant/30" id="dash-xp-bar">
+                    <!-- XP Bar dynamically injected -->
+                    <div class="progress-segment filled-purple"></div><div class="progress-segment filled-purple"></div><div class="progress-segment filled-purple"></div><div class="progress-segment filled-purple"></div><div class="progress-segment filled-purple"></div><div class="progress-segment filled-purple"></div><div class="progress-segment filled"></div><div class="progress-segment"></div><div class="progress-segment"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="relative z-10 glass-panel border border-primary/30 px-4 py-3 rounded-lg flex items-center gap-3 w-full md:w-auto" id="dash-streak">
+              <span class="material-symbols-outlined text-tertiary-fixed-dim text-[28px]" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+              <div>
+                <div class="font-label-caps text-label-caps text-neon-white uppercase tracking-widest">5 Day Streak</div>
+                <div class="font-data-display text-[12px] text-primary mt-1">1.2x XP ACTIVE</div>
+              </div>
+            </div>
+          </div>
 
-        <!-- Game widget strip -->
-        <div class="game-strip">
-          <div id="dash-xp-bar" class="game-strip-xp"><!-- XP bar injected by game.js --></div>
-          <div id="dash-streak" class="game-strip-streak"><!-- Streak badge --></div>
-        </div>
+          <div class="col-span-4 md:col-span-8 glass-panel rounded-xl p-6 border-l-4 border-error" id="dash-rival-callout">
+            <div class="flex justify-between items-start mb-6">
+              <div>
+                <div class="font-label-caps text-label-caps text-error uppercase tracking-widest flex items-center gap-2 mb-1">
+                  <span class="material-symbols-outlined text-[16px]">radar</span>
+                  Active Battle
+                </div>
+                <h2 class="font-headline-md text-headline-md text-neon-white uppercase">VS. ALEX M.</h2>
+              </div>
+              <div class="font-data-display text-data-display text-error text-right">
+                -0.8<span class="text-[14px] text-on-surface-variant">KM</span>
+              </div>
+            </div>
+            <div class="space-y-6">
+              <div>
+                <div class="flex justify-between font-label-caps text-label-caps mb-2 uppercase">
+                  <span class="text-primary">You</span>
+                  <span class="text-primary font-data-display">12.4 KM</span>
+                </div>
+                <div class="h-2 w-full bg-surface-container rounded-full overflow-hidden relative shadow-[inset_0_1px_3px_rgba(0,0,0,0.5)]">
+                  <div class="absolute top-0 left-0 h-full bg-primary w-[48%] shadow-[0_0_10px_rgba(0,229,160,0.8)]"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between font-label-caps text-label-caps mb-2 uppercase">
+                  <span class="text-error">Alex M.</span>
+                  <span class="text-error font-data-display">13.2 KM</span>
+                </div>
+                <div class="h-2 w-full bg-surface-container rounded-full overflow-hidden relative shadow-[inset_0_1px_3px_rgba(0,0,0,0.5)]">
+                  <div class="absolute top-0 left-0 h-full bg-error w-[52%] shadow-[0_0_10px_rgba(255,180,171,0.5)]"></div>
+                </div>
+              </div>
+            </div>
+            <div class="mt-6 bg-error/10 border border-error/20 p-3 text-center rounded flex items-center justify-between">
+              <span class="font-label-caps text-label-caps text-error uppercase tracking-widest">Target locked. Catch up!</span>
+              <button class="bg-error/20 hover:bg-error/30 text-error px-4 py-2 font-label-caps text-[12px] uppercase tracking-widest transition-colors rounded" id="btn-invite-rival-dash">Invite Rival</button>
+            </div>
+          </div>
 
-        <!-- Rival callout -->
-        <div id="dash-rival-callout" class="dash-rival-wrap"><!-- Rival status injected by dashboard.js --></div>
+          <div class="col-span-4 md:col-span-4 flex flex-col gap-gutter md:gap-6">
+            <div class="glass-panel rounded-xl p-6 flex-1 flex flex-col justify-center items-center text-center relative overflow-hidden group border border-secondary-container/50 hover:border-secondary-container transition-colors cursor-pointer" onclick="navigate('challenges')">
+              <div class="absolute inset-0 opacity-10 bg-gradient-to-br from-secondary-container to-transparent group-hover:opacity-20 transition-opacity"></div>
+              <span class="material-symbols-outlined text-secondary text-[40px] mb-4" style="font-variation-settings: 'FILL' 1;">target</span>
+              <h3 class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest mb-2">Daily Ops</h3>
+              <div class="font-headline-md text-headline-md text-neon-white uppercase mb-6 leading-tight">Run 5km<br/>Today</div>
+              <div class="w-full relative pt-1">
+                <div class="flex mb-2 items-center justify-between">
+                  <div class="font-data-display text-[14px] text-secondary">75%</div>
+                  <div class="font-data-display text-[14px] text-on-surface-variant">3.75 / 5.0 KM</div>
+                </div>
+                <div class="flex h-1.5 overflow-hidden bg-surface-container rounded-full">
+                  <div class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-secondary shadow-[0_0_10px_rgba(207,189,255,0.6)]" style="width: 75%"></div>
+                </div>
+              </div>
+            </div>
+            <button class="w-full bg-primary hover:bg-primary-fixed text-on-primary-fixed font-headline-md text-[20px] py-5 uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(0,229,160,0.3)] hover:shadow-[0_0_40px_rgba(0,229,160,0.6)] rounded-xl flex items-center justify-center gap-3">
+              <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">sync</span>
+              Pull Telemetry
+            </button>
+          </div>
 
-        <div class="quick-actions">
-          <button class="quick-action" data-goto="coach">
-            <span class="qa-icon">🤖</span>
-            <span class="qa-label">AI Coach</span>
-            <span class="qa-desc">Ask your coach anything</span>
-          </button>
-          <button class="quick-action" data-goto="activities">
-            <span class="qa-icon">🏃</span>
-            <span class="qa-label">Activities</span>
-            <span class="qa-desc">View all your runs</span>
-          </button>
-          <button class="quick-action" data-goto="groups">
-            <span class="qa-icon">👥</span>
-            <span class="qa-label">Groups</span>
-            <span class="qa-desc">Compete with your city</span>
-          </button>
-          <button class="quick-action" data-goto="ranking">
-            <span class="qa-icon">🏆</span>
-            <span class="qa-label">Ranking</span>
-            <span class="qa-desc">Monthly km leaderboard</span>
-          </button>
-        </div>
+          <div class="col-span-4 md:col-span-12 glass-panel rounded-xl p-6">
+            <div class="flex justify-between items-center mb-6 border-b border-outline-variant/30 pb-4 cursor-pointer" onclick="toggleCollapse('wrap-acts', this)">
+              <h2 class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest flex items-center gap-2">
+                Recent Ops Log
+                <span class="collapse-icon material-symbols-outlined text-[16px] transition-transform duration-300">expand_less</span>
+              </h2>
+              <button class="font-label-caps text-label-caps text-primary hover:text-primary-fixed uppercase tracking-widest" onclick="event.stopPropagation(); navigate('activities')">View All</button>
+            </div>
+            <div id="wrap-acts" class="flex flex-col gap-2 transition-all duration-300 overflow-hidden">
+              <div id="dash-acts">
+                <div class="empty"><span class="spinner"></span> Loading…</div>
+              </div>
+            </div>
+          </div>
 
-        <div class="stats-grid">
-          <div class="stat-card"><div class="stat-label">Activities</div><div class="stat-value g" id="s-count">—</div><div class="stat-sub">last 60 days</div></div>
-          <div class="stat-card"><div class="stat-label">Distance</div><div class="stat-value" id="s-dist">—</div><div class="stat-sub">km total</div></div>
-          <div class="stat-card"><div class="stat-label">Time</div><div class="stat-value" id="s-time">—</div><div class="stat-sub">hours</div></div>
-          <div class="stat-card"><div class="stat-label">Elevation</div><div class="stat-value" id="s-elev">—</div><div class="stat-sub">meters</div></div>
-          <div class="stat-card"><div class="stat-label">Avg Pace</div><div class="stat-value g" id="s-pace">—</div><div class="stat-sub">min/km runs</div></div>
-        </div>
+          <div class="col-span-4 md:col-span-12 glass-panel rounded-xl p-6">
+            <div class="flex justify-between items-center mb-6 border-b border-outline-variant/30 pb-4 cursor-pointer" onclick="toggleCollapse('wrap-heatmap', this)">
+              <h2 class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest flex items-center gap-2">
+                Activity Heatmap
+                <span class="collapse-icon material-symbols-outlined text-[16px] transition-transform duration-300">expand_less</span>
+              </h2>
+            </div>
+            <div id="wrap-heatmap" class="transition-all duration-300 overflow-hidden">
+              <div class="heatmap-container" id="dash-heatmap">
+                <div class="skeleton-box" style="height:40px;border-radius:6px;width:100%"></div>
+              </div>
+            </div>
+          </div>
 
-        <div class="sec-head" style="margin-top:24px">
-          <div class="sec-title">Last 90 Days</div>
-        </div>
-        <div class="heatmap-container" id="dash-heatmap">
-          <div class="skeleton-box" style="height:40px;border-radius:6px;width:100%"></div>
-        </div>
+          <div class="col-span-4 md:col-span-12 glass-panel rounded-xl p-6">
+            <div class="flex justify-between items-center mb-6 border-b border-outline-variant/30 pb-4 cursor-pointer" onclick="toggleCollapse('wrap-badges', this)">
+              <h2 class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest flex items-center gap-2">
+                Badges & Achievements
+                <span class="collapse-icon material-symbols-outlined text-[16px] transition-transform duration-300">expand_less</span>
+              </h2>
+            </div>
+            <div id="wrap-badges" class="transition-all duration-300 overflow-hidden">
+              <div class="flex overflow-x-auto gap-4 pb-2" id="dash-badges">
+                <div class="skeleton-box" style="height:100px;border-radius:12px;width:120px;flex-shrink:0"></div>
+                <div class="skeleton-box" style="height:100px;border-radius:12px;width:120px;flex-shrink:0"></div>
+                <div class="skeleton-box" style="height:100px;border-radius:12px;width:120px;flex-shrink:0"></div>
+              </div>
+            </div>
+          </div>
 
-        <div class="sec-head" style="margin-top:24px">
-          <div class="sec-title">Badges & Achievements</div>
-        </div>
-        <div class="badges-row" id="dash-badges">
-          <div class="skeleton-box" style="height:100px;border-radius:12px;width:120px;flex-shrink:0"></div>
-          <div class="skeleton-box" style="height:100px;border-radius:12px;width:120px;flex-shrink:0"></div>
-          <div class="skeleton-box" style="height:100px;border-radius:12px;width:120px;flex-shrink:0"></div>
-        </div>
-
-        <div class="sec-head">
-          <div class="sec-title">Recent Activities</div>
-          <button class="btn-sm" data-goto="activities">View all →</button>
-        </div>
-        <div class="acts-grid" id="dash-acts">
-          <div class="empty"><span class="spinner"></span> Loading…</div>
         </div>
       </div>
 
@@ -509,91 +699,330 @@
 
       <!-- ── BATTLES ── -->
       <div class="page" id="page-battles">
-        <div class="battle-hero" id="battle-hero">
-          <div class="battle-hero-top">
-            <div class="battle-title" id="battle-title">⚔️ Weekly Battle · Week 20</div>
-            <div class="battle-timer" id="battle-timer">4d left</div>
-          </div>
-          <div class="battle-vs-card">
-            <div class="battle-side">
-              <div class="battle-avatar you" id="battle-you-av">Y</div>
-              <div class="battle-side-name">You</div>
-              <div class="battle-side-km" id="battle-you-km">— km</div>
-              <div class="battle-side-league silver">🥈 Silver</div>
+        <!-- Background Ambient Effects -->
+        <div class="fixed top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-primary/5 rounded-full blur-[120px] pointer-events-none -z-10"></div>
+        <div class="fixed bottom-0 right-0 w-[600px] h-[600px] bg-error/5 rounded-full blur-[100px] pointer-events-none -z-10"></div>
+        <div class="max-w-container-max mx-auto">
+          <!-- Page Header -->
+          <div class="mb-8 md:mb-12 flex justify-between items-end">
+            <div>
+              <h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-neon-white uppercase tracking-tight">The War Room</h1>
+              <p class="font-body-md text-body-md text-on-surface-variant mt-2 max-w-xl">Active engagements and global telemetry. Push beyond the limits.</p>
             </div>
-            <div class="battle-center">
-              <div class="battle-vs-text">VS</div>
-              <div class="battle-status-badge losing" id="battle-status-badge">BEHIND</div>
-            </div>
-            <div class="battle-side">
-              <div class="battle-avatar rival" id="battle-rival-av">A</div>
-              <div class="battle-side-name" id="battle-rival-name">Alex M.</div>
-              <div class="battle-side-km" id="battle-rival-km">— km</div>
-              <div class="battle-side-league silver">🥈 Silver</div>
+            <div class="hidden md:flex flex-col items-end">
+              <span class="font-label-caps text-label-caps text-primary border border-primary/30 px-3 py-1 rounded-sm bg-primary/5">LIVE TELEMETRY</span>
+              <span class="font-data-display text-data-display text-on-surface-variant mt-2 text-sm">SYS.STATUS: <span class="text-primary">NOMINAL</span></span>
             </div>
           </div>
-          <div class="battle-bar-wrap">
-            <div class="battle-bar-you" id="battle-bar-you" style="width:50%"></div>
-            <div class="battle-bar-rival" id="battle-bar-rival" style="width:50%"></div>
+          <!-- Dashboard Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-gutter md:gap-6">
+            <!-- Main Battle Canvas (Spans 8 cols on desktop) -->
+            <div class="md:col-span-8 space-y-6">
+              
+              <!-- No battle state -->
+              <div class="battle-empty glass-panel rounded-xl p-8 flex-col items-center justify-center text-center" id="battle-empty" style="display:none">
+                <div style="font-size:3rem;margin-bottom:12px">⚔️</div>
+                <div class="font-headline-md text-neon-white mb-2">No active battle</div>
+                <div class="text-on-surface-variant mb-6">Get matched with a rival your level</div>
+                <button class="bg-primary hover:bg-primary-fixed text-on-primary-fixed font-label-caps px-6 py-3 uppercase tracking-widest rounded" id="btn-find-battle">Find a rival →</button>
+              </div>
+
+              <!-- Active Battle Card -->
+              <div class="glass-panel rounded-xl p-6 md:p-8 relative overflow-hidden" id="battle-hero">
+                <!-- Background Grid Pattern -->
+                <div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: linear-gradient(theme('colors.on-surface') 1px, transparent 1px), linear-gradient(90deg, theme('colors.on-surface') 1px, transparent 1px); background-size: 20px 20px;"></div>
+                <div class="flex justify-between items-center mb-8 relative z-10">
+                  <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings: 'FILL' 1;">swords</span>
+                    <div>
+                      <h2 class="font-headline-md text-headline-md text-neon-white" id="battle-title">Current Engagement</h2>
+                      <p class="font-label-caps text-label-caps text-on-surface-variant mt-1">WEEKLY DISTANCE CLASH</p>
+                    </div>
+                  </div>
+                  <div class="text-right">
+                    <div class="font-data-display text-data-display text-primary text-xl" id="battle-timer">--</div>
+                    <div class="font-label-caps text-label-caps text-on-surface-variant mt-1 tracking-widest">REMAINING</div>
+                  </div>
+                </div>
+                <!-- Battle Visualizer -->
+                <div class="relative py-12 z-10">
+                  <!-- Differential Indicator -->
+                  <div class="absolute top-0 left-1/2 -translate-x-1/2 text-center">
+                    <div class="font-display-hero text-5xl md:text-6xl text-primary tracking-tighter drop-shadow-[0_0_15px_rgba(0,229,160,0.5)]" id="battle-status-badge">VS</div>
+                  </div>
+                  <!-- Progress Bars Container -->
+                  <div class="mt-16 space-y-8">
+                    <!-- User Bar -->
+                    <div class="relative">
+                      <div class="flex justify-between mb-2">
+                        <div class="font-label-caps text-label-caps text-neon-white flex items-center gap-2">
+                          <div class="w-5 h-5 rounded-full border border-primary/50 flex items-center justify-center text-[10px] bg-primary/20" id="battle-you-av">Y</div>
+                          YOU
+                        </div>
+                        <div class="font-data-display text-data-display text-neon-white text-lg" id="battle-you-km">-- KM</div>
+                      </div>
+                      <div class="h-4 w-full bg-surface-container-high rounded-full overflow-hidden flex shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)]">
+                        <div class="h-full bg-primary w-[50%] flex space-x-[2px] relative" id="battle-bar-you">
+                          <div class="absolute inset-0 bg-gradient-to-r from-transparent to-white/30"></div>
+                        </div>
+                      </div>
+                    </div>
+                    <!-- Rival Bar -->
+                    <div class="relative">
+                      <div class="flex justify-between mb-2">
+                        <div class="font-label-caps text-label-caps text-error flex items-center gap-2">
+                          <div class="w-5 h-5 rounded-full border border-error/50 flex items-center justify-center text-[10px] bg-error/20" id="battle-rival-av">R</div>
+                          <span id="battle-rival-name">RIVAL</span>
+                        </div>
+                        <div class="font-data-display text-data-display text-error text-lg" id="battle-rival-km">-- KM</div>
+                      </div>
+                      <div class="h-4 w-full bg-surface-container-high rounded-full overflow-hidden flex shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)]">
+                        <div class="h-full bg-error w-[50%] flex space-x-[2px] relative" id="battle-bar-rival">
+                          <div class="absolute inset-0 bg-gradient-to-r from-transparent to-black/30"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!-- Battle Ticker -->
+                <div class="mt-4 bg-surface-container-lowest/80 border border-outline-variant p-3 rounded-lg flex items-center gap-3">
+                  <span class="material-symbols-outlined text-primary animate-pulse text-sm">sensors</span>
+                  <div class="font-data-display text-data-display text-sm text-on-surface-variant overflow-hidden whitespace-nowrap" id="battle-message">
+                    <span class="text-neon-white">LATEST UPDATE:</span> Loading...
+                  </div>
+                </div>
+                <!-- Actions -->
+                <div class="mt-6 flex gap-4">
+                  <button class="bg-primary hover:bg-primary-fixed text-on-primary-fixed font-label-caps px-4 py-2 uppercase tracking-widest rounded" id="btn-battle-sync">↻ Sync Run</button>
+                  <button class="bg-surface-container-highest text-neon-white border border-outline-variant hover:border-primary font-label-caps px-4 py-2 uppercase tracking-widest rounded" id="btn-rematch">🔄 Rematch</button>
+                  <button class="bg-surface-container-highest text-neon-white border border-outline-variant hover:border-primary font-label-caps px-4 py-2 uppercase tracking-widest rounded"id="btn-invite-rival">Invite a Rival</button>
+                </div>
+              </div>
+
+              <!-- Rival History -->
+              <div class="glass-panel rounded-xl p-6">
+                <h3 class="font-headline-md text-headline-md text-neon-white mb-6 text-lg">Combat Log</h3>
+                <div class="space-y-4" id="battle-history">
+                  <!-- History injected here -->
+                  <div class="text-on-surface-variant text-sm">Loading history...</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Global Feed Sidebar (Spans 4 cols on desktop) -->
+            <div class="md:col-span-4 h-full">
+              <div class="glass-panel rounded-xl p-6 h-full flex flex-col">
+                <div class="flex items-center gap-2 mb-6">
+                  <span class="material-symbols-outlined text-primary text-sm">public</span>
+                  <h3 class="font-label-caps text-label-caps text-primary tracking-widest">GLOBAL THEATER FEED</h3>
+                </div>
+                <div class="flex-1 overflow-y-auto space-y-4 pr-2">
+                  <div class="bg-surface-container-lowest/50 p-3 rounded border-l-2 border-primary">
+                    <div class="font-body-md text-body-md text-sm text-neon-white mb-1">
+                      <span class="font-bold">Ghost_Runner</span> dominated <span class="text-on-surface-variant">User404</span>
+                    </div>
+                    <div class="font-data-display text-data-display text-xs text-primary">+15.2km Differential</div>
+                  </div>
+                  <div class="bg-surface-container-lowest/50 p-3 rounded border-l-2 border-secondary-container">
+                    <div class="font-body-md text-body-md text-sm text-neon-white mb-1">
+                      <span class="font-bold">IronLungs</span> secured a narrow victory over <span class="text-on-surface-variant">PaceMaker</span>
+                    </div>
+                    <div class="font-data-display text-data-display text-xs text-secondary-fixed-dim">+0.8km Differential</div>
+                  </div>
+                  <div class="bg-surface-container-lowest/50 p-3 rounded border-l-2 border-outline-variant">
+                    <div class="font-body-md text-body-md text-sm text-neon-white mb-1">
+                      <span class="text-on-surface-variant">New battle initiated:</span> <span class="font-bold">NeoTrack</span> vs <span class="font-bold">Trinity</span>
+                    </div>
+                    <div class="font-data-display text-data-display text-xs text-on-surface-variant">System mapping underway...</div>
+                  </div>
+                </div>
+                <button class="w-full mt-4 bg-transparent text-on-surface-variant font-label-caps text-label-caps py-2 border border-outline-variant rounded-sm hover:text-neon-white hover:border-primary/50 transition-colors text-xs">
+                  VIEW FULL LOGS
+                </button>
+              </div>
+            </div>
           </div>
-          <div class="battle-message losing" id="battle-message">Loading…</div>
-          <div class="battle-actions">
-            <button class="btn btn-green" id="btn-battle-sync">↻ Sync Run</button>
-            <button class="btn btn-outline" id="btn-rematch">🔄 Rematch</button>
-          </div>
         </div>
-        <div class="battle-empty" id="battle-empty" style="display:none">
-          <div style="font-size:3rem;margin-bottom:12px">⚔️</div>
-          <div style="font-size:1.1rem;font-weight:600;margin-bottom:6px">No active battle</div>
-          <div style="font-size:0.85rem;color:var(--muted);margin-bottom:20px">Get matched with a rival your level</div>
-          <button class="btn btn-green" id="btn-find-battle">Find a rival →</button>
-        </div>
-        <div class="sec-head" style="margin-top:28px">
-          <div class="sec-title">Battle History</div>
-        </div>
-        <div id="battle-history"></div>
       </div>
 
       <!-- ── BATTLE PASS ── -->
       <div class="page" id="page-battlepass">
-        <div class="bp-header-row">
-          <div id="bp-header">
-            <div class="bp-season-name">Season 1 — Rise</div>
-            <div class="bp-season-meta">17 days remaining · 50 levels</div>
+        <!-- Hero Section -->
+        <section class="relative w-full h-[400px] mb-8 overflow-hidden rounded-xl hud-border">
+          <div class="absolute inset-0 bg-cover bg-center opacity-40 mix-blend-luminosity" data-alt="A cinematic, wide-angle view of a futuristic cyberpunk cityscape at night, illuminated by stark neon greens and deep purples against obsidian architecture. The scene captures the high-performance, gamified 'Rise of the Runners' theme with glowing data streams overlaying the urban geometry." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBKufQAMxLUBhIVLxsiW-N1CGkvK61O_UqYqlWo0YUPsVPhoLhv9MST1MVPjK0UVGZn08CmspJZcAsvBx2VcxxrBxkCdVHGbYlQSt128KW_AgKOEd6-jiucYROUy5YKExnvoPH1X3LAfQk5zqZI7zgsUV6GmLojdZ6aJSc1MsCVlePg-cJhDNXkvMaUGlbsVvQFuuBl0MgHu9qs5K5stXCr5Uyjpag70NTxdoB3Xtq3XHk2XFNfB-y_3qWFVUaNPU6ZThSuX6Ds_XY6');"></div>
+          <div class="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent"></div>
+          <div class="absolute inset-0 bg-gradient-to-r from-background via-background/50 to-transparent"></div>
+          <div class="relative h-full flex flex-col justify-end p-8 md:p-12 z-10 w-full max-w-4xl">
+            <div class="inline-flex items-center gap-2 px-3 py-1 bg-surface-container border border-primary/30 rounded text-primary font-label-caps text-label-caps mb-4 w-max">
+              <span class="material-symbols-outlined text-[16px]">sync</span>
+              <span>SEASON 1 ACTIVE</span>
+            </div>
+            <h2 class="font-display-hero text-headline-lg-mobile md:text-display-hero text-neon-white mb-4 uppercase tracking-tighter">Season 1: Rise of the Runners</h2>
+            <div class="flex flex-col md:flex-row gap-6 mt-4">
+              <div class="glass-panel p-4 rounded-lg flex-1 hud-border hud-glow-primary">
+                <div class="font-label-caps text-label-caps text-on-surface-variant mb-2 uppercase">Current Level</div>
+                <div class="flex items-end gap-3">
+                  <span class="font-data-display text-headline-lg text-primary" id="bp-level">1</span>
+                  <span class="font-body-md text-body-md text-on-surface-variant pb-1">/ 50</span>
+                </div>
+                <div class="mt-4">
+                  <div class="flex justify-between font-label-caps text-label-caps mb-2 text-on-surface">
+                    <span id="bp-xp">0 XP</span>
+                    <span id="bp-next">NEXT: 1000 XP</span>
+                  </div>
+                  <div class="w-full bg-surface-deep h-2 rounded-full overflow-hidden flex">
+                    <div class="bg-primary h-full w-0" id="bp-xp-fill" style="box-shadow: 0 0 10px rgba(0, 229, 160, 0.8);"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="glass-panel p-4 rounded-lg flex-1 hud-border border-secondary-container bg-secondary-container/10 hud-glow-secondary relative overflow-hidden group">
+                <div class="absolute inset-0 bg-gradient-to-r from-secondary-container/0 via-secondary-container/20 to-secondary-container/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+                <div class="relative z-10 flex flex-col h-full justify-between">
+                  <div>
+                    <div class="font-label-caps text-label-caps text-secondary mb-1 uppercase flex items-center gap-2" id="bp-status">
+                      <span class="material-symbols-outlined text-[16px]">stars</span>
+                      Elite Pass Inactive
+                    </div>
+                    <p class="font-body-md text-body-md text-on-surface mt-2">Unlock 50+ premium rewards, XP boosts, and exclusive skins.</p>
+                  </div>
+                  <button class="mt-4 w-full py-2 bg-secondary text-on-secondary font-label-caps text-label-caps font-bold hover:bg-secondary-fixed hover:shadow-[0_0_20px_rgba(207,189,255,0.5)] transition-all" id="btn-upgrade-pass">
+                    GO PREMIUM - 950 CC
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
-          <button class="btn btn-outline btn-sm" id="btn-upgrade-pass">👑 Go Premium</button>
-        </div>
-        <div id="bp-xp-bar" class="bp-xp-section"></div>
-        <div class="bp-upsell" id="bp-upsell">
-          <span>🔒 Unlock premium rewards with Elite</span>
-          <button class="bp-upsell-btn" onclick="navigate('pricing')">Upgrade →</button>
-        </div>
-        <div class="bp-track-label">
-          <span>FREE TRACK</span><span>🔒 PREMIUM</span>
-        </div>
-        <div class="bp-track-scroll">
-          <div class="bp-track" id="bp-track"></div>
-        </div>
+        </section>
+
+        <!-- Pass Progression Track -->
+        <section class="mt-12">
+          <div class="flex justify-between items-center mb-6">
+            <h3 class="font-headline-md text-headline-md text-neon-white uppercase">Reward Track</h3>
+            <div class="font-label-caps text-label-caps text-on-surface-variant flex gap-4">
+              <span class="flex items-center gap-1"><div class="w-3 h-3 bg-surface-container border border-outline"></div> Free</span>
+              <span class="flex items-center gap-1"><div class="w-3 h-3 bg-secondary-container/20 border border-secondary"></div> Premium</span>
+            </div>
+          </div>
+          <!-- Horizontal Track Container -->
+          <div class="relative w-full overflow-x-auto hide-scrollbar pb-8 pt-4">
+            <div class="inline-flex gap-4 min-w-full px-4" id="bp-track">
+              <!-- JS will inject rewards here -->
+              <div class="text-on-surface-variant p-4">Loading reward track...</div>
+            </div>
+          </div>
+          <!-- Scroll Indicator -->
+          <div class="flex justify-center items-center mt-4 text-outline-variant font-label-caps text-[10px] gap-2">
+            <span class="material-symbols-outlined text-[16px]">swipe_left</span>
+            <span>SWIPE TO VIEW TRACK</span>
+            <span class="material-symbols-outlined text-[16px]">swipe_right</span>
+          </div>
+        </section>
       </div>
 
       <!-- ── LEAGUES ── -->
       <div class="page" id="page-leagues">
-        <div class="league-tier-tabs">
-          <button class="league-tab" data-league="bronze">🥉 Bronze</button>
-          <button class="league-tab active" data-league="silver">🥈 Silver</button>
-          <button class="league-tab" data-league="gold">🥇 Gold</button>
-          <button class="league-tab" data-league="elite">👑 Elite</button>
+        <!-- Ambient Background Glow -->
+        <div class="fixed inset-0 pointer-events-none z-[-1] overflow-hidden">
+          <div class="absolute top-[-20%] left-[-10%] w-[50vw] h-[50vw] bg-glow-purple rounded-full blur-[150px] opacity-40 mix-blend-screen"></div>
+          <div class="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] bg-glow-green rounded-full blur-[150px] opacity-20 mix-blend-screen"></div>
         </div>
-        <div style="display:flex; justify-content:center; gap:8px; margin-top:8px; margin-bottom:-8px; z-index:10; position:relative">
-          <button id="league-filter-global" class="chip active" style="font-size:0.8rem; padding:4px 12px; background:var(--green); color:#000; border:none">🌍 Global</button>
-          <button id="league-filter-local" class="chip" style="font-size:0.8rem; padding:4px 12px; background:var(--surface3); color:var(--text); border:none">📍 My City</button>
-        </div>
-        <div id="league-header" class="league-header"></div>
-        <div class="league-list-wrap">
-          <div id="league-list">
-            <div class="league-row" style="padding:16px"><div class="skeleton-box" style="height:32px;width:32px;border-radius:50%;margin-right:12px"></div><div class="skeleton-box" style="height:20px;width:150px"></div></div>
-            <div class="league-row" style="padding:16px"><div class="skeleton-box" style="height:32px;width:32px;border-radius:50%;margin-right:12px"></div><div class="skeleton-box" style="height:20px;width:130px"></div></div>
-            <div class="league-row" style="padding:16px"><div class="skeleton-box" style="height:32px;width:32px;border-radius:50%;margin-right:12px"></div><div class="skeleton-box" style="height:20px;width:160px"></div></div>
+
+        <div class="max-w-container-max mx-auto flex flex-col gap-8">
+          <!-- Section: Header & Countdown -->
+          <section class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+            <div>
+              <div class="flex items-center gap-3 mb-2">
+                <span class="material-symbols-outlined text-secondary-container text-4xl" style="font-variation-settings: 'FILL' 1;">workspace_premium</span>
+                <h2 class="font-headline-lg-mobile md:font-headline-lg text-neon-white">Gold League</h2>
+              </div>
+              <p class="font-body-md text-on-surface-variant">Top 15 advance to Elite. Bottom 10 demote to Silver.</p>
+            </div>
+            <div class="glass-panel px-6 py-4 rounded-xl flex flex-col items-end border-l-2 border-l-primary-container">
+              <span class="font-label-caps text-label-caps text-outline mb-1 uppercase">Cycle Ends In</span>
+              <div class="font-data-display text-data-display text-primary-container text-glow">
+                3D : 04H : 12M
+              </div>
+            </div>
+          </section>
+
+          <!-- Section: Tier Tabs (HUD Style) -->
+          <section class="w-full border-b border-surface-container-highest">
+            <div class="flex overflow-x-auto hide-scrollbar gap-2 pb-[-1px] league-tier-tabs">
+              <button class="px-6 py-3 font-label-caps text-label-caps text-on-surface-variant hover:text-neon-white transition-colors border-b-2 border-transparent league-tab" data-league="bronze">BRONZE</button>
+              <button class="px-6 py-3 font-label-caps text-label-caps text-on-surface-variant hover:text-neon-white transition-colors border-b-2 border-transparent league-tab" data-league="silver">SILVER</button>
+              <button class="px-6 py-3 font-label-caps text-label-caps text-primary-container border-b-2 border-primary-container neon-glow-text active league-tab" data-league="gold">GOLD</button>
+              <button class="px-6 py-3 font-label-caps text-label-caps text-on-surface-variant hover:text-neon-white transition-colors border-b-2 border-transparent flex items-center gap-2 league-tab" data-league="elite"><span class="material-symbols-outlined text-[14px]">lock</span>ELITE</button>
+            </div>
+          </section>
+
+          <div style="display:flex; justify-content:center; gap:8px; margin-top:8px; margin-bottom:-8px; z-index:10; position:relative">
+            <button id="league-filter-global" class="chip active" style="font-size:0.8rem; padding:4px 12px; background:var(--green); color:#000; border:none">🌍 Global</button>
+            <button id="league-filter-local" class="chip" style="font-size:0.8rem; padding:4px 12px; background:var(--surface3); color:var(--text); border:none">📍 My City</button>
+          </div>
+          
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-4">
+            <!-- Main Leaderboard Col -->
+            <div class="lg:col-span-2 flex flex-col gap-4">
+              <!-- Table Header -->
+              <div class="grid grid-cols-[40px_1fr_80px] gap-4 px-4 py-2 font-label-caps text-label-caps text-outline uppercase border-b border-surface-container-highest">
+                <div class="text-center">Rank</div>
+                <div>Operator</div>
+                <div class="text-right">Dist (KM)</div>
+              </div>
+              
+              <!-- Leaderboard List -->
+              <div class="flex flex-col gap-2 league-list-wrap" id="league-list">
+                <div class="empty text-center p-8 text-on-surface-variant">Loading leaderboard...</div>
+              </div>
+            </div>
+
+            <!-- Secondary Col: Rewards & Info -->
+            <div class="flex flex-col gap-6">
+              <!-- Reward Summary Bento Card -->
+              <div class="glass-panel rounded-2xl p-6 relative overflow-hidden group">
+                <div class="absolute inset-0 bg-gradient-to-br from-primary-container/10 to-transparent opacity-50"></div>
+                <h3 class="font-headline-md text-[20px] text-neon-white mb-6 relative z-10 flex items-center gap-2">
+                  <span class="material-symbols-outlined text-primary-container">redeem</span> League Rewards
+                </h3>
+                <div class="space-y-4 relative z-10">
+                  <div class="flex justify-between items-center p-3 rounded-lg bg-surface-container-highest/50 border border-white/5">
+                    <div class="flex items-center gap-3">
+                      <span class="font-data-display text-data-display text-[#FFD700]">1st</span>
+                      <span class="font-body-md text-on-surface">Elite Cache + 500 CC</span>
+                    </div>
+                    <span class="material-symbols-outlined text-[#FFD700]">inventory_2</span>
+                  </div>
+                  <div class="flex justify-between items-center p-3 rounded-lg bg-surface-container-highest/50 border border-white/5">
+                    <div class="flex items-center gap-3">
+                      <span class="font-data-display text-data-display text-[#C0C0C0]">2nd</span>
+                      <span class="font-body-md text-on-surface">Pro Cache + 250 CC</span>
+                    </div>
+                    <span class="material-symbols-outlined text-[#C0C0C0]">inventory_2</span>
+                  </div>
+                  <div class="flex justify-between items-center p-3 rounded-lg bg-surface-container-highest/50 border border-white/5">
+                    <div class="flex items-center gap-3">
+                      <span class="font-data-display text-data-display text-[#CD7F32]">3rd</span>
+                      <span class="font-body-md text-on-surface">Basic Cache + 100 CC</span>
+                    </div>
+                    <span class="material-symbols-outlined text-[#CD7F32]">inventory_2</span>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Rivalry Card -->
+              <div class="bg-surface-card border border-outline-variant rounded-2xl p-6 relative" id="league-target-card" style="display:none">
+                <h3 class="font-headline-md text-[16px] text-outline mb-4 uppercase tracking-widest">Target Acquired</h3>
+                <div class="flex items-center justify-between">
+                  <div>
+                    <p class="font-label-caps text-label-caps text-on-surface-variant mb-1">To pass <span class="text-neon-white" id="league-target-name">...</span></p>
+                    <div class="font-data-display text-data-display text-primary-container text-glow" id="league-target-dist">...</div>
+                  </div>
+                  <div class="w-12 h-12 rounded-full border-2 border-primary-container/50 flex items-center justify-center bg-surface-deep">
+                    <span class="material-symbols-outlined text-primary-container">directions_run</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -619,15 +1048,28 @@
     </main>
   </div>
 
-  <!-- Mobile bottom nav (game-first) -->
-  <nav class="mob-nav">
-    <div class="mob-nav-items">
-      <button class="mob-nav-btn active" data-page="dashboard"><span class="mob-nav-icon">🏠</span><span class="mob-nav-label">Home</span></button>
-      <button class="mob-nav-btn" data-page="battles"><span class="mob-nav-icon">⚔️</span><span class="mob-nav-label">Battles</span></button>
-      <button class="mob-nav-btn advanced-feature" data-page="battlepass"><span class="mob-nav-icon">🎫</span><span class="mob-nav-label">Pass</span></button>
-      <button class="mob-nav-btn advanced-feature" data-page="leagues"><span class="mob-nav-icon">🏆</span><span class="mob-nav-label">Leagues</span></button>
-      <button class="mob-nav-btn" data-page="challenges"><span class="mob-nav-icon">⚡</span><span class="mob-nav-label">Goals</span></button>
-    </div>
+  <!-- Mobile bottom nav -->
+  <nav class="fixed bottom-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-2 md:hidden bg-surface-container-lowest/90 backdrop-blur-2xl rounded-t-xl shadow-[0_-4px_24px_rgba(0,0,0,0.8)] border-t-0">
+    <button class="nav-item flex flex-col items-center justify-center text-primary-container drop-shadow-[0_0_8px_rgba(0,229,160,0.6)] scale-110 transition-transform duration-300 gap-1 w-16" data-page="dashboard">
+      <span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 1;">home</span>
+      <span class="font-label-caps text-label-caps text-[10px]">Home</span>
+    </button>
+    <button class="nav-item flex flex-col items-center justify-center text-outline hover:text-primary-fixed transition-colors gap-1 w-16" data-page="battles">
+      <span class="material-symbols-outlined text-[24px]">swords</span>
+      <span class="font-label-caps text-label-caps text-[10px]">Battles</span>
+    </button>
+    <button class="nav-item advanced-feature flex flex-col items-center justify-center text-outline hover:text-primary-fixed transition-colors gap-1 w-16" data-page="battlepass">
+      <span class="material-symbols-outlined text-[24px]">military_tech</span>
+      <span class="font-label-caps text-label-caps text-[10px]">Pass</span>
+    </button>
+    <button class="nav-item advanced-feature flex flex-col items-center justify-center text-outline hover:text-primary-fixed transition-colors gap-1 w-16" data-page="leagues">
+      <span class="material-symbols-outlined text-[24px]">emoji_events</span>
+      <span class="font-label-caps text-label-caps text-[10px]">Leagues</span>
+    </button>
+    <button class="nav-item flex flex-col items-center justify-center text-outline hover:text-primary-fixed transition-colors gap-1 w-16" data-page="challenges">
+      <span class="material-symbols-outlined text-[24px]">bolt</span>
+      <span class="font-label-caps text-label-caps text-[10px]">Tasks</span>
+    </button>
   </nav>
 
 <!-- ══ MODALS ══ -->

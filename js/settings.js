@@ -163,7 +163,7 @@ async function handleAvatarChange(e) {
 
     const { data: updated, error: dbErr } = await supabase
       .from('profiles')
-      .update({ avatar_url: publicUrl, updated_at: new Date().toISOString() })
+      .update({ avatar_url: publicUrl })
       .eq('id', state.user.id)
       .select()
       .single();
@@ -230,16 +230,15 @@ async function saveProfile() {
   const btn = qs('#btn-save-profile');
   if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
 
-  const payload = {
-    display_name:  qs('#profile-name')?.value.trim() || null,
-    city:          qs('#profile-city')?.value.trim() || null,
-    bio:           qs('#profile-bio')?.value.trim()  || null,
-    date_of_birth: qs('#profile-dob')?.value  || null,
-    weight_kg:     parseFloat(qs('#profile-weight')?.value) || null,
-    runner_type:   getSelectedChip('runner-type'),
-    goal:          getSelectedChip('goal'),
-    updated_at:    new Date().toISOString()
-  };
+    const payload = {
+      display_name:  qs('#profile-name')?.value.trim() || null,
+      city:          qs('#profile-city')?.value.trim() || null,
+      bio:           qs('#profile-bio')?.value.trim()  || null,
+      date_of_birth: qs('#profile-dob')?.value  || null,
+      weight_kg:     parseFloat(qs('#profile-weight')?.value) || null,
+      runner_type:   getSelectedChip('runner-type'),
+      goal:          getSelectedChip('goal')
+    };
 
   const { data, error } = await supabase
     .from('profiles')
@@ -263,8 +262,7 @@ async function saveCoachPrefs() {
 
   const payload = {
     coach_lang:  getSelectedChip('lang')  || 'en',
-    coach_style: getSelectedChip('style') || 'friendly',
-    updated_at:  new Date().toISOString()
+    coach_style: getSelectedChip('style') || 'friendly'
   };
 
   const { error } = await supabase
@@ -284,8 +282,7 @@ async function saveNotifications() {
     notif_weekly:   getToggle('notif-weekly'),
     notif_ranking:  getToggle('notif-ranking'),
     notif_inactive: getToggle('notif-inactive'),
-    notif_winner:   getToggle('notif-winner'),
-    updated_at:     new Date().toISOString()
+    notif_winner:   getToggle('notif-winner')
   };
 
   const { error } = await supabase

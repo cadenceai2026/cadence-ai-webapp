@@ -31,6 +31,13 @@
   z-index: 1000;
 }
 
+/* ── COLLAPSIBLES ── */
+.collapsible-head { cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; }
+.collapse-icon { font-size: 0.8rem; color: var(--muted); transition: transform 0.3s ease; }
+.collapsible-head.collapsed .collapse-icon { transform: rotate(-90deg); }
+.collapsible-content { overflow: hidden; transition: max-height 0.3s ease, opacity 0.3s ease; max-height: 1000px; opacity: 1; }
+.collapsible-content.collapsed { max-height: 0; opacity: 0; }
+
 /* ── STREAK ── */
 .streak-badge{display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 14px;white-space:nowrap}
 .streak-badge.streak-hot{border-color:#FF6B3544;background:#FF6B3508}
