@@ -266,6 +266,47 @@ export async function renderBattleScreen() {
 
   // Render history
   await renderBattleHistory();
+  
+  // Setup real-time updates
+  setupBattleSubscription();
+}
+
+let battleSub = null;
+function setupBattleSubscription() {
+  if (!state.activeBattle || battleSub) return;
+  
+  battleSub = supabase
+    .channel('realtime-battles')
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'battles', filter: `id=eq.${state.activeBattle.id}` }, payload => {
+      const oldYou = parseFloat(state.activeBattle.challenger_km);
+      const oldRiv = parseFloat(state.activeBattle.opponent_km);
+      const wasBehind = oldYou < oldRiv;
+      const wasTied = oldYou === oldRiv;
+      
+      // Update state
+      if (payload.new.challenger_id === state.user.id) {
+         state.activeBattle.challenger_km = payload.new.challenger_km;
+         state.activeBattle.opponent_km = payload.new.opponent_km;
+      } else {
+         state.activeBattle.challenger_km = payload.new.opponent_km;
+         state.activeBattle.opponent_km = payload.new.challenger_km;
+      }
+      
+      const newYou = parseFloat(state.activeBattle.challenger_km);
+      const newRiv = parseFloat(state.activeBattle.opponent_km);
+      const isAhead = newYou > newRiv;
+      
+      if (wasBehind && isAhead) {
+        toast('🔥 YOU TOOK THE LEAD!');
+      } else if (!wasBehind && !isAhead && !wasTied) {
+        toast('⚠️ You lost the lead!');
+      } else if (Math.abs(newYou - newRiv) < 1.0 && newYou !== newRiv) {
+        toast('⚡ Tight race! Less than 1km difference.');
+      }
+      
+      renderBattleScreen();
+    })
+    .subscribe();
 }
 
 // ── BATTLE HISTORY FROM DB ────────────────────────────────────────────────────

@@ -7,22 +7,32 @@ import { LEAGUES } from './game.js';
 
 const STORAGE_KEY = 'cadence_onboarding_done';
 
+import { supabase } from './supabase-client.js';
+
 export function checkFirstRun() {
-  // If already done, skip
   if (localStorage.getItem(STORAGE_KEY)) return;
-  // Show after short delay so app finishes loading
   setTimeout(showOnboarding, 600);
 }
 
-function showOnboarding() {
+async function showOnboarding() {
   const overlay = qs('#onboarding-overlay');
   if (!overlay) return;
   overlay.style.display = 'flex';
   overlay.classList.add('ob-visible');
-  runSteps();
+  
+  // Call edge function in background
+  let obData = null;
+  try {
+    const { data, error } = await supabase.functions.invoke('gamification-onboarding', {});
+    if (!error && data) obData = data;
+  } catch (err) {
+    console.error('Onboarding provisioning failed:', err);
+  }
+  
+  runSteps(obData);
 }
 
-function runSteps() {
+function runSteps(obData) {
   const steps = [
     qs('#ob-step-1'),
     qs('#ob-step-2'),
@@ -30,25 +40,28 @@ function runSteps() {
     qs('#ob-step-4'),
   ];
 
-  // Populate step 2 — rival (inline data since it's just onboarding flavor)
+  const rivalName = obData?.rival?.display_name || 'Your first rival';
+  const rivalInitial = rivalName[0].toUpperCase();
+  const chTitle = obData?.challenge?.title || 'Cover 20 km this week';
+  const chXp = obData?.challenge?.xp_reward || 150;
+
   const rivalEl = qs('#ob-rival-card');
   if (rivalEl) {
     rivalEl.innerHTML = `
-      <div class="ob-rival-av">A</div>
+      <div class="ob-rival-av">${rivalInitial}</div>
       <div>
-        <div class="ob-rival-name">Your first rival</div>
-        <div class="ob-rival-stats">Will be matched to your level & league</div>
+        <div class="ob-rival-name">${rivalName}</div>
+        <div class="ob-rival-stats">Matched perfectly to your level</div>
       </div>`;
   }
 
-  // Populate step 3 — challenge
   const chEl = qs('#ob-challenge-card');
   if (chEl) {
     chEl.innerHTML = `
       <div class="ob-ch-icon">⚡</div>
       <div>
-        <div class="ob-ch-title">Cover 20 km this week</div>
-        <div class="ob-ch-xp">+150 XP reward</div>
+        <div class="ob-ch-title">${chTitle}</div>
+        <div class="ob-ch-xp">+${chXp} XP reward</div>
       </div>`;
   }
 

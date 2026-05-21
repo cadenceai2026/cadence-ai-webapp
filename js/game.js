@@ -36,6 +36,12 @@ export function calculateXP({ km = 0, battleWon = false, challengeXP = 0, streak
   else if (streakDays >= 3) xp = Math.round(xp * 1.2);
   if (battleWon) xp += 200;
   xp += challengeXP;
+  
+  // 2x XP for early levels (1-10) to hook new users
+  if (state.gameProfile && state.gameProfile.level <= 10) {
+    xp = Math.round(xp * 2);
+  }
+  
   return xp;
 }
 
@@ -328,6 +334,9 @@ export function renderStreakBadge(containerId) {
 export function refreshGameUI() {
   renderXPBar('dash-xp-bar');
   renderStreakBadge('dash-streak');
+  import('./ui.js').then(({ applySimplicityRule }) => {
+    if (state.gameProfile) applySimplicityRule(state.gameProfile.level);
+  });
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────────

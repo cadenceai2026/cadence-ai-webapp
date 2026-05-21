@@ -108,4 +108,12 @@ export function showEliteWelcome() {
   if (modal) modal.style.display = 'flex';
 }
 
+export function applySimplicityRule(level) {
+  const isBeginner = level < 3;
+  // Hide advanced nav items for beginners
+  qsa('.nav-item[data-page="leagues"], .nav-item[data-page="battlepass"], .mob-nav-btn[data-page="leagues"], .mob-nav-btn[data-page="battlepass"]').forEach(el => {
+    el.style.display = isBeginner ? 'none' : '';
+  });
+}
+
 import { daysUntil } from './utils.js';
