@@ -9,6 +9,8 @@ import { renderBattlePass } from './battlepass.js';
 import { renderChallenges } from './challenges.js';
 import { renderLeague } from './leagues.js';
 import { checkFirstRun } from './onboarding.js';
+import { renderDashboard } from './dashboard.js';
+import { renderActivities } from './activities.js';
 
 export function initRouter() {
   // Desktop nav
@@ -39,6 +41,8 @@ export function navigate(name) {
   if (name === 'battlepass') renderBattlePass();
   if (name === 'challenges') renderChallenges();
   if (name === 'leagues')    renderLeague();
+  if (name === 'dashboard')  renderDashboard();
+  if (name === 'activities') renderActivities();
 }
 
 function state_currentPage(name) {

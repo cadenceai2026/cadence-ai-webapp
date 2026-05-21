@@ -104,7 +104,6 @@ export async function loadProfile() {
   // Show admin nav and settings section if admin
   if (state.user.email === CONFIG.adminEmail) {
     qs('#admin-nav-item')?.style.setProperty('display', 'flex');
-    qs('#admin-section')?.style.setProperty('display', 'block');
   }
 }
 

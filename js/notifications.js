@@ -20,13 +20,14 @@ export function showLevelUp(newLevel) {
   setTimeout(() => closeLevelUp(), 4000);
 }
 
-window.closeLevelUp = function() {
+export function closeLevelUp() {
   const modal = qs('#levelup-modal');
   if (modal) {
     modal.classList.add('modal-exit');
     setTimeout(() => { modal.style.display = 'none'; modal.classList.remove('modal-exit'); }, 350);
   }
-};
+}
+window.closeLevelUp = closeLevelUp;
 
 // ── CONFETTI ──────────────────────────────────────────────────────────────────
 function spawnConfetti() {

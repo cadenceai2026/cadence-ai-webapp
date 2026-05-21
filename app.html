@@ -455,8 +455,13 @@
             <button id="btn-delete" style="width:100%;background:transparent;border:none;color:var(--muted2);border-radius:8px;padding:10px;font-family:'Space Grotesk',sans-serif;font-size:0.76rem;cursor:pointer">Delete account</button>
           </div>
 
-          <!-- Admin section (hidden unless admin) -->
-          <div class="settings-section" id="admin-section" style="display:none">
+          </div>
+
+        </div>
+
+      <!-- ── ADMIN ── -->
+      <div class="page" id="page-admin">
+        <div class="settings-section" style="max-width:800px; margin: 0 auto; display: block;">
             <div class="settings-title">🛡️ Admin Panel</div>
             <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px">
               <div class="stat-card"><div class="stat-label">Total users</div><div class="stat-value g" id="admin-total">—</div></div>
@@ -480,7 +485,8 @@
                 </tbody>
               </table>
             </div>
-          </div>
+        </div>
+      </div>
 
       <!-- ── BATTLES ── -->
       <div class="page" id="page-battles">
@@ -596,8 +602,6 @@
       <button class="mob-nav-btn" data-page="challenges"><span class="mob-nav-icon">⚡</span><span class="mob-nav-label">Goals</span></button>
     </div>
   </nav>
-
-</div>
 
 <!-- ══ MODALS ══ -->
 <div id="group-modal" style="display:none" class="modal-overlay">

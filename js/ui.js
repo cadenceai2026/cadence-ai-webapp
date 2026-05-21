@@ -1,4 +1,5 @@
 import { qs, qsa, show, hide } from './utils.js';
+import { daysUntil } from './utils.js';
 
 export function showAppScreen() {
   const loading = qs('#screen-loading');
@@ -116,4 +117,3 @@ export function applySimplicityRule(level) {
   });
 }
 
-import { daysUntil } from './utils.js';
