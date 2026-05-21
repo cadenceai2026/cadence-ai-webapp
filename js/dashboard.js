@@ -108,26 +108,29 @@ export function actCard(a) {
     .toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
   return `
-    <div class="act-card">
-      <div class="act-header">
+    <div class="glass-panel border border-outline-variant/30 rounded-xl p-4 flex flex-col gap-4 relative overflow-hidden group hover:border-primary/50 transition-colors">
+      <div class="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+      <div class="flex justify-between items-start relative z-10">
         <div>
-          <div class="act-name">${esc(a.name || 'Activity')}</div>
-          <div class="act-meta">${type} · ${date}</div>
+          <div class="font-headline-md text-neon-white text-[16px] uppercase tracking-wide truncate pr-2 max-w-[200px]">${esc(a.name || 'Activity')}</div>
+          <div class="font-label-caps text-on-surface-variant text-[10px] uppercase tracking-widest mt-1">${type} · ${date}</div>
         </div>
-        <div class="act-icon">${typeIcon(type)}</div>
+        <div class="w-10 h-10 rounded bg-surface-container border border-outline-variant/50 flex items-center justify-center text-[20px]">
+          ${typeIcon(type)}
+        </div>
       </div>
-      <div class="act-stats">
-        <div class="act-stat">
-          <span class="act-stat-val">${dist}</span>
-          <span class="act-stat-lbl">km</span>
+      <div class="flex items-center gap-6 relative z-10 pt-2 border-t border-outline-variant/20 mt-auto">
+        <div>
+          <div class="font-data-display text-primary text-[18px] leading-none mb-1">${dist}</div>
+          <div class="font-label-caps text-on-surface-variant text-[10px] uppercase tracking-widest">KM</div>
         </div>
-        <div class="act-stat">
-          <span class="act-stat-val">${time}</span>
-          <span class="act-stat-lbl">Time</span>
+        <div>
+          <div class="font-data-display text-neon-white text-[18px] leading-none mb-1">${time}</div>
+          <div class="font-label-caps text-on-surface-variant text-[10px] uppercase tracking-widest">TIME</div>
         </div>
-        <div class="act-stat">
-          <span class="act-stat-val">${third}</span>
-          <span class="act-stat-lbl">${thirdLabel}</span>
+        <div>
+          <div class="font-data-display text-neon-white text-[18px] leading-none mb-1">${third}</div>
+          <div class="font-label-caps text-on-surface-variant text-[10px] uppercase tracking-widest">${thirdLabel}</div>
         </div>
       </div>
     </div>`;

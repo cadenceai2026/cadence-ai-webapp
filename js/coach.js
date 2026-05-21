@@ -187,12 +187,21 @@ function appendMsg(role, text) {
     : '🤖';
 
   const div = document.createElement('div');
-  div.className = `msg ${isUser ? 'user' : ''}`;
+  div.className = `flex gap-4 w-full ${isUser ? 'flex-row-reverse' : ''}`;
+  
+  const bubbleClass = isUser 
+    ? 'bg-primary text-on-primary rounded-l-xl rounded-tr-xl rounded-br-sm' 
+    : 'bg-surface-container-highest border border-outline-variant/30 text-neon-white rounded-r-xl rounded-tl-xl rounded-bl-sm';
+
   div.innerHTML = `
-    <div class="msg-av ${isUser ? 'me' : 'ai'}">${avHtml}</div>
-    <div>
-      <div class="msg-bubble">${esc(text).replace(/\n/g, '<br>')}</div>
-      <div class="msg-time">${now}</div>
+    <div class="w-8 h-8 rounded-full bg-surface-deep flex-shrink-0 flex items-center justify-center overflow-hidden border ${isUser ? 'border-primary' : 'border-outline-variant'}">
+      ${avHtml}
+    </div>
+    <div class="flex flex-col gap-1 max-w-[80%] ${isUser ? 'items-end' : 'items-start'}">
+      <div class="p-3 shadow-lg ${bubbleClass}">
+        ${esc(text).replace(/\n/g, '<br>')}
+      </div>
+      <div class="font-label-caps text-[10px] text-on-surface-variant/70 uppercase tracking-widest px-1">${now}</div>
     </div>`;
 
   container.appendChild(div);
@@ -205,18 +214,20 @@ function appendStreamingBubble() {
 
   const now = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
   const div = document.createElement('div');
-  div.className = 'msg';
+  div.className = 'flex gap-4 w-full';
   div.innerHTML = `
-    <div class="msg-av ai">AI</div>
-    <div>
-      <div class="msg-bubble streaming-content">
-        <div class="typing">
-          <div class="typing-dot"></div>
-          <div class="typing-dot"></div>
-          <div class="typing-dot"></div>
+    <div class="w-8 h-8 rounded-full bg-surface-deep flex-shrink-0 flex items-center justify-center overflow-hidden border border-outline-variant text-[14px]">
+      🤖
+    </div>
+    <div class="flex flex-col gap-1 max-w-[80%] items-start">
+      <div class="p-3 shadow-lg bg-surface-container-highest border border-outline-variant/30 text-neon-white rounded-r-xl rounded-tl-xl rounded-bl-sm streaming-content">
+        <div class="flex gap-1 py-1">
+          <div class="w-2 h-2 rounded-full bg-primary animate-bounce"></div>
+          <div class="w-2 h-2 rounded-full bg-primary animate-bounce" style="animation-delay: 0.2s"></div>
+          <div class="w-2 h-2 rounded-full bg-primary animate-bounce" style="animation-delay: 0.4s"></div>
         </div>
       </div>
-      <div class="msg-time">${now}</div>
+      <div class="font-label-caps text-[10px] text-on-surface-variant/70 uppercase tracking-widest px-1">${now}</div>
     </div>`;
 
   container.appendChild(div);
@@ -226,7 +237,7 @@ function appendStreamingBubble() {
 
 function updateStreamingBubble(div, text) {
   if (!div) return;
-  const bubble = div.querySelector('.msg-bubble');
+  const bubble = div.querySelector('.streaming-content');
   if (bubble) {
     bubble.innerHTML = esc(text).replace(/\n/g, '<br>');
   }

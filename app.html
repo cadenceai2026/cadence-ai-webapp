@@ -360,91 +360,195 @@
 
       <!-- ── AI COACH ── -->
       <div class="page" id="page-coach">
-        <!-- Selector shown first -->
-        <div id="coach-selector">
-          <div class="coach-selector">
-            <div class="coach-selector-title">Choose your AI Coach</div>
-            <div class="coach-selector-sub">More AI options coming as Cadence grows 🚀</div>
-            <div class="coach-grid">
-              <div class="coach-card selected" id="coach-cadence" onclick="startChat()">
-                <div class="coach-icon">🟢</div>
-                <div class="coach-name">Cadence AI</div>
-                <div class="coach-desc">Powered by Cadence</div>
-                <div class="coach-badge">Free · Available now</div>
+        <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-8 md:py-12">
+          
+          <!-- Selector shown first -->
+          <div id="coach-selector" class="flex flex-col items-center justify-center min-h-[60vh]">
+            <h2 class="font-headline-lg-mobile md:font-headline-lg text-neon-white mb-2 uppercase tracking-tight text-center">Neural Coach Link</h2>
+            <p class="font-body-md text-on-surface-variant mb-12 text-center max-w-lg">Select your preferred AI module to analyze your telemetry and generate optimal training directives.</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl">
+              <!-- Cadence -->
+              <div class="glass-panel rounded-xl p-6 border-primary cursor-pointer hover:neon-glow-primary transition-all duration-300 relative overflow-hidden group" id="coach-cadence" onclick="startChat()">
+                <div class="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div class="flex items-center gap-4 relative z-10">
+                  <div class="w-16 h-16 rounded-full bg-surface-deep border-2 border-primary flex items-center justify-center neon-glow-primary">
+                    <span class="material-symbols-outlined text-primary text-[32px]">robot_2</span>
+                  </div>
+                  <div class="flex-1">
+                    <h3 class="font-headline-md text-[24px] text-neon-white uppercase tracking-wider">Cadence AI</h3>
+                    <p class="font-label-caps text-[12px] text-on-surface-variant uppercase tracking-widest mt-1">NATIVE MODULE</p>
+                  </div>
+                  <div class="bg-primary/20 text-primary px-3 py-1 rounded font-label-caps text-[10px]">ACTIVE</div>
+                </div>
               </div>
-              <div class="coach-card soon" onclick="toast('Claude coming soon! 🧠')">
-                <div class="soon-tag">Soon</div>
-                <div class="coach-icon">🧠</div>
-                <div class="coach-name">Claude</div>
-                <div class="coach-desc">by Anthropic</div>
+              
+              <!-- Claude (Soon) -->
+              <div class="glass-panel rounded-xl p-6 border-outline-variant/30 opacity-70 cursor-not-allowed relative" onclick="toast('Claude module locked 🔒')">
+                <div class="flex items-center gap-4 relative z-10 grayscale">
+                  <div class="w-16 h-16 rounded-full bg-surface-deep border-2 border-outline-variant flex items-center justify-center">
+                    <span class="material-symbols-outlined text-on-surface-variant text-[32px]">psychology</span>
+                  </div>
+                  <div class="flex-1">
+                    <h3 class="font-headline-md text-[24px] text-neon-white uppercase tracking-wider">Claude 3</h3>
+                    <p class="font-label-caps text-[12px] text-on-surface-variant uppercase tracking-widest mt-1">BY ANTHROPIC</p>
+                  </div>
+                  <div class="bg-surface-variant text-on-surface-variant px-3 py-1 rounded font-label-caps text-[10px]">LOCKED</div>
+                </div>
               </div>
-              <div class="coach-card soon" onclick="toast('ChatGPT coming soon! ⚡')">
-                <div class="soon-tag">Soon</div>
-                <div class="coach-icon">⚡</div>
-                <div class="coach-name">ChatGPT</div>
-                <div class="coach-desc">by OpenAI</div>
+              
+              <!-- ChatGPT (Soon) -->
+              <div class="glass-panel rounded-xl p-6 border-outline-variant/30 opacity-70 cursor-not-allowed relative" onclick="toast('ChatGPT module locked 🔒')">
+                <div class="flex items-center gap-4 relative z-10 grayscale">
+                  <div class="w-16 h-16 rounded-full bg-surface-deep border-2 border-outline-variant flex items-center justify-center">
+                    <span class="material-symbols-outlined text-on-surface-variant text-[32px]">bolt</span>
+                  </div>
+                  <div class="flex-1">
+                    <h3 class="font-headline-md text-[24px] text-neon-white uppercase tracking-wider">ChatGPT</h3>
+                    <p class="font-label-caps text-[12px] text-on-surface-variant uppercase tracking-widest mt-1">BY OPENAI</p>
+                  </div>
+                  <div class="bg-surface-variant text-on-surface-variant px-3 py-1 rounded font-label-caps text-[10px]">LOCKED</div>
+                </div>
               </div>
-              <div class="coach-card soon" onclick="toast('Gemini coming soon! ✨')">
-                <div class="soon-tag">Soon</div>
-                <div class="coach-icon">✨</div>
-                <div class="coach-name">Gemini</div>
-                <div class="coach-desc">by Google</div>
+
+              <!-- Gemini (Soon) -->
+              <div class="glass-panel rounded-xl p-6 border-outline-variant/30 opacity-70 cursor-not-allowed relative" onclick="toast('Gemini module locked 🔒')">
+                <div class="flex items-center gap-4 relative z-10 grayscale">
+                  <div class="w-16 h-16 rounded-full bg-surface-deep border-2 border-outline-variant flex items-center justify-center">
+                    <span class="material-symbols-outlined text-on-surface-variant text-[32px]">auto_awesome</span>
+                  </div>
+                  <div class="flex-1">
+                    <h3 class="font-headline-md text-[24px] text-neon-white uppercase tracking-wider">Gemini</h3>
+                    <p class="font-label-caps text-[12px] text-on-surface-variant uppercase tracking-widest mt-1">BY GOOGLE</p>
+                  </div>
+                  <div class="bg-surface-variant text-on-surface-variant px-3 py-1 rounded font-label-caps text-[10px]">LOCKED</div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        <!-- Chat shown after selecting -->
-        <div id="coach-chat" style="display:none">
-          <div class="quick-prompts" id="quick-prompts">
-            <button class="qp">Why is my pace dropping?</button>
-            <button class="qp">Am I overtraining?</button>
-            <button class="qp">Build me a 10K plan</button>
-            <button class="qp">When will I break 50min for 10K?</button>
-            <button class="qp">What should I focus on this week?</button>
-          </div>
-          <div class="chat-wrap">
-            <div class="chat-head">
-              <button id="btn-back-selector" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.1rem;margin-right:4px;padding:0">←</button>
-              <div class="chat-dot"></div>
-              <div class="chat-head-name">Cadence AI Coach</div>
-              <div class="chat-head-model">Free</div>
+          
+          <!-- Chat shown after selecting -->
+          <div id="coach-chat" style="display:none" class="flex flex-col h-[calc(100vh-140px)] md:h-[calc(100vh-80px)] max-w-4xl mx-auto">
+            
+            <div class="flex items-center justify-between bg-surface-container-highest/80 backdrop-blur border-b border-primary/30 p-4 rounded-t-xl z-10">
+              <div class="flex items-center gap-3">
+                <button id="btn-back-selector" class="text-on-surface-variant hover:text-primary transition-colors flex items-center justify-center">
+                  <span class="material-symbols-outlined">arrow_back</span>
+                </button>
+                <div class="w-3 h-3 bg-primary rounded-full animate-pulse shadow-[0_0_8px_rgba(0,229,160,0.8)]"></div>
+                <div>
+                  <h3 class="font-label-caps text-[14px] text-neon-white uppercase tracking-wider">CADENCE NEURAL LINK</h3>
+                  <p class="font-data-display text-[10px] text-primary">v2.4.1 ACTIVE</p>
+                </div>
+              </div>
+              <button class="text-on-surface-variant hover:text-neon-white transition-colors" title="Settings">
+                <span class="material-symbols-outlined">settings</span>
+              </button>
             </div>
-            <div class="chat-msgs" id="chat-msgs"></div>
-            <div class="chat-inp-wrap">
-              <textarea class="chat-inp" id="chat-in" placeholder="Ask your coach anything…" rows="1"></textarea>
-              <button class="chat-send" id="chat-send">→</button>
+            
+            <div class="flex-1 overflow-y-auto p-4 flex flex-col gap-4 relative bg-surface-deep/50 glass-panel border-x border-outline-variant/20 border-y-0 rounded-none" id="chat-msgs" style="border-radius:0;">
+              <!-- Quick prompts injected here by JS initially -->
+              <div class="flex flex-wrap gap-2 justify-center mb-6" id="quick-prompts">
+                <button class="qp bg-surface-container border border-outline-variant/50 text-on-surface-variant hover:text-primary hover:border-primary px-4 py-2 rounded-full font-label-caps text-[10px] transition-all uppercase tracking-wider">Analyze pace drop</button>
+                <button class="qp bg-surface-container border border-outline-variant/50 text-on-surface-variant hover:text-primary hover:border-primary px-4 py-2 rounded-full font-label-caps text-[10px] transition-all uppercase tracking-wider">Overtraining check</button>
+                <button class="qp bg-surface-container border border-outline-variant/50 text-on-surface-variant hover:text-primary hover:border-primary px-4 py-2 rounded-full font-label-caps text-[10px] transition-all uppercase tracking-wider">10K Training Plan</button>
+              </div>
+              
+              <!-- Chat messages will be injected dynamically -->
             </div>
+            
+            <div class="p-4 glass-panel border-t border-primary/30 rounded-b-xl flex gap-2">
+              <textarea id="chat-in" class="flex-1 bg-surface-container-lowest border border-outline-variant/50 text-neon-white rounded-lg p-3 font-body-md focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary resize-none placeholder-on-surface-variant/50" placeholder="Initialize query..." rows="1" style="min-height: 48px;"></textarea>
+              <button id="chat-send" class="bg-primary hover:bg-primary-fixed text-on-primary w-12 h-12 rounded-lg flex items-center justify-center transition-all shadow-[0_0_15px_rgba(0,229,160,0.3)]">
+                <span class="material-symbols-outlined">send</span>
+              </button>
+            </div>
+            
           </div>
         </div>
       </div>
 
       <!-- ── ACTIVITIES ── -->
       <div class="page" id="page-activities">
-        <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap" id="act-filters">
-          <button class="btn-sm on" data-filter="all">All</button>
-          <button class="btn-sm" data-filter="Run">🏃 Runs</button>
-          <button class="btn-sm" data-filter="Ride">🚴 Rides</button>
-          <button class="btn-sm" data-filter="Walk">🚶 Walks</button>
-          <button class="btn-sm" data-filter="Hike">🥾 Hikes</button>
-        </div>
-        <div class="acts-grid" id="all-acts">
-          <div class="act-card" style="padding:16px"><div class="skeleton-box" style="height:20px;width:60%;margin-bottom:8px"></div><div class="skeleton-box" style="height:14px;width:40%"></div></div>
-          <div class="act-card" style="padding:16px"><div class="skeleton-box" style="height:20px;width:70%;margin-bottom:8px"></div><div class="skeleton-box" style="height:14px;width:30%"></div></div>
-          <div class="act-card" style="padding:16px"><div class="skeleton-box" style="height:20px;width:50%;margin-bottom:8px"></div><div class="skeleton-box" style="height:14px;width:50%"></div></div>
+        <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-8 md:py-12">
+          
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+            <div>
+              <h2 class="font-headline-lg-mobile md:font-headline-lg text-neon-white uppercase tracking-tight">Telemetry Log</h2>
+              <p class="font-data-display text-[14px] text-primary mt-1">RECORDED EXERTIONS</p>
+            </div>
+            
+            <div class="flex flex-wrap gap-2" id="act-filters">
+              <button class="bg-primary/20 text-primary border border-primary/50 px-4 py-2 rounded-md font-label-caps text-[12px] uppercase tracking-widest hover:bg-primary/30 transition-colors on" data-filter="all">All Data</button>
+              <button class="bg-surface-container border border-outline-variant/50 text-on-surface-variant hover:text-neon-white hover:border-outline-variant px-4 py-2 rounded-md font-label-caps text-[12px] uppercase tracking-widest transition-colors" data-filter="Run">🏃 Runs</button>
+              <button class="bg-surface-container border border-outline-variant/50 text-on-surface-variant hover:text-neon-white hover:border-outline-variant px-4 py-2 rounded-md font-label-caps text-[12px] uppercase tracking-widest transition-colors" data-filter="Ride">🚴 Rides</button>
+              <button class="bg-surface-container border border-outline-variant/50 text-on-surface-variant hover:text-neon-white hover:border-outline-variant px-4 py-2 rounded-md font-label-caps text-[12px] uppercase tracking-widest transition-colors" data-filter="Walk">🚶 Walks</button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="all-acts">
+            <!-- Activities injected dynamically via JS -->
+            <div class="col-span-full text-center p-12 glass-panel rounded-xl">
+              <div class="w-8 h-8 rounded-full bg-primary/20 animate-ping mx-auto mb-4"></div>
+              <p class="font-label-caps text-primary uppercase tracking-widest">Intercepting telemetry...</p>
+            </div>
+          </div>
+          
         </div>
       </div>
 
       <!-- ── GROUPS ── -->
       <div class="page" id="page-groups">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-          <div>
-            <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.15rem;letter-spacing:-0.02em;margin-bottom:4px">City Groups</div>
-            <div style="font-size:0.82rem;color:var(--muted)">Compete with runners in your zone 🏆</div>
+        <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-8 md:py-12">
+          
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+            <div>
+              <h2 class="font-headline-lg-mobile md:font-headline-lg text-neon-white uppercase tracking-tight">Factions & Squads</h2>
+              <p class="font-data-display text-[14px] text-primary mt-1">ALLIED FORCES</p>
+            </div>
+            
+            <button id="btn-create-group" class="bg-primary text-on-primary hover:bg-primary-fixed px-6 py-3 rounded-lg font-label-caps text-[14px] uppercase tracking-widest transition-all shadow-[0_0_15px_rgba(0,229,160,0.3)] flex items-center gap-2">
+              <span class="material-symbols-outlined text-[20px]">add</span>
+              Form Squad
+            </button>
           </div>
-          <button class="btn-sm on" id="btn-create-group">+ Create group</button>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="groups-list">
+            <!-- Groups injected via JS -->
+            <div class="col-span-full text-center p-12 glass-panel rounded-xl">
+              <div class="w-8 h-8 rounded-full bg-primary/20 animate-ping mx-auto mb-4"></div>
+              <p class="font-label-caps text-primary uppercase tracking-widest">Scanning for squads...</p>
+            </div>
+          </div>
+          
         </div>
-        <div class="groups-grid" id="groups-list">
-          <div class="empty"><span class="spinner"></span> Loading…</div>
+      </div>
+      
+      <!-- Create Group Modal -->
+      <div id="group-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-surface-deep/90 backdrop-blur-sm" style="display:none">
+        <div class="glass-panel border border-primary/30 p-8 rounded-xl max-w-md w-full relative neon-glow-primary">
+          <h3 class="font-headline-md text-neon-white uppercase mb-2">Form a Squad</h3>
+          <p class="font-body-md text-on-surface-variant mb-6 text-[14px]">Create a new faction and invite operators to join your ranks.</p>
+          
+          <div class="flex flex-col gap-4 mb-8">
+            <div>
+              <label class="block font-label-caps text-[10px] text-primary uppercase tracking-widest mb-2">Squad Name</label>
+              <input type="text" id="group-name" placeholder="e.g. Neon Runners" class="w-full bg-surface-container border border-outline-variant/50 text-neon-white rounded p-3 font-body-md focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary" maxlength="30">
+            </div>
+            <div>
+              <label class="block font-label-caps text-[10px] text-primary uppercase tracking-widest mb-2">City Base</label>
+              <input type="text" id="group-city" placeholder="e.g. Neo-Tokyo" class="w-full bg-surface-container border border-outline-variant/50 text-neon-white rounded p-3 font-body-md focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary" maxlength="30">
+            </div>
+            <div>
+              <label class="block font-label-caps text-[10px] text-primary uppercase tracking-widest mb-2">Insignia (Emoji)</label>
+              <input type="text" id="group-flag" placeholder="🎌" class="w-full bg-surface-container border border-outline-variant/50 text-neon-white rounded p-3 font-body-md focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary text-[24px]" maxlength="2">
+            </div>
+          </div>
+          
+          <div class="flex gap-4">
+            <button id="btn-cancel-group" class="flex-1 bg-surface-container border border-outline-variant text-on-surface-variant hover:text-neon-white px-4 py-3 rounded font-label-caps uppercase tracking-widest transition-colors">Abort</button>
+            <button id="btn-save-group" class="flex-1 bg-primary text-on-primary hover:bg-primary-fixed px-4 py-3 rounded font-label-caps uppercase tracking-widest transition-colors shadow-[0_0_10px_rgba(0,229,160,0.4)]">Deploy</button>
+          </div>
         </div>
       </div>
 

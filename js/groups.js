@@ -48,18 +48,28 @@ export async function loadGroups() {
     const joined = myGroupIds.has(g.id);
     const pct = Math.min(100, count * 5);
 
+    const joinedClass = joined 
+      ? 'bg-surface-container border border-primary text-primary hover:bg-primary hover:text-on-primary' 
+      : 'bg-primary text-on-primary hover:bg-primary-fixed';
+
     return `
-      <div class="group-card">
-        <div style="font-size:1.4rem;margin-bottom:10px">${g.flag || '🌍'}</div>
-        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.05rem;margin-bottom:4px">${esc(g.name)}</div>
-        <div style="font-size:0.78rem;color:var(--muted);margin-bottom:14px;cursor:pointer" onclick="viewGroupMembers('${g.id}', '${esc(g.name)}')">${g.city || ''} · ${count} members (Click to view)</div>
-        <div class="group-bar-bg"><div class="group-bar-fg" style="width:${pct}%"></div></div>
-        <button
-          class="btn-join ${joined ? 'joined' : 'open'}"
-          data-group-id="${g.id}"
-          onclick="toggleJoin(this,'${g.id}')">
-          ${joined ? '✓ Joined' : 'Join group'}
-        </button>
+      <div class="glass-panel border border-outline-variant/30 rounded-xl p-6 relative overflow-hidden group-card transition-colors hover:border-primary/50">
+        <div class="absolute inset-0 bg-primary/5 opacity-0 hover:opacity-100 transition-opacity pointer-events-none"></div>
+        <div class="relative z-10 flex justify-between items-start mb-6">
+          <div class="w-12 h-12 rounded bg-surface-container border border-outline-variant/50 flex items-center justify-center text-[24px]">
+            ${g.flag || '🌍'}
+          </div>
+          <button class="w-full max-w-[120px] py-2 rounded font-label-caps text-[10px] uppercase tracking-widest transition-colors ${joinedClass} joined-btn" data-group-id="${g.id}" onclick="toggleJoin(this,'${g.id}')">
+            ${joined ? '✓ Joined' : 'Join Squad'}
+          </button>
+        </div>
+        <div class="relative z-10 mb-4">
+          <h3 class="font-headline-md text-neon-white text-[18px] uppercase tracking-wider mb-1">${esc(g.name)}</h3>
+          <p class="font-label-caps text-on-surface-variant text-[10px] uppercase tracking-widest cursor-pointer hover:text-primary transition-colors" onclick="viewGroupMembers('${g.id}', '${esc(g.name)}')">${g.city || 'GLOBAL'} · ${count} MEMBERS (VIEW)</p>
+        </div>
+        <div class="relative z-10 w-full h-1 bg-surface-container-highest rounded overflow-hidden">
+          <div class="h-full bg-primary" style="width:${pct}%"></div>
+        </div>
       </div>`;
   }).join('');
 }
