@@ -5,6 +5,7 @@ import { supabase } from './supabase-client.js';
 import { state } from './state.js';
 import { qs, toast } from './utils.js';
 import { getWeeklyKmFromActivities } from './game.js';
+import { ensureBotRival } from './mockData.js';
 
 // ── LOAD DATA FROM DB ─────────────────────────────────────────────────────────
 async function loadBattleData() {
@@ -129,36 +130,35 @@ async function findRivalAndCreateBattle() {
     // Pick a random real opponent
     const pick = candidates[Math.floor(Math.random() * candidates.length)];
     opponentId = pick.user_id;
+    
+    const now = new Date();
+    const weekNumber = Math.ceil((now - new Date(now.getFullYear(), 0, 1)) / (7 * 86400000));
+    const endDate = new Date(now.getTime() + 7 * 86400000);
+
+    const { data: battle, error } = await supabase
+      .from('battles')
+      .insert({
+        challenger_id: state.user.id,
+        opponent_id: opponentId,
+        challenger_km: getWeeklyKmFromActivities().toFixed(2),
+        opponent_km: 0,
+        status: 'active',
+        battle_type: 'weekly_km',
+        title: 'Weekly Battle',
+        week_number: weekNumber,
+        end_date: endDate.toISOString(),
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('createBattle error:', error);
+      toast('Failed to create battle', 'error');
+      return;
+    }
   } else {
-    // No other users — create a bot-style battle against self (user sees "Rival")
-    toast('No other runners in your league yet — practice battle created! 🤖');
-    opponentId = state.user.id; // Self-battle for now
-  }
-
-  const now = new Date();
-  const weekNumber = Math.ceil((now - new Date(now.getFullYear(), 0, 1)) / (7 * 86400000));
-  const endDate = new Date(now.getTime() + 7 * 86400000);
-
-  const { data: battle, error } = await supabase
-    .from('battles')
-    .insert({
-      challenger_id: state.user.id,
-      opponent_id: opponentId,
-      challenger_km: getWeeklyKmFromActivities().toFixed(2),
-      opponent_km: 0,
-      status: 'active',
-      battle_type: 'weekly_km',
-      title: 'Weekly Battle',
-      week_number: weekNumber,
-      end_date: endDate.toISOString(),
-    })
-    .select()
-    .single();
-
-  if (error) {
-    console.error('createBattle error:', error);
-    toast('Failed to create battle', 'error');
-    return;
+    // No other users — rely on the mock data engine to create a bot battle
+    await ensureBotRival(state.user.id);
   }
 
   toast('Battle started! Let the km war begin ⚔️🔥');
@@ -255,12 +255,27 @@ export async function renderBattleScreen() {
     }, 150);
   });
 
-  // Status message
+  // Status message (Emotional layer)
   const msgEl = qs('#battle-message');
   if (msgEl) {
-    if (winning)    msgEl.innerHTML = `🏆 You're ahead by <strong>${(-diffKm).toFixed(1)} km</strong> — keep the lead!`;
-    else if (tied)  msgEl.innerHTML = `🤝 It's a tie! Every km counts now.`;
-    else            msgEl.innerHTML = `⚠️ Losing by <strong>${diffKm} km</strong> — time to run!`;
+    const diffAbs = Math.abs(diffKm);
+    const isClose = diffAbs <= 1.0 && !tied;
+    
+    if (winning) {
+      if (isClose) {
+        msgEl.innerHTML = `⚡ <strong>Tight race!</strong> You're only ahead by ${diffAbs} km. Don't slow down!`;
+      } else {
+        msgEl.innerHTML = `🔥 <strong>YOU TOOK THE LEAD!</strong> Keep crushing it, ${diffAbs} km ahead!`;
+      }
+    } else if (tied) {
+      msgEl.innerHTML = `🤝 <strong>Dead heat!</strong> It's a perfect tie. The next run decides it.`;
+    } else {
+      if (isClose) {
+        msgEl.innerHTML = `⚡ <strong>Tight race!</strong> You're only losing by ${diffAbs} km. You can win this!`;
+      } else {
+        msgEl.innerHTML = `⚠️ <strong>You're behind.</strong> Trailing by ${diffAbs} km — time to lace up and run!`;
+      }
+    }
     msgEl.className = `battle-message ${winning ? 'winning' : tied ? 'tied' : 'losing'}`;
   }
 

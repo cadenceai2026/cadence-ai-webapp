@@ -32,10 +32,22 @@ export function xpNeededForNextLevel(totalXP) {
 // ── XP AWARD FORMULA ─────────────────────────────────────────────────────────
 export function calculateXP({ km = 0, battleWon = false, challengeXP = 0, streakDays = 0 }) {
   let xp = Math.round(km * 10);
-  if (streakDays >= 7)  xp = Math.round(xp * 1.5);
-  else if (streakDays >= 3) xp = Math.round(xp * 1.2);
+  
+  // Streak bonus: 1.2x if streak >= 3
+  if (streakDays >= 3) xp = Math.round(xp * 1.2);
+  
+  // Battle win: +200 XP
   if (battleWon) xp += 200;
+  
+  // Challenge XP: +50-150 XP
   xp += challengeXP;
+  
+  // Early levels (1-10) = 2x XP
+  const currentLevel = state.gameProfile?.level || 1;
+  if (currentLevel <= 10) {
+    xp *= 2;
+  }
+  
   return xp;
 }
 
@@ -328,6 +340,19 @@ export function renderStreakBadge(containerId) {
 export function refreshGameUI() {
   renderXPBar('dash-xp-bar');
   renderStreakBadge('dash-streak');
+  applySimplicityRule();
+}
+
+// ── SIMPLICITY RULE (Hide features for level < 3) ─────────────────────────────
+function applySimplicityRule() {
+  const level = state.gameProfile?.level || 1;
+  const isSimple = level < 3;
+  
+  // Hide leagues and battle pass tabs/elements if level < 3
+  const advancedEls = document.querySelectorAll('.advanced-feature');
+  advancedEls.forEach(el => {
+    el.style.display = isSimple ? 'none' : '';
+  });
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
