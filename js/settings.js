@@ -13,7 +13,13 @@ export function initSettings() {
   // Sign out — unified here, auth.js also wires it but this is the canonical handler
   qs('#btn-signout')?.addEventListener('click', async () => {
     await supabase.auth.signOut();
-    // auth.js onAuthStateChange SIGNED_OUT will redirect to login.html
+    localStorage.removeItem('cadence_onboarded');
+    if ('caches' in window) {
+      caches.keys().then((names) => {
+        names.forEach(name => caches.delete(name));
+      });
+    }
+    window.location.href = './login.html';
   });
 
   // Avatar upload

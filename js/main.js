@@ -13,7 +13,42 @@ import { initChallenges } from './challenges.js';
 import { initLeagues } from './leagues.js';
 import { initNotifications } from './notifications.js';
 
+// ── ERROR BOUNDARIES & OFFLINE ──
+window.addEventListener('online',  updateOnlineStatus);
+window.addEventListener('offline', updateOnlineStatus);
+
+function updateOnlineStatus() {
+  const banner = document.querySelector('#offline-banner');
+  if (banner) {
+    banner.style.display = navigator.onLine ? 'none' : 'block';
+  }
+}
+
+window.onerror = function(msg, url, lineNo, columnNo, error) {
+  console.error('Global error:', msg, error);
+  const modal = document.querySelector('#error-boundary-modal');
+  if (modal) modal.style.display = 'flex';
+  return false; 
+};
+
+// ── ONBOARDING ──
+function checkOnboarding() {
+  if (!localStorage.getItem('cadence_onboarded')) {
+    const modal = document.querySelector('#onboarding-modal');
+    const btn = document.querySelector('#btn-close-onboarding');
+    if (modal && btn) {
+      modal.style.display = 'flex';
+      btn.addEventListener('click', () => {
+        modal.style.display = 'none';
+        localStorage.setItem('cadence_onboarded', '1');
+      });
+    }
+  }
+}
+
 async function boot() {
+  updateOnlineStatus();
+  checkOnboarding();
   initRouter();
   initStrava();
   initBilling();

@@ -718,16 +718,67 @@
     <!-- Step 4: CTA -->
     <div class="ob-step" id="ob-step-4">
       <div class="ob-step-emoji">🏆</div>
-      <div class="ob-step-title">You can win this</div>
-      <div class="ob-step-sub">Your rival hasn't run yet today.<br>Every km counts.</div>
-      <button class="btn btn-green" style="width:100%;margin-top:24px;font-size:1rem;padding:14px" onclick="finishOnboarding()">Let's go! 🏃</button>
-      <div class="ob-progress-dots">
-        <span class="ob-dot"></span><span class="ob-dot"></span><span class="ob-dot"></span><span class="ob-dot active"></span>
+              <div class="ob-step-title">You can win this</div>
+              <div class="ob-step-sub">Your rival hasn't run yet today.<br>Every km counts.</div>
+              <button class="btn btn-green" style="width:100%;margin-top:24px;font-size:1rem;padding:14px" onclick="finishOnboarding()">Let's go! 🏃</button>
+              <div class="ob-progress-dots">
+                <span class="ob-dot"></span><span class="ob-dot"></span><span class="ob-dot"></span><span class="ob-dot active"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="toast-container" id="toast-container"></div>
+  
+  <!-- ── OFFLINE / ERROR BOUNDARIES ── -->
+  <div id="offline-banner" style="display:none; position:fixed; top:0; left:0; right:0; background:var(--red); color:#fff; text-align:center; padding:8px; font-size:0.85rem; z-index:9999; font-weight:600;">
+    No internet connection. Operating offline.
+  </div>
+  
+  <div id="error-boundary-modal" class="modal" style="display:none; z-index:10000">
+    <div class="modal-content" style="text-align:center; padding:32px 24px">
+      <div style="font-size:3rem; margin-bottom:16px">💥</div>
+      <h3 style="margin-bottom:8px">Something went wrong</h3>
+      <p style="color:var(--muted); font-size:0.9rem; margin-bottom:24px">We encountered an unexpected error. Don't worry, your data is safe.</p>
+      <button class="btn btn-green" onclick="window.location.reload()" style="width:100%">Reload App</button>
+    </div>
+  </div>
+
+  <!-- ── ONBOARDING MODAL ── -->
+  <div id="onboarding-modal" class="modal" style="display:none; z-index:9990">
+    <div class="modal-content" style="padding:0; overflow:hidden">
+      <div style="background:var(--surface2); padding:32px 24px; text-align:center; border-bottom:1px solid var(--border)">
+        <div style="font-size:3rem; margin-bottom:16px">🏃</div>
+        <h2 style="font-family:'Syne', sans-serif; font-weight:800; font-size:1.5rem; margin-bottom:8px">Welcome to Cadence</h2>
+        <p style="color:var(--muted); font-size:0.95rem">Your AI-powered running journey starts here.</p>
+      </div>
+      <div style="padding:24px">
+        <div style="display:flex; gap:16px; margin-bottom:20px; align-items:flex-start">
+          <div style="background:var(--surface3); width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-weight:700">1</div>
+          <div>
+            <div style="font-weight:600; margin-bottom:4px">Connect Strava</div>
+            <div style="font-size:0.85rem; color:var(--muted)">Go to Settings and link your Strava account to sync your runs automatically.</div>
+          </div>
+        </div>
+        <div style="display:flex; gap:16px; margin-bottom:20px; align-items:flex-start">
+          <div style="background:var(--surface3); width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-weight:700">2</div>
+          <div>
+            <div style="font-weight:600; margin-bottom:4px">Meet your AI Coach</div>
+            <div style="font-size:0.85rem; color:var(--muted)">Tap the Coach tab to get personalized insights on your performance.</div>
+          </div>
+        </div>
+        <div style="display:flex; gap:16px; margin-bottom:24px; align-items:flex-start">
+          <div style="background:var(--surface3); width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-weight:700">3</div>
+          <div>
+            <div style="font-weight:600; margin-bottom:4px">Compete & Level Up</div>
+            <div style="font-size:0.85rem; color:var(--muted)">Earn XP, unlock badges, and climb your local City Leaderboard.</div>
+          </div>
+        </div>
+        <button class="btn btn-green" id="btn-close-onboarding" style="width:100%">Let's go!</button>
       </div>
     </div>
   </div>
-</div>
 
-<script type="module" src="./js/main.js"></script>
+  <script type="module" src="./js/main.js"></script>
 </body>
 </html>
