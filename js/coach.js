@@ -69,6 +69,7 @@ async function sendMsg() {
   if (sendBtn) sendBtn.disabled = true;
 
   chatHistory.push({ role: 'user', content: text });
+  if (chatHistory.length > 52) chatHistory.splice(1, 2);
 
   const aiBubble = appendStreamingBubble();
 

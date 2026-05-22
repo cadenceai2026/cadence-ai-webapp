@@ -3,27 +3,20 @@ import { daysUntil } from './utils.js';
 
 export function showAppScreen() {
   const loading = qs('#screen-loading');
-  if (loading) loading.style.display = 'none';
-  
+  if (loading) loading.remove();
+
   const app = qs('#screen-app');
   if (app) app.style.display = 'block';
-
-  const topbar = qs('#mob-topbar');
-  const nav = qs('#mob-nav');
-  if (topbar) topbar.style.display = 'flex';
-  if (nav) nav.style.display = 'block';
 }
 
 export function showPage(name) {
   qsa('.page').forEach(p => p.classList.remove('active'));
   qsa('.nav-item').forEach(n => n.classList.remove('active'));
-  qsa('.mob-nav-btn').forEach(n => n.classList.remove('active'));
 
   const page = qs(`#page-${name}`);
   if (page) page.classList.add('active');
 
-  qs(`.nav-item[data-page="${name}"]`)?.classList.add('active');
-  qs(`.mob-nav-btn[data-page="${name}"]`)?.classList.add('active');
+  qsa(`.nav-item[data-page="${name}"]`).forEach(n => n.classList.add('active'));
 
   const titles = {
     dashboard:  'Dashboard',
@@ -117,7 +110,7 @@ export function showEliteWelcome() {
 export function applySimplicityRule(level) {
   const isBeginner = level < 3;
   // Hide advanced nav items for beginners
-  qsa('.nav-item[data-page="leagues"], .nav-item[data-page="battlepass"], .mob-nav-btn[data-page="leagues"], .mob-nav-btn[data-page="battlepass"]').forEach(el => {
+  qsa('.nav-item[data-page="leagues"], .nav-item[data-page="battlepass"], .advanced-feature').forEach(el => {
     el.style.display = isBeginner ? 'none' : '';
   });
 }
