@@ -38,11 +38,11 @@ export function initSettings() {
     toggleAutoSync(e.target.checked);
   });
 
-  // Chip selection
-  document.querySelectorAll('.chip[data-group]').forEach(chip => {
+  // Chip selection (supports both .chip and .m3-chip)
+  document.querySelectorAll('.m3-chip[data-group], .chip[data-group]').forEach(chip => {
     chip.addEventListener('click', () => {
       const group = chip.dataset.group;
-      document.querySelectorAll(`.chip[data-group="${group}"]`)
+      document.querySelectorAll(`.m3-chip[data-group="${group}"], .chip[data-group="${group}"]`)
         .forEach(c => c.classList.remove('on'));
       chip.classList.add('on');
     });
@@ -110,12 +110,12 @@ function updateStravaConnUI(sc) {
 
   if (sc) {
     const fullName = [sc.athlete_firstname, sc.athlete_lastname].filter(Boolean).join(' ');
-    if (dot)           dot.style.background       = 'var(--green)';
+    if (dot)           dot.style.background       = '#6effc0';
     if (statusTxt)     statusTxt.textContent       = fullName ? `Connected as ${fullName}` : 'Connected ✓';
     if (reconnectBtn)  reconnectBtn.style.display  = 'none';
     if (disconnectBtn) disconnectBtn.style.display = '';
   } else {
-    if (dot)           dot.style.background       = 'var(--muted)';
+    if (dot)           dot.style.background       = '#84958a';
     if (statusTxt)     statusTxt.textContent       = 'Not connected';
     if (reconnectBtn)  reconnectBtn.style.display  = '';
     if (disconnectBtn) disconnectBtn.style.display = 'none';
@@ -340,12 +340,12 @@ async function deleteAccount() {
 
 function selectChipByVal(group, val) {
   if (!val) return;
-  document.querySelectorAll(`.chip[data-group="${group}"]`)
+  document.querySelectorAll(`.m3-chip[data-group="${group}"], .chip[data-group="${group}"]`)
     .forEach(c => c.classList.toggle('on', c.dataset.val === val));
 }
 
 function getSelectedChip(group) {
-  return document.querySelector(`.chip[data-group="${group}"].on`)?.dataset?.val || null;
+  return document.querySelector(`.m3-chip[data-group="${group}"].on, .chip[data-group="${group}"].on`)?.dataset?.val || null;
 }
 
 function setToggle(id, val) {

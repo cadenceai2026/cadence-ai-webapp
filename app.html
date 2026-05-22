@@ -128,8 +128,9 @@
 <body class="bg-surface-deep text-on-surface">
 
 <!-- ══════════ LOADING SCREEN ══════════ -->
-<div id="screen-loading" style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg)">
-  <div class="spinner" style="width:30px;height:30px;border-width:3px"></div>
+<div id="screen-loading" class="fixed inset-0 flex flex-col items-center justify-center bg-surface-deep z-[999]">
+  <div class="text-primary font-display-hero text-[1.4rem] tracking-widest uppercase mb-6 animate-pulse">CADENCE</div>
+  <div class="spinner" style="width:28px;height:28px;border-width:2px"></div>
 </div>
 
 
@@ -554,237 +555,282 @@
 
       <!-- ── RANKING ── -->
       <div class="page" id="page-ranking">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-          <div>
-            <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.15rem;letter-spacing:-0.02em;margin-bottom:4px">Monthly Ranking 🏆</div>
-            <div style="font-size:0.82rem;color:var(--muted)">Top runner wins a free Elite month. Resets on the 1st.</div>
+        <div class="max-w-container-max mx-auto">
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-8">
+            <div>
+              <h2 class="font-headline-lg-mobile md:font-headline-lg text-neon-white uppercase tracking-tight mb-2">Monthly Ranking 🏆</h2>
+              <p class="font-body-md text-on-surface-variant">Top runner wins a free Elite month. Resets on the 1st.</p>
+            </div>
+            <div class="glass-panel px-4 py-3 rounded-xl border border-outline-variant/30 flex items-center gap-2">
+              <span class="material-symbols-outlined text-primary text-[18px]">schedule</span>
+              <span class="font-data-display text-[13px] text-on-surface-variant">Resets in <span id="days-left" class="text-primary">—</span> days</span>
+            </div>
           </div>
-          <div style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--muted)">Resets in <span id="days-left">—</span> days</div>
-        </div>
-        <div id="ranking-list">
-          <div class="empty"><span class="spinner"></span> Loading…</div>
+          <div id="ranking-list">
+            <div class="empty"><span class="spinner"></span> Loading…</div>
+          </div>
         </div>
       </div>
 
       <!-- ── PRICING ── -->
       <div class="page" id="page-pricing">
-        <div style="margin-bottom:32px">
-          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;letter-spacing:-0.03em;margin-bottom:8px">Simple pricing</div>
-          <div style="color:var(--muted)">Start free. Upgrade when you're ready.</div>
-        </div>
-        <div class="pricing-grid">
-          <div class="pricing-card">
-            <div class="pricing-name">Starter</div>
-            <div class="pricing-price">$0 <span>/ forever</span></div>
-            <div class="pricing-desc">For runners getting started.</div>
-            <ul class="pricing-feat">
-              <li class="on"><span class="check">✓</span> Strava connection</li>
-              <li class="on"><span class="check">✓</span> Activity dashboard</li>
-              <li class="on"><span class="check">✓</span> AI Coach (free)</li>
-              <li class="on"><span class="check">✓</span> Join 1 group</li>
-              <li style="opacity:0.4"><span class="check">✗</span> Create groups</li>
-              <li style="opacity:0.4"><span class="check">✗</span> km Battles</li>
-              <li style="opacity:0.4"><span class="check">✗</span> Monthly prize</li>
-            </ul>
-            <button class="btn btn-outline btn-full">Current plan</button>
+        <div class="max-w-container-max mx-auto px-0 md:px-margin-desktop py-4 md:py-8">
+          <div class="mb-10">
+            <h2 class="font-headline-lg-mobile md:font-headline-lg text-neon-white uppercase tracking-tight mb-2">Simple Pricing</h2>
+            <p class="font-body-md text-on-surface-variant">Start free. Upgrade when you're ready.</p>
           </div>
-          <div class="pricing-card featured">
-            <div class="pricing-badge">⚡ 14-day free trial</div>
-            <div class="pricing-name">Elite</div>
-            <div class="pricing-price">$8 <span>/ month</span></div>
-            <div class="pricing-desc">For serious runners who want to improve.</div>
-            <ul class="pricing-feat">
-              <li class="on"><span class="check">✓</span> Everything in Starter</li>
-              <li class="on"><span class="check">✓</span> Unlimited AI coaching</li>
-              <li class="on"><span class="check">✓</span> Create & lead groups</li>
-              <li class="on"><span class="check">✓</span> km Battles & ranking</li>
-              <li class="on"><span class="check">✓</span> Monthly winner = free month</li>
-              <li class="on"><span class="check">✓</span> Full activity history</li>
-              <li class="on"><span class="check">✓</span> PR predictor</li>
-            </ul>
-            <button class="btn btn-green btn-full" id="btn-checkout">Start free trial →</button>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl">
+            <!-- Starter -->
+            <div class="m3-pricing-card">
+              <div class="font-label-caps text-label-caps text-outline uppercase tracking-widest mb-4">Starter</div>
+              <div class="flex items-end gap-2 mb-1">
+                <span class="font-display-hero text-[3rem] text-neon-white leading-none">$0</span>
+                <span class="font-body-md text-on-surface-variant mb-2">/ forever</span>
+              </div>
+              <p class="font-body-md text-on-surface-variant text-sm mb-6">For runners getting started.</p>
+              <ul class="space-y-3 mb-8">
+                <li class="flex items-center gap-3 font-body-md text-on-surface text-sm"><span class="material-symbols-outlined text-primary text-[18px]" style="font-variation-settings:'FILL' 1;">check_circle</span> Strava connection</li>
+                <li class="flex items-center gap-3 font-body-md text-on-surface text-sm"><span class="material-symbols-outlined text-primary text-[18px]" style="font-variation-settings:'FILL' 1;">check_circle</span> Activity dashboard</li>
+                <li class="flex items-center gap-3 font-body-md text-on-surface text-sm"><span class="material-symbols-outlined text-primary text-[18px]" style="font-variation-settings:'FILL' 1;">check_circle</span> AI Coach (limited)</li>
+                <li class="flex items-center gap-3 font-body-md text-on-surface text-sm"><span class="material-symbols-outlined text-primary text-[18px]" style="font-variation-settings:'FILL' 1;">check_circle</span> Join 1 group</li>
+                <li class="flex items-center gap-3 font-body-md text-on-surface-variant text-sm opacity-40"><span class="material-symbols-outlined text-[18px]">cancel</span> Create groups</li>
+                <li class="flex items-center gap-3 font-body-md text-on-surface-variant text-sm opacity-40"><span class="material-symbols-outlined text-[18px]">cancel</span> km Battles</li>
+                <li class="flex items-center gap-3 font-body-md text-on-surface-variant text-sm opacity-40"><span class="material-symbols-outlined text-[18px]">cancel</span> Monthly prize</li>
+              </ul>
+              <button class="m3-btn m3-btn-outlined m3-btn-full" disabled>Current plan</button>
+            </div>
+            <!-- Elite -->
+            <div class="m3-pricing-card featured">
+              <div class="m3-pricing-badge">⚡ 14-day free trial</div>
+              <div class="font-label-caps text-label-caps text-primary uppercase tracking-widest mb-4">Elite</div>
+              <div class="flex items-end gap-2 mb-1">
+                <span class="font-display-hero text-[3rem] text-primary leading-none">$8</span>
+                <span class="font-body-md text-on-surface-variant mb-2">/ month</span>
+              </div>
+              <p class="font-body-md text-on-surface-variant text-sm mb-6">For serious runners who want to improve.</p>
+              <ul class="space-y-3 mb-8">
+                <li class="flex items-center gap-3 font-body-md text-on-surface text-sm"><span class="material-symbols-outlined text-primary text-[18px]" style="font-variation-settings:'FILL' 1;">check_circle</span> Everything in Starter</li>
+                <li class="flex items-center gap-3 font-body-md text-on-surface text-sm"><span class="material-symbols-outlined text-primary text-[18px]" style="font-variation-settings:'FILL' 1;">check_circle</span> Unlimited AI coaching</li>
+                <li class="flex items-center gap-3 font-body-md text-on-surface text-sm"><span class="material-symbols-outlined text-primary text-[18px]" style="font-variation-settings:'FILL' 1;">check_circle</span> Create & lead groups</li>
+                <li class="flex items-center gap-3 font-body-md text-on-surface text-sm"><span class="material-symbols-outlined text-primary text-[18px]" style="font-variation-settings:'FILL' 1;">check_circle</span> km Battles & ranking</li>
+                <li class="flex items-center gap-3 font-body-md text-on-surface text-sm"><span class="material-symbols-outlined text-primary text-[18px]" style="font-variation-settings:'FILL' 1;">check_circle</span> Monthly winner prize</li>
+                <li class="flex items-center gap-3 font-body-md text-on-surface text-sm"><span class="material-symbols-outlined text-primary text-[18px]" style="font-variation-settings:'FILL' 1;">check_circle</span> Full activity history</li>
+                <li class="flex items-center gap-3 font-body-md text-on-surface text-sm"><span class="material-symbols-outlined text-primary text-[18px]" style="font-variation-settings:'FILL' 1;">check_circle</span> PR predictor</li>
+              </ul>
+              <button class="m3-btn m3-btn-filled m3-btn-full" id="btn-checkout" style="border-radius:12px; padding:14px; font-size:1rem;">Start free trial →</button>
+            </div>
           </div>
         </div>
       </div>
 
       <!-- ── SETTINGS ── -->
       <div class="page" id="page-settings">
-        <div style="max-width:580px">
+        <div class="max-w-container-max mx-auto" style="max-width:620px">
 
-          <div class="settings-section">
-            <div class="settings-title">👤 Profile</div>
-
-            <!-- Avatar upload area -->
-            <div style="display:flex;align-items:center;gap:20px;margin-bottom:24px">
-              <div style="position:relative;flex-shrink:0">
-                <div id="settings-avatar" style="width:80px;height:80px;border-radius:50%;background:var(--green-dim);border:2px solid #00E5A030;display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:600;color:var(--green);overflow:hidden;cursor:pointer" onclick="document.getElementById('avatar-file-input').click()" title="Click to change photo">?</div>
-                <div style="position:absolute;bottom:0;right:0;width:24px;height:24px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;cursor:pointer;border:2px solid var(--bg);pointer-events:none">
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#080808" stroke-width="2.5"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          <!-- Profile Card -->
+          <div class="m3-card">
+            <div class="m3-card-title">👤 Profile</div>
+            <div class="flex items-center gap-5 mb-6">
+              <div class="relative flex-shrink-0">
+                <div class="m3-avatar" id="settings-avatar" onclick="document.getElementById('avatar-file-input').click()" title="Click to change photo">?</div>
+                <div class="absolute bottom-0 right-0 w-6 h-6 rounded-full bg-primary flex items-center justify-center border-2 border-surface-deep pointer-events-none">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#003824" stroke-width="2.5"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
                 </div>
                 <input type="file" id="avatar-file-input" accept="image/*" style="display:none">
               </div>
               <div>
-                <div style="font-size:0.95rem;font-weight:600;margin-bottom:3px" id="settings-display-name">—</div>
-                <div style="font-size:0.78rem;color:var(--muted);margin-bottom:8px" id="settings-email">—</div>
-                <button id="btn-upload-avatar" class="btn-sm" style="font-size:0.75rem">Upload photo</button>
-                <span id="avatar-upload-status" style="font-size:0.72rem;color:var(--muted);margin-left:8px"></span>
+                <div class="font-body-md text-neon-white font-semibold mb-1" id="settings-display-name">—</div>
+                <div class="font-data-display text-[13px] text-on-surface-variant mb-3" id="settings-email">—</div>
+                <button id="btn-upload-avatar" class="m3-btn m3-btn-tonal" style="padding:6px 16px; font-size:0.78rem; border-radius:10px;">Upload photo</button>
+                <span id="avatar-upload-status" class="font-label-caps text-[11px] text-on-surface-variant ml-2"></span>
               </div>
             </div>
 
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+            <div class="grid grid-cols-2 gap-3 mb-4">
               <div>
-                <div class="settings-lbl">Display name</div>
-                <input class="inp" id="profile-name" type="text" placeholder="Your name" style="margin-bottom:0">
+                <label class="m3-label">Display name</label>
+                <input class="m3-input" id="profile-name" type="text" placeholder="Your name">
               </div>
               <div>
-                <div class="settings-lbl">City</div>
-                <input class="inp" id="profile-city" type="text" placeholder="Madrid" style="margin-bottom:0">
-              </div>
-            </div>
-
-            <div style="margin-bottom:12px">
-              <div class="settings-lbl">Bio <span style="color:var(--muted2);font-size:0.7rem">(optional)</span></div>
-              <textarea class="inp" id="profile-bio" placeholder="Tell other runners about yourself…" style="margin-bottom:0;resize:vertical;min-height:72px;font-family:'Space Grotesk',sans-serif"></textarea>
-            </div>
-
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
-              <div>
-                <div class="settings-lbl">Date of birth</div>
-                <input class="inp" id="profile-dob" type="date" style="margin-bottom:0">
-              </div>
-              <div>
-                <div class="settings-lbl">Weight (kg)</div>
-                <input class="inp" id="profile-weight" type="number" min="30" max="200" step="0.5" placeholder="70" style="margin-bottom:0">
+                <label class="m3-label">City</label>
+                <input class="m3-input" id="profile-city" type="text" placeholder="Madrid">
               </div>
             </div>
 
-            <div class="settings-lbl">Runner type</div>
+            <div class="mb-4">
+              <label class="m3-label">Bio <span class="text-outline normal-case">(optional)</span></label>
+              <textarea class="m3-input" id="profile-bio" placeholder="Tell other runners about yourself…" style="resize:vertical;min-height:80px"></textarea>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 mb-5">
+              <div>
+                <label class="m3-label">Date of birth</label>
+                <input class="m3-input" id="profile-dob" type="date">
+              </div>
+              <div>
+                <label class="m3-label">Weight (kg)</label>
+                <input class="m3-input" id="profile-weight" type="number" min="30" max="200" step="0.5" placeholder="70">
+              </div>
+            </div>
+
+            <label class="m3-label">Runner type</label>
             <div class="chip-row">
-              <button class="chip" data-group="runner-type" data-val="beginner">🌱 Beginner</button>
-              <button class="chip" data-group="runner-type" data-val="intermediate">🏃 Intermediate</button>
-              <button class="chip" data-group="runner-type" data-val="advanced">⚡ Advanced</button>
+              <button class="m3-chip" data-group="runner-type" data-val="beginner">🌱 Beginner</button>
+              <button class="m3-chip" data-group="runner-type" data-val="intermediate">🏃 Intermediate</button>
+              <button class="m3-chip" data-group="runner-type" data-val="advanced">⚡ Advanced</button>
             </div>
-            <div class="settings-lbl">Goal</div>
+            <label class="m3-label">Goal</label>
             <div class="chip-row">
-              <button class="chip" data-group="goal" data-val="fitness">💪 Get fit</button>
-              <button class="chip" data-group="goal" data-val="10k">🏅 10K</button>
-              <button class="chip" data-group="goal" data-val="half">🎯 Half marathon</button>
-              <button class="chip" data-group="goal" data-val="marathon">🏆 Marathon</button>
+              <button class="m3-chip" data-group="goal" data-val="fitness">💪 Get fit</button>
+              <button class="m3-chip" data-group="goal" data-val="10k">🏅 10K</button>
+              <button class="m3-chip" data-group="goal" data-val="half">🎯 Half</button>
+              <button class="m3-chip" data-group="goal" data-val="marathon">🏆 Marathon</button>
             </div>
-            <button class="settings-save" id="btn-save-profile">Save profile</button>
+            <button class="m3-btn-save" id="btn-save-profile">Save profile</button>
           </div>
 
-
-          <div class="settings-section">
-            <div class="settings-title">🔗 Connections</div>
-            <div class="settings-conn-row" id="strava-conn-row">
-              <div style="display:flex;align-items:center;gap:12px">
-                <div style="width:36px;height:36px;border-radius:8px;background:#FC4C0215;display:flex;align-items:center;justify-content:center;font-size:0.95rem">🟠</div>
+          <!-- Connections Card -->
+          <div class="m3-card">
+            <div class="m3-card-title">🔗 Connections</div>
+            <div class="m3-conn-row" id="strava-conn-row">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg" style="background:rgba(252,76,2,0.1)">🟠</div>
                 <div>
-                  <div style="font-size:0.88rem;font-weight:500">Strava</div>
-                  <div style="font-size:0.7rem;color:var(--muted);display:flex;align-items:center;gap:5px">
-                    <div id="strava-conn-dot" style="width:6px;height:6px;border-radius:50%;background:var(--muted);flex-shrink:0"></div>
-                    <span id="strava-conn-status">Not connected</span>
+                  <div class="font-body-md text-neon-white font-medium">Strava</div>
+                  <div class="flex items-center gap-2 mt-0.5">
+                    <div id="strava-conn-dot" class="w-2 h-2 rounded-full bg-outline flex-shrink-0"></div>
+                    <span id="strava-conn-status" class="font-label-caps text-[11px] text-on-surface-variant">Not connected</span>
                   </div>
                 </div>
               </div>
-              <div style="display:flex;align-items:center;gap:8px">
-                <button class="btn-sm" id="btn-reconnect-strava">Connect Strava</button>
-                <button class="btn-sm" id="btn-disconnect-strava" style="display:none;color:#ff6b6b;border-color:#ff6b6b40">Disconnect</button>
+              <div class="flex items-center gap-2">
+                <button class="m3-btn m3-btn-tonal" id="btn-reconnect-strava" style="padding:7px 16px; font-size:0.78rem; border-radius:10px;">Connect Strava</button>
+                <button class="m3-btn" id="btn-disconnect-strava" style="display:none; padding:7px 16px; font-size:0.78rem; border-radius:10px; color:#ffb4ab; border:1px solid rgba(255,180,171,0.25); background:rgba(255,180,171,0.08)">Disconnect</button>
               </div>
             </div>
-            <div class="settings-row" id="autosync-row" style="display:none;margin-top:8px;padding:10px 14px;background:var(--surface2);border-radius:10px">
+            <div class="m3-settings-row" id="autosync-row" style="display:none">
               <div>
-                <div style="font-size:0.88rem;font-weight:500">Auto-sync on login</div>
-                <div style="font-size:0.7rem;color:var(--muted)">Automatically sync Strava activities when you open the app</div>
+                <div class="m3-settings-row-label">Auto-sync on login</div>
+                <div class="m3-settings-row-sub">Automatically sync Strava activities when you open the app</div>
               </div>
-              <label class="toggle"><input type="checkbox" id="autosync-toggle" checked><span class="toggle-track"></span></label>
+              <label class="m3-toggle"><input type="checkbox" id="autosync-toggle" checked><span class="m3-toggle-track"></span></label>
             </div>
-
-            <div class="settings-conn-row" style="opacity:0.5">
-              <div style="display:flex;align-items:center;gap:12px">
-                <div style="width:36px;height:36px;border-radius:8px;background:#0066CC15;display:flex;align-items:center;justify-content:center;font-size:0.95rem">⌚</div>
-                <div><div style="font-size:0.88rem;font-weight:500">Garmin</div><div style="font-size:0.7rem;color:var(--muted)">Coming soon</div></div>
+            <div class="m3-conn-row opacity-40">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg" style="background:rgba(0,102,204,0.1)">⌚</div>
+                <div>
+                  <div class="font-body-md text-neon-white font-medium">Garmin</div>
+                  <div class="font-label-caps text-[11px] text-on-surface-variant mt-0.5">Coming soon</div>
+                </div>
               </div>
-              <span style="font-size:0.68rem;color:var(--muted2);font-family:'DM Mono',monospace">Soon</span>
+              <span class="font-label-caps text-[10px] text-outline border border-outline-variant/30 px-3 py-1 rounded">SOON</span>
             </div>
           </div>
 
-
-          <div class="settings-section">
-            <div class="settings-title">🤖 AI Coach preferences</div>
-            <div class="settings-lbl">Language</div>
+          <!-- AI Coach Prefs Card -->
+          <div class="m3-card">
+            <div class="m3-card-title">🤖 AI Coach Preferences</div>
+            <label class="m3-label">Language</label>
             <div class="chip-row">
-              <button class="chip" data-group="lang" data-val="en">🇬🇧 English</button>
-              <button class="chip" data-group="lang" data-val="es">🇪🇸 Español</button>
-              <button class="chip" data-group="lang" data-val="fr">🇫🇷 Français</button>
-              <button class="chip" data-group="lang" data-val="de">🇩🇪 Deutsch</button>
+              <button class="m3-chip" data-group="lang" data-val="en">🇬🇧 English</button>
+              <button class="m3-chip" data-group="lang" data-val="es">🇪🇸 Español</button>
+              <button class="m3-chip" data-group="lang" data-val="fr">🇫🇷 Français</button>
+              <button class="m3-chip" data-group="lang" data-val="de">🇩🇪 Deutsch</button>
             </div>
-            <div class="settings-lbl">Coaching style</div>
+            <label class="m3-label">Coaching style</label>
             <div class="chip-row">
-              <button class="chip" data-group="style" data-val="motivator">🔥 Motivator</button>
-              <button class="chip" data-group="style" data-val="technical">📊 Technical</button>
-              <button class="chip" data-group="style" data-val="friendly">😊 Friendly</button>
-              <button class="chip" data-group="style" data-val="strict">💪 Strict</button>
+              <button class="m3-chip" data-group="style" data-val="motivator">🔥 Motivator</button>
+              <button class="m3-chip" data-group="style" data-val="technical">📊 Technical</button>
+              <button class="m3-chip" data-group="style" data-val="friendly">😊 Friendly</button>
+              <button class="m3-chip" data-group="style" data-val="strict">💪 Strict</button>
             </div>
-            <button class="settings-save" id="btn-save-coach">Save preferences</button>
+            <button class="m3-btn-save" id="btn-save-coach">Save preferences</button>
           </div>
 
-          <div class="settings-section">
-            <div class="settings-title">🔔 Notifications</div>
-            <div class="settings-row">
-              <div><div style="font-size:0.88rem;font-weight:500">Weekly summary</div><div style="font-size:0.7rem;color:var(--muted)">Every Monday by email</div></div>
-              <label class="toggle"><input type="checkbox" id="notif-weekly" checked><span class="toggle-track"></span></label>
+          <!-- Notifications Card -->
+          <div class="m3-card">
+            <div class="m3-card-title">🔔 Notifications</div>
+            <div class="m3-settings-row">
+              <div>
+                <div class="m3-settings-row-label">Weekly summary</div>
+                <div class="m3-settings-row-sub">Every Monday by email</div>
+              </div>
+              <label class="m3-toggle"><input type="checkbox" id="notif-weekly" checked><span class="m3-toggle-track"></span></label>
             </div>
-            <div class="settings-row">
-              <div><div style="font-size:0.88rem;font-weight:500">Ranking alerts</div><div style="font-size:0.7rem;color:var(--muted)">When someone overtakes you</div></div>
-              <label class="toggle"><input type="checkbox" id="notif-ranking"><span class="toggle-track"></span></label>
+            <div class="m3-settings-row">
+              <div>
+                <div class="m3-settings-row-label">Ranking alerts</div>
+                <div class="m3-settings-row-sub">When someone overtakes you</div>
+              </div>
+              <label class="m3-toggle"><input type="checkbox" id="notif-ranking"><span class="m3-toggle-track"></span></label>
             </div>
-            <div class="settings-row">
-              <div><div style="font-size:0.88rem;font-weight:500">Inactivity reminder</div><div style="font-size:0.7rem;color:var(--muted)">If you haven't run in 5+ days</div></div>
-              <label class="toggle"><input type="checkbox" id="notif-inactive" checked><span class="toggle-track"></span></label>
+            <div class="m3-settings-row">
+              <div>
+                <div class="m3-settings-row-label">Inactivity reminder</div>
+                <div class="m3-settings-row-sub">If you haven't run in 5+ days</div>
+              </div>
+              <label class="m3-toggle"><input type="checkbox" id="notif-inactive" checked><span class="m3-toggle-track"></span></label>
             </div>
-            <div class="settings-row">
-              <div><div style="font-size:0.88rem;font-weight:500">Monthly winner</div><div style="font-size:0.7rem;color:var(--muted)">Notify me if I win the monthly ranking</div></div>
-              <label class="toggle"><input type="checkbox" id="notif-winner"><span class="toggle-track"></span></label>
+            <div class="m3-settings-row">
+              <div>
+                <div class="m3-settings-row-label">Monthly winner</div>
+                <div class="m3-settings-row-sub">Notify me if I win the monthly ranking</div>
+              </div>
+              <label class="m3-toggle"><input type="checkbox" id="notif-winner"><span class="m3-toggle-track"></span></label>
             </div>
-            <button class="settings-save" id="btn-save-notifs">Save notifications</button>
+            <button class="m3-btn-save" id="btn-save-notifs">Save notifications</button>
           </div>
 
-          <div class="settings-section">
-            <div class="settings-title">💳 Subscription</div>
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-              <div style="font-size:0.88rem;font-weight:500">Current plan</div>
+          <!-- Subscription Card -->
+          <div class="m3-card">
+            <div class="m3-card-title">💳 Subscription</div>
+            <div class="flex items-center justify-between mb-3">
+              <div class="m3-settings-row-label">Current plan</div>
               <span class="plan-tag trial" id="sub-plan-tag">TRIAL</span>
             </div>
-            <div style="font-size:0.78rem;color:var(--muted);margin-bottom:14px" id="sub-plan-detail">14-day free trial active</div>
-            <button class="settings-save" id="sub-action-btn">Upgrade to Elite →</button>
+            <div class="font-data-display text-[13px] text-on-surface-variant mb-4" id="sub-plan-detail">14-day free trial active</div>
+            <button class="m3-btn-save" id="sub-action-btn">Upgrade to Elite →</button>
           </div>
 
-          <div class="settings-section">
-            <div class="settings-title">🔐 Account</div>
-            <div style="font-size:0.85rem;color:var(--muted);margin-bottom:16px" id="account-email">—</div>
-            <button class="chip" style="width:100%;padding:10px;margin-bottom:8px;text-align:center" id="btn-change-pass">Change password</button>
-            <button id="btn-signout" style="width:100%;background:transparent;border:1px solid #ff444440;color:#ff4444;border-radius:8px;padding:10px;font-family:'Space Grotesk',sans-serif;font-size:0.85rem;cursor:pointer;margin-bottom:8px">Sign out</button>
-            <button id="btn-delete" style="width:100%;background:transparent;border:none;color:var(--muted2);border-radius:8px;padding:10px;font-family:'Space Grotesk',sans-serif;font-size:0.76rem;cursor:pointer">Delete account</button>
-          </div>
-
+          <!-- Account Card -->
+          <div class="m3-card">
+            <div class="m3-card-title">🔐 Account</div>
+            <div class="font-data-display text-[13px] text-on-surface-variant mb-5" id="account-email">—</div>
+            <div class="flex flex-col gap-3">
+              <button class="m3-btn m3-btn-outlined m3-btn-full" id="btn-change-pass" style="border-radius:12px; padding:11px;">Change password</button>
+              <button id="btn-signout" class="m3-btn m3-btn-full" style="border-radius:12px; padding:11px; background:rgba(255,180,171,0.08); border:1px solid rgba(255,180,171,0.2); color:#ffb4ab;">Sign out</button>
+              <button id="btn-delete" class="m3-btn m3-btn-full m3-btn-text" style="padding:10px; font-size:0.76rem; color:#84958a;">Delete account</button>
+            </div>
           </div>
 
         </div>
+      </div>
 
       <!-- ── ADMIN ── -->
       <div class="page" id="page-admin">
-        <div class="settings-section" style="max-width:800px; margin: 0 auto; display: block;">
-            <div class="settings-title">🛡️ Admin Panel</div>
-            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px">
-              <div class="stat-card"><div class="stat-label">Total users</div><div class="stat-value g" id="admin-total">—</div></div>
-              <div class="stat-card"><div class="stat-label">Elite</div><div class="stat-value" id="admin-elite">—</div></div>
-              <div class="stat-card"><div class="stat-label">Trial</div><div class="stat-value" id="admin-trial">—</div></div>
-              <div class="stat-card"><div class="stat-label">Free</div><div class="stat-value" id="admin-free">—</div></div>
+        <div class="max-w-container-max mx-auto" style="max-width:860px">
+          <div class="m3-card">
+            <div class="m3-card-title">🛡️ Admin Panel</div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              <div class="glass-panel rounded-xl p-4 border border-outline-variant/30">
+                <div class="font-label-caps text-label-caps text-outline uppercase tracking-widest mb-2">Total users</div>
+                <div class="font-data-display text-[2rem] text-primary" id="admin-total">—</div>
+              </div>
+              <div class="glass-panel rounded-xl p-4 border border-outline-variant/30">
+                <div class="font-label-caps text-label-caps text-outline uppercase tracking-widest mb-2">Elite</div>
+                <div class="font-data-display text-[2rem] text-neon-white" id="admin-elite">—</div>
+              </div>
+              <div class="glass-panel rounded-xl p-4 border border-outline-variant/30">
+                <div class="font-label-caps text-label-caps text-outline uppercase tracking-widest mb-2">Trial</div>
+                <div class="font-data-display text-[2rem] text-neon-white" id="admin-trial">—</div>
+              </div>
+              <div class="glass-panel rounded-xl p-4 border border-outline-variant/30">
+                <div class="font-label-caps text-label-caps text-outline uppercase tracking-widest mb-2">Free</div>
+                <div class="font-data-display text-[2rem] text-neon-white" id="admin-free">—</div>
+              </div>
             </div>
-            <div style="background:var(--surface2);border-radius:10px;overflow:hidden">
-              <table class="admin-table">
+            <div class="rounded-xl overflow-hidden border border-outline-variant/30">
+              <table class="m3-table">
                 <thead>
                   <tr>
                     <th>Email</th>
@@ -799,6 +845,7 @@
                 </tbody>
               </table>
             </div>
+          </div>
         </div>
       </div>
 
@@ -1134,19 +1181,33 @@
 
       <!-- ── CHALLENGES ── -->
       <div class="page" id="page-challenges">
-        <div class="challenges-section">
-          <div class="sec-head">
-            <div class="sec-title">⚡ Daily</div>
-            <div class="challenge-reset-timer" id="daily-reset">Resets tonight</div>
+        <div class="max-w-container-max mx-auto">
+          <div class="mb-8">
+            <h2 class="font-headline-lg-mobile md:font-headline-lg text-neon-white uppercase tracking-tight mb-2">Daily Ops</h2>
+            <p class="font-body-md text-on-surface-variant">Complete challenges to earn XP and climb the ranks.</p>
           </div>
-          <div id="challenges-daily"><div class="empty"><span class="spinner"></span> Loading…</div></div>
-        </div>
-        <div class="challenges-section" style="margin-top:24px">
-          <div class="sec-head">
-            <div class="sec-title">📅 Weekly</div>
-            <div class="challenge-reset-timer" id="weekly-reset">Resets Monday</div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div>
+              <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-3">
+                  <span class="material-symbols-outlined text-secondary text-[20px]" style="font-variation-settings:'FILL' 1;">bolt</span>
+                  <span class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest">Daily</span>
+                </div>
+                <span class="challenge-reset-timer" id="daily-reset">Resets tonight</span>
+              </div>
+              <div id="challenges-daily"><div class="empty"><span class="spinner"></span> Loading…</div></div>
+            </div>
+            <div>
+              <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-3">
+                  <span class="material-symbols-outlined text-primary text-[20px]" style="font-variation-settings:'FILL' 1;">calendar_month</span>
+                  <span class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest">Weekly</span>
+                </div>
+                <span class="challenge-reset-timer" id="weekly-reset">Resets Monday</span>
+              </div>
+              <div id="challenges-weekly"><div class="empty"><span class="spinner"></span> Loading…</div></div>
+            </div>
           </div>
-          <div id="challenges-weekly"><div class="empty"><span class="spinner"></span> Loading…</div></div>
         </div>
       </div>
 
@@ -1178,49 +1239,37 @@
   </nav>
 
 <!-- ══ MODALS ══ -->
-<div id="group-modal" style="display:none" class="modal-overlay">
-  <div class="modal-box">
-    <div class="modal-handle"></div>
-    <div class="modal-title">Create a Group</div>
-    <div class="modal-sub">Create a running group for your city or neighborhood.</div>
-    <input class="inp" id="group-name" type="text" placeholder="Group name (e.g. Madrid Centro Runners)">
-    <input class="inp" id="group-city" type="text" placeholder="City">
-    <input class="inp" id="group-flag" type="text" placeholder="Flag emoji (e.g. 🇪🇸)">
-    <button class="btn btn-green btn-full" id="btn-save-group">Create group</button>
-    <button class="btn btn-outline btn-full" id="btn-cancel-group" style="margin-top:8px">Cancel</button>
-  </div>
-</div>
+<div id="toast-root"></div>
 
+<!-- Elite Modal -->
 <div id="elite-modal" style="display:none" class="elite-overlay">
   <div class="elite-box">
     <div style="font-size:2.8rem;margin-bottom:12px">🏆</div>
-    <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.5rem;letter-spacing:-0.03em;margin-bottom:6px">Welcome to <span style="color:var(--green)">Elite</span></div>
-    <div style="font-size:0.85rem;color:var(--muted);margin-bottom:20px;line-height:1.6">You now have full access to all Cadence features.</div>
+    <div class="font-display-hero text-[1.5rem] text-neon-white mb-2">Welcome to <span class="text-primary">Elite</span></div>
+    <div class="font-body-md text-on-surface-variant mb-5" style="font-size:0.85rem;line-height:1.6">You now have full access to all Cadence features.</div>
     <div style="margin-bottom:24px">
-      <div class="benefit-row"><span style="font-size:1.1rem">🤖</span><div><div style="font-size:0.85rem;font-weight:600">Unlimited AI Coach</div><div style="font-size:0.72rem;color:var(--muted)">Chat as much as you want</div></div></div>
-      <div class="benefit-row"><span style="font-size:1.1rem">👥</span><div><div style="font-size:0.85rem;font-weight:600">Create & lead Groups</div><div style="font-size:0.72rem;color:var(--muted)">Lead your city running community</div></div></div>
-      <div class="benefit-row"><span style="font-size:1.1rem">🏆</span><div><div style="font-size:0.85rem;font-weight:600">Monthly Winner Prize</div><div style="font-size:0.72rem;color:var(--muted)">Top km runner wins next month free</div></div></div>
+      <div class="benefit-row"><span style="font-size:1.1rem">🤖</span><div><div class="font-body-md text-neon-white font-semibold" style="font-size:0.85rem">Unlimited AI Coach</div><div class="font-body-md text-on-surface-variant" style="font-size:0.72rem">Chat as much as you want</div></div></div>
+      <div class="benefit-row"><span style="font-size:1.1rem">👥</span><div><div class="font-body-md text-neon-white font-semibold" style="font-size:0.85rem">Create & lead Groups</div><div class="font-body-md text-on-surface-variant" style="font-size:0.72rem">Lead your city running community</div></div></div>
+      <div class="benefit-row"><span style="font-size:1.1rem">🏆</span><div><div class="font-body-md text-neon-white font-semibold" style="font-size:0.85rem">Monthly Winner Prize</div><div class="font-body-md text-on-surface-variant" style="font-size:0.72rem">Top km runner wins next month free</div></div></div>
     </div>
-    <button id="btn-close-elite" style="width:100%;background:var(--green);color:#080808;border:none;border-radius:10px;padding:13px;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:0.95rem;cursor:pointer">Let's go! 🏃</button>
+    <button id="btn-close-elite" class="m3-btn m3-btn-filled m3-btn-full" style="border-radius:12px;padding:14px;font-size:0.95rem">Let's go! 🏃</button>
   </div>
 </div>
 
-<div id="toast-root"></div>
-
-<!-- ══ LEVEL-UP MODAL ══ -->
-<div id="levelup-modal" style="display:none" class="modal-overlay levelup-overlay">
+<!-- Level-Up Modal -->
+<div id="levelup-modal" style="display:none" class="levelup-overlay">
   <div class="levelup-box">
     <div class="levelup-glow"></div>
     <div class="levelup-emoji">⬆️</div>
     <div class="levelup-label">LEVEL UP!</div>
     <div class="levelup-num" id="levelup-num">8</div>
     <div class="levelup-sub">You're getting stronger 🔥</div>
-    <button onclick="closeLevelUp()" class="btn btn-green" style="width:100%;margin-top:16px">Keep Running →</button>
+    <button onclick="closeLevelUp()" class="m3-btn m3-btn-filled m3-btn-full" style="border-radius:12px;padding:12px;margin-top:16px">Keep Running →</button>
   </div>
 </div>
 
-<!-- ══ REWARD MODAL ══ -->
-<div id="reward-modal" style="display:none" class="modal-overlay reward-overlay">
+<!-- Reward Modal -->
+<div id="reward-modal" style="display:none" class="reward-overlay">
   <div class="reward-box">
     <div id="reward-modal-body">
       <div class="reward-modal-emoji">🎁</div>
@@ -1230,10 +1279,9 @@
   </div>
 </div>
 
-<!-- ══ ONBOARDING OVERLAY ══ -->
+<!-- Onboarding Overlay -->
 <div id="onboarding-overlay" style="display:none" class="ob-overlay">
   <div class="ob-card">
-    <!-- Step 1: Welcome -->
     <div class="ob-step ob-step-active" id="ob-step-1">
       <div class="ob-step-emoji">🎮</div>
       <div class="ob-step-title">Welcome, <span id="ob-user-name">Runner</span>!</div>
@@ -1242,87 +1290,84 @@
         <span class="ob-dot active"></span><span class="ob-dot"></span><span class="ob-dot"></span><span class="ob-dot"></span>
       </div>
     </div>
-    <!-- Step 2: Rival -->
     <div class="ob-step" id="ob-step-2">
       <div class="ob-step-emoji">⚔️</div>
       <div class="ob-step-title">We found your rival</div>
       <div class="ob-step-sub">Someone just like you. Defeat them.</div>
-      <div id="ob-rival-card" class="ob-rival-card"><!-- injected --></div>
+      <div id="ob-rival-card" class="ob-rival-card"></div>
       <div class="ob-progress-dots">
         <span class="ob-dot"></span><span class="ob-dot active"></span><span class="ob-dot"></span><span class="ob-dot"></span>
       </div>
     </div>
-    <!-- Step 3: Challenge -->
     <div class="ob-step" id="ob-step-3">
       <div class="ob-step-emoji">⚡</div>
       <div class="ob-step-title">Your first challenge</div>
       <div class="ob-step-sub">Complete it to earn XP and climb the ranks.</div>
-      <div id="ob-challenge-card" class="ob-challenge-card"><!-- injected --></div>
+      <div id="ob-challenge-card" class="ob-challenge-card"></div>
       <div class="ob-progress-dots">
         <span class="ob-dot"></span><span class="ob-dot"></span><span class="ob-dot active"></span><span class="ob-dot"></span>
       </div>
     </div>
-    <!-- Step 4: CTA -->
     <div class="ob-step" id="ob-step-4">
       <div class="ob-step-emoji">🏆</div>
-              <div class="ob-step-title">You can win this</div>
-              <div class="ob-step-sub">Your rival hasn't run yet today.<br>Every km counts.</div>
-              <button class="btn btn-green" style="width:100%;margin-top:24px;font-size:1rem;padding:14px" onclick="finishOnboarding()">Let's go! 🏃</button>
-              <div class="ob-progress-dots">
-                <span class="ob-dot"></span><span class="ob-dot"></span><span class="ob-dot"></span><span class="ob-dot active"></span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="toast-container" id="toast-container"></div>
-  
-  <!-- ── OFFLINE / ERROR BOUNDARIES ── -->
-  <div id="offline-banner" style="display:none; position:fixed; top:0; left:0; right:0; background:var(--red); color:#fff; text-align:center; padding:8px; font-size:0.85rem; z-index:9999; font-weight:600;">
-    No internet connection. Operating offline.
-  </div>
-  
-  <div id="error-boundary-modal" class="modal" style="display:none; z-index:10000">
-    <div class="modal-content" style="text-align:center; padding:32px 24px">
-      <div style="font-size:3rem; margin-bottom:16px">💥</div>
-      <h3 style="margin-bottom:8px">Something went wrong</h3>
-      <p style="color:var(--muted); font-size:0.9rem; margin-bottom:24px">We encountered an unexpected error. Don't worry, your data is safe.</p>
-      <button class="btn btn-green" onclick="window.location.reload()" style="width:100%">Reload App</button>
+      <div class="ob-step-title">You can win this</div>
+      <div class="ob-step-sub">Your rival hasn't run yet today.<br>Every km counts.</div>
+      <button class="m3-btn m3-btn-filled m3-btn-full" style="border-radius:12px;padding:14px;font-size:1rem;margin-top:24px" onclick="finishOnboarding()">Let's go! 🏃</button>
+      <div class="ob-progress-dots">
+        <span class="ob-dot"></span><span class="ob-dot"></span><span class="ob-dot"></span><span class="ob-dot active"></span>
+      </div>
     </div>
   </div>
+</div>
+
+<!-- Offline Banner -->
+<div id="offline-banner">
+  <span class="material-symbols-outlined text-[16px] align-middle mr-1">wifi_off</span>
+  No internet connection. Some features unavailable.
+</div>
+
+<!-- Error Boundary -->
+<div id="error-boundary-modal" class="elite-overlay" style="display:none; z-index:10000">
+  <div class="elite-box" style="border-color:rgba(255,180,171,0.3)">
+    <div style="font-size:2.5rem;margin-bottom:12px">💥</div>
+    <div class="font-display-hero text-[1.4rem] text-neon-white mb-2">Something went wrong</div>
+    <div class="font-body-md text-on-surface-variant mb-6" style="font-size:0.85rem">We encountered an unexpected error. Your data is safe.</div>
+    <button class="m3-btn m3-btn-filled m3-btn-full" style="border-radius:12px;padding:12px" onclick="window.location.reload()">Reload App</button>
+  </div>
+</div>
 
   <!-- ── ONBOARDING MODAL ── -->
-  <div id="onboarding-modal" class="modal" style="display:none; z-index:9990">
-    <div class="modal-content" style="padding:0; overflow:hidden">
-      <div style="background:var(--surface2); padding:32px 24px; text-align:center; border-bottom:1px solid var(--border)">
-        <div style="font-size:3rem; margin-bottom:16px">🏃</div>
-        <h2 style="font-family:'Syne', sans-serif; font-weight:800; font-size:1.5rem; margin-bottom:8px">Welcome to Cadence</h2>
-        <p style="color:var(--muted); font-size:0.95rem">Your AI-powered running journey starts here.</p>
+  <div id="onboarding-modal" class="elite-overlay" style="display:none; z-index:9990">
+    <div class="elite-box" style="max-width:420px">
+      <div style="text-align:center; padding-bottom:20px; margin-bottom:20px; border-bottom:1px solid rgba(59,74,65,0.4)">
+        <div style="font-size:2.5rem; margin-bottom:12px">🏃</div>
+        <div class="font-display-hero text-[1.4rem] text-neon-white mb-2">Welcome to Cadence</div>
+        <p class="font-body-md text-on-surface-variant" style="font-size:0.9rem">Your AI-powered running journey starts here.</p>
       </div>
-      <div style="padding:24px">
-        <div style="display:flex; gap:16px; margin-bottom:20px; align-items:flex-start">
-          <div style="background:var(--surface3); width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-weight:700">1</div>
+      <div class="space-y-4 mb-6">
+        <div class="flex gap-4 items-start">
+          <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-on-primary flex-shrink-0 font-bold text-sm">1</div>
           <div>
-            <div style="font-weight:600; margin-bottom:4px">Connect Strava</div>
-            <div style="font-size:0.85rem; color:var(--muted)">Go to Settings and link your Strava account to sync your runs automatically.</div>
+            <div class="font-body-md text-neon-white font-semibold mb-1">Connect Strava</div>
+            <div class="font-body-md text-on-surface-variant" style="font-size:0.82rem">Go to Settings and link your Strava account to sync your runs.</div>
           </div>
         </div>
-        <div style="display:flex; gap:16px; margin-bottom:20px; align-items:flex-start">
-          <div style="background:var(--surface3); width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-weight:700">2</div>
+        <div class="flex gap-4 items-start">
+          <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-on-primary flex-shrink-0 font-bold text-sm">2</div>
           <div>
-            <div style="font-weight:600; margin-bottom:4px">Meet your AI Coach</div>
-            <div style="font-size:0.85rem; color:var(--muted)">Tap the Coach tab to get personalized insights on your performance.</div>
+            <div class="font-body-md text-neon-white font-semibold mb-1">Meet your AI Coach</div>
+            <div class="font-body-md text-on-surface-variant" style="font-size:0.82rem">Get personalized insights based on your actual run data.</div>
           </div>
         </div>
-        <div style="display:flex; gap:16px; margin-bottom:24px; align-items:flex-start">
-          <div style="background:var(--surface3); width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-weight:700">3</div>
+        <div class="flex gap-4 items-start">
+          <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-on-primary flex-shrink-0 font-bold text-sm">3</div>
           <div>
-            <div style="font-weight:600; margin-bottom:4px">Compete & Level Up</div>
-            <div style="font-size:0.85rem; color:var(--muted)">Earn XP, unlock badges, and climb your local City Leaderboard.</div>
+            <div class="font-body-md text-neon-white font-semibold mb-1">Compete & Level Up</div>
+            <div class="font-body-md text-on-surface-variant" style="font-size:0.82rem">Earn XP, battle rivals, and climb the leaderboard.</div>
           </div>
         </div>
-        <button class="btn btn-green" id="btn-close-onboarding" style="width:100%">Let's go!</button>
       </div>
+      <button class="m3-btn m3-btn-filled m3-btn-full" id="btn-close-onboarding" style="border-radius:12px;padding:14px;font-size:0.95rem">Let's go! 🏃</button>
     </div>
   </div>
 
