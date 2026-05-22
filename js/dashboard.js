@@ -1,7 +1,7 @@
 import { state } from './state.js';
 import { navigate } from './router.js';
 import { qs, fmtTime, fmtPace, fmtDist, typeIcon, esc } from './utils.js';
-import { renderXPBar, renderStreakBadge, getWeeklyKmFromActivities, LEAGUES } from './game.js';
+import { renderStreakBadge, getWeeklyKmFromActivities, LEAGUES, xpProgressInLevel, xpNeededForNextLevel } from './game.js';
 
 export function renderDashboard() {
   renderHeatmap();

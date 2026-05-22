@@ -53,6 +53,11 @@ export function updatePlanUI(profile) {
   const upgradeBtn = qs('#upgrade-btn');
   const planTag = qs('#sb-plan-tag');
   const mobBadge = qs('#mob-plan-badge');
+  const sbName = qs('#sb-name');
+
+  if (sbName && profile) {
+    sbName.textContent = profile.display_name || 'Runner';
+  }
 
   if (plan === 'elite') {
     if (label) label.textContent = 'ELITE';

@@ -102,7 +102,7 @@
     }
   </script>
   <style>
-    body { background-color: theme('colors.surface-deep'); color: theme('colors.on-surface'); }
+    /* body bg moved to class */
     .glass-panel {
         background: rgba(26, 26, 26, 0.6);
         backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
@@ -125,7 +125,7 @@
 <script src="https://js.stripe.com/v3/"></script>
 <link rel="icon" type="image/svg+xml" href="./favicon.svg">
 </head>
-<body>
+<body class="bg-surface-deep text-on-surface">
 
 <!-- ══════════ LOADING SCREEN ══════════ -->
 <div id="screen-loading" style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg)">
@@ -138,7 +138,7 @@
 <div id="screen-app" style="display:none">
 
     <!-- Mobile & Desktop Header -->
-  <header class="fixed top-0 w-full z-50 flex justify-between items-center px-margin-mobile md:px-margin-desktop py-4 bg-background/80 backdrop-blur-xl border-b border-white/10 shadow-[0_0_20px_rgba(0,229,160,0.2)]">
+  <header class="fixed top-0 w-full z-50 flex justify-between items-center px-margin-mobile md:px-margin-desktop py-4 bg-surface-deep/95 backdrop-blur-md border-b border-white/10 shadow-[0_0_20px_rgba(0,229,160,0.2)]">
     <div class="font-display-hero text-headline-md italic tracking-tighter text-primary-container">CADENCE</div>
     <div class="flex items-center gap-6">
       <button class="text-on-surface-variant hover:text-primary transition-colors scale-95 active:duration-100 flex items-center justify-center">

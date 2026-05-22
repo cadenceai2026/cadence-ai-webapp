@@ -108,7 +108,7 @@
     }
   </script>
   <style>
-    body { background-color: theme('colors.surface-deep'); color: theme('colors.on-surface'); }
+    /* body bg moved to class */
     .glass-panel {
         background: rgba(26, 26, 26, 0.6);
         backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
@@ -123,7 +123,7 @@
   <!-- 3D Model Viewer -->
   <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.3.0/model-viewer.min.js"></script>
 </head>
-<body>
+<body class="bg-surface-deep text-on-surface">
 
 <!-- NAV -->
 <nav class="land-nav" id="navbar">
